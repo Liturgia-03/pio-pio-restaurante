@@ -1,0 +1,111 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("ADMIN") // "ADMIN" | "STAFF"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   // Ej: "Pollos Asados y Broaster", "Cortes a la Parrilla", "Acompañamientos", "Bebidas"
+  slug        String   @unique
+  description String?
+  iconName    String?  // Nombre de icono Lucide (ej: "Flame", "UtensilsCrossed", "Beer", "Salad")
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  dishes      Dish[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@index([isActive])
+  @@map("categories")
+}
+
+model Dish {
+  id              String        @id @default(uuid())
+  categoryId      String
+  category        Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name            String        // Ej: "Medio Pollo Asado con Arepa y Papa", "Punta de Anca 350g"
+  slug            String        @unique
+  description     String        // Ingredientes, técnica de cocción a la leña, términos
+  basePrice       Float
+  discountPrice   Float?
+  imageUrl        String
+  imagePublicId   String?       // Para borrado o reemplazo en Cloudinary
+  isAvailable     Boolean       @default(true) // Switch para marcar agotado en tiempo real
+  isFeatured      Boolean       @default(false)
+  badge           String        @default("NONE") // "NONE" | "POPULAR" | "CHEFS_SPECIAL" | "NEW" | "PROMO"
+  preparationTime Int?          // Estimado en minutos (ej: 25)
+  servings        String?       // Ej: "Para 1 persona", "Para 2 a 3 personas"
+  sortOrder       Int           @default(0)
+  portions        DishPortion[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([categoryId])
+  @@index([isAvailable])
+  @@index([sortOrder])
+  @@map("dishes")
+}
+
+model DishPortion {
+  id        String  @id @default(uuid())
+  dishId    String
+  dish      Dish    @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  label     String  // Ej: "1/4 de Pollo", "1/2 Pollo", "Pollo Entero" ó "300g", "500g"
+  price     Float
+  isDefault Boolean @default(false)
+
+  @@map("dish_portions")
+}
+
+model PromotionalModal {
+  id                 String   @id @default(uuid())
+  title              String   // Ej: "¡Especial del Día en Brasa y Carbón!"
+  subtitle           String?  // Ej: "Costillas BBQ Campesinas + Cerveza Artesanal"
+  description        String   // Descripción seductora para incentivar el consumo
+  imageUrl           String
+  imagePublicId      String?
+  badgeText          String?  // Ej: "20% OFF HOY"
+  regularPrice       Float?
+  promoPrice         Float?
+  ctaText            String   @default("Ver en el Menú")
+  targetDishId       String?  // ID del plato para navegar al hacer clic
+  isActive           Boolean  @default(true) // Control global para mostrar/ocultar el modal
+  autoShowDelayMs    Int      @default(800)  // Milisegundos de espera antes de desplegar
+  showOncePerSession Boolean  @default(true) // Evita molestar si el cliente navega internamente
+  updatedAt          DateTime @updatedAt
+
+  @@map("promotional_modals")
+}
+
+model RestaurantSettings {
+  id           String   @id @default("default")
+  name         String   @default("Pío Pío - Asadero y Restaurante")
+  whatsapp     String   @default("573001234567")
+  phone        String?  @default("573001234567")
+  address      String   @default("Carrera Principal con Calle 10, Centro")
+  schedule     String   @default("Lunes a Domingo: 10:00 AM a 9:00 PM")
+  wifiSsid     String?  @default("PioPio-Clientes")
+  wifiPassword String?  @default("Parrilla2026*")
+  updatedAt    DateTime @updatedAt
+
+  @@map("restaurant_settings")
+}
+
+

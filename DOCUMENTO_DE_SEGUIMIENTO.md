@@ -13,7 +13,7 @@
 | **Framework Full-Stack** | **Next.js 16.4.6** (App Router con motor **Turbopack**) |
 | **Librería UI** | **React 19** + **Tailwind CSS** |
 | **Lenguaje** | **TypeScript 5.x** (Tipado estricto end-to-end) |
-| **Base de Datos** | **SQLite local** (`prisma/dev.db`) gestionado mediante **Prisma ORM 6.19.3** |
+| **Base de Datos** | **PostgreSQL en la Nube (Neon Serverless)** gestionado mediante **Prisma ORM 6.19.3** |
 | **Gestión de Estado** | **TanStack Query (React Query v5)** con invalidación reactiva y actualizaciones optimistas |
 | **Iconografía** | **Lucide Icons** |
 | **Notificaciones** | **Sonner** (Toasts táctiles de alta visibilidad) |
@@ -182,6 +182,23 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `package.json`: Se añadió `"postinstall": "prisma generate"` para garantizar que Vercel genere el cliente automáticamente en cada build.
   - `.gitignore`: Ajustado para rastrear `.env.example` y blindar `dev.db` y `public/uploads/*`.
 - **Veredicto:** `[🟢 APTO PARA PRODUCCIÓN EN LA NUBE]`.
+
+### Hito 10: Despliegue de Base de Datos en Neon PostgreSQL y Sincronización Cloud
+- **Aprovisionamiento Cloud en Neon:**
+  - Proyecto `Pio_Pio` configurado en la región AWS Este (us-east-1).
+  - Cadena de conexión `DATABASE_URL` vinculada con pooling seguro en `.env`.
+- **Migración de Esquema a PostgreSQL:**
+  - `prisma/schema.prisma` actualizado a `provider = "postgresql"`.
+  - Creación de todas las tablas en la nube (`users`, `categories`, `dishes`, `dish_portions`, `promotional_modals`, `restaurant_settings`) mediante `npx prisma db push`.
+- **Siembra de Datos Oficiales de Pío Pío (`seed.ts`):**
+  - Creación del usuario administrador (`admin@asaderopiopio.com`).
+  - Carga masiva de categorías oficiales (Pollo Completo, Combos, Asados a la Brasa, Platos Típicos, Bandejas del Día, Sopas y Porciones, Desayunos).
+  - Creación de porciones dinámicas y plato estrella promocional.
+  - Configuración inicial de restaurante (WhatsApp, horarios, dirección).
+- **Prueba de Compilación con Base de Datos en la Nube:**
+  - `npm run build` ejecutado exitosamente: 20 páginas estáticas y 6 rutas dinámicas SSR/API generadas con 0 errores.
+- **Control de Versiones:**
+  - Commit formal realizado en la rama `master` con 69 archivos preparados para GitHub.
 
 ---
 

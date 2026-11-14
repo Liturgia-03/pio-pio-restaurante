@@ -372,7 +372,7 @@ export function DishForm({ initialData, isEditing = false }: DishFormProps) {
             <button
               type="button"
               onClick={handleAddPortion}
-              className="flex items-center gap-1 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-orange-400 text-xs font-bold rounded-xl border border-gray-700 transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-orange-400 text-xs font-bold rounded-xl border border-gray-700 active:scale-95 transition-all duration-200"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Agregar Tamaño</span>
@@ -440,7 +440,7 @@ export function DishForm({ initialData, isEditing = false }: DishFormProps) {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 active:scale-95 text-white font-bold rounded-2xl shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 text-xs transition-all disabled:opacity-50 min-h-[48px]"
+            className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 active:scale-[0.98] text-white font-bold rounded-2xl shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 text-xs transition-all duration-300 ease-out disabled:opacity-50 min-h-[48px]"
           >
             {loading ? (
               <>

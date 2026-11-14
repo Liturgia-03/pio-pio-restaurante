@@ -2,30 +2,40 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Mail, ArrowRight, Loader2 } from "lucide-react";
+import { Lock, User, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("admin@asaderopiopio.com");
-  const [password, setPassword] = useState("PioPio2026*");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!username.trim()) {
+      toast.error("Por favor ingresa tu usuario");
+      return;
+    }
+    if (!password) {
+      toast.error("Por favor ingresa tu contraseña");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const res = await fetch("/api/admin/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username: username.trim(), password }),
       });
 
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        toast.error(data.message || "Credenciales incorrectas");
+        toast.error(data.message || "Usuario o contraseña incorrectos");
         setLoading(false);
         return;
       }
@@ -41,13 +51,13 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-[#0f1115]">
-      <div className="w-full max-w-sm bg-[#181b20] border border-gray-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+      <div className="w-full max-w-sm bg-[#181b20] border border-gray-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden animate-[modalPopIn_0.4s_cubic-bezier(0.16,1,0.3,1)_both]">
         {/* Glow de fondo */}
         <div className="absolute -top-12 -right-12 w-36 h-36 bg-amber-600/20 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header con Logo Pío Pío */}
         <div className="text-center space-y-2 mb-6">
-          <div className="relative w-20 h-20 rounded-full mx-auto overflow-hidden border-2 border-amber-400 shadow-xl shadow-amber-500/20 bg-amber-950">
+          <div className="relative w-20 h-20 rounded-full mx-auto overflow-hidden border-2 border-amber-400 shadow-xl shadow-amber-500/20 bg-amber-950 animate-logo-glow">
             <img
               src="/logo-pio-pio.png"
               alt="Pío Pío Asadero y Restaurante"
@@ -63,15 +73,16 @@ export default function AdminLoginPage() {
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-gray-300">Correo Electrónico</label>
+            <label className="text-xs font-bold text-gray-300">Usuario</label>
             <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
-                type="email"
+                type="text"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@asaderopiopio.com"
+                autoComplete="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Ingresa tu usuario"
                 className="w-full bg-[#14161a] border border-gray-800 rounded-xl pl-10 pr-3 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-amber-500 transition-colors"
               />
             </div>
@@ -82,13 +93,27 @@ export default function AdminLoginPage() {
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-[#14161a] border border-gray-800 rounded-xl pl-10 pr-3 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-amber-500 transition-colors"
+                placeholder="Ingresa tu contraseña"
+                className="w-full bg-[#14161a] border border-gray-800 rounded-xl pl-10 pr-10 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-amber-500 transition-colors"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                tabIndex={-1}
+                aria-label={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-amber-400 active:scale-90 transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
             </div>
           </div>
 
@@ -96,7 +121,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 active:scale-95 text-white font-bold rounded-xl shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 text-xs transition-all disabled:opacity-50 min-h-[44px]"
+            className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 active:scale-[0.98] text-white font-bold rounded-xl shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 text-xs transition-all duration-300 ease-out disabled:opacity-50 min-h-[44px]"
           >
             {loading ? (
               <>
@@ -112,7 +137,7 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-        {/* Nota informativa con credenciales de prueba */}
+        {/* Nota informativa */}
         <div className="mt-6 pt-4 border-t border-gray-800/80 text-center">
           <p className="text-[11px] text-gray-500">
             Acceso exclusivo para administradores y cocina.

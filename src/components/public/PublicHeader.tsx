@@ -7,6 +7,7 @@ interface PublicHeaderProps {
   onSearchChange: (query: string) => void;
   isSearching: boolean;
   onToggleSearch: () => void;
+  mesaNumber?: string | null;
 }
 
 export function PublicHeader({
@@ -14,6 +15,7 @@ export function PublicHeader({
   onSearchChange,
   isSearching,
   onToggleSearch,
+  mesaNumber,
 }: PublicHeaderProps) {
   return (
     <header className="sticky top-0 z-40 bg-[#0f1115]/95 backdrop-blur-md border-b border-gray-800/80 px-4 py-3">
@@ -29,10 +31,17 @@ export function PublicHeader({
               />
             </div>
             <div>
-              <h1 className="text-base font-black tracking-tight text-white leading-none">
-                Pío Pío
-              </h1>
-              <span className="text-[10px] font-bold text-amber-400 tracking-wider uppercase">
+              <div className="flex items-center gap-2">
+                <h1 className="text-base font-black tracking-tight text-white leading-none">
+                  Pío Pío
+                </h1>
+                {mesaNumber && (
+                  <span className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-black px-2 py-0.5 rounded-full">
+                    Mesa #{mesaNumber}
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] font-bold text-amber-400 tracking-wider uppercase block mt-0.5">
                 Asadero y Restaurante
               </span>
             </div>

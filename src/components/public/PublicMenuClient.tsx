@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useMemo, useEffect, Suspense } from "react";
+import { useState, useMemo, useEffect, Suspense, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { PublicHeader } from "@/components/public/PublicHeader";
+import { PublicBottomBar } from "@/components/public/PublicBottomBar";
 import { CategoryCard } from "@/components/public/CategoryCard";
 import { CategoryChips } from "@/components/public/CategoryChips";
 import { DishCard } from "@/components/public/DishCard";
 import { DishDetailSheet } from "@/components/public/DishDetailSheet";
 import { PromoModal } from "@/components/public/PromoModal";
-import { CartFloatingButton } from "@/components/public/CartFloatingButton";
 import { CartSheet } from "@/components/public/CartSheet";
+import { useCart } from "@/context/CartContext";
 import { IconRenderer } from "@/components/common/IconRenderer";
 import { formatPrice } from "@/lib/formatters";
 import { CategoryWithDishes, DishItem, PromoModalData } from "@/types";
@@ -32,6 +33,8 @@ import {
   Check,
   Tag,
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -50,6 +53,9 @@ function MenuContent({
   const urlMesa = searchParams?.get("mesa") || null;
   const [mesaNumber, setMesaNumber] = useState<string | null>(urlMesa);
 
+  // Carrito de compras
+  const { isCartOpen, setIsCartOpen } = useCart();
+
   useEffect(() => {
     if (urlMesa) {
       try {
@@ -64,7 +70,7 @@ function MenuContent({
     }
   }, [urlMesa]);
 
-  // Pestaña activa de las 3 tarjetas superiores
+  // Pestaña activa (menu | promos | info)
   const [activeTab, setActiveTab] = useState<"menu" | "promos" | "info">("menu");
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -72,6 +78,72 @@ function MenuContent({
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [selectedDish, setSelectedDish] = useState<DishItem | null>(null);
   const [copiedWifi, setCopiedWifi] = useState(false);
+
+  // Referencias mutables para evitar stale closures en el listener popstate
+  const selectedCategoryIdRef = useRef(selectedCategoryId);
+  selectedCategoryIdRef.current = selectedCategoryId;
+
+  const selectedDishRef = useRef(selectedDish);
+  selectedDishRef.current = selectedDish;
+
+  const isCartOpenRef = useRef(isCartOpen);
+  isCartOpenRef.current = isCartOpen;
+
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+
+  const isSearchingRef = useRef(isSearching);
+  isSearchingRef.current = isSearching;
+
+  const searchQueryRef = useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
+
+  // Inicializar estado base en el historial del navegador
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (!window.history.state || !window.history.state.pioView) {
+        window.history.replaceState({ pioView: "root" }, "");
+      }
+    }
+  }, []);
+
+  // Interceptor global del botón Atrás del celular (Android / iOS / navegador)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handlePopState = () => {
+      // 1. Carrito abierto: CartSheet se encarga de su animación suave de cierre
+      if (isCartOpenRef.current) return;
+
+      // 2. Detalle de plato: DishDetailSheet se encarga de su animación suave de cierre
+      if (selectedDishRef.current) return;
+
+      // 3. Si el usuario está buscando y presiona atrás, cerrar la barra de búsqueda
+      if (isSearchingRef.current || searchQueryRef.current) {
+        setIsSearching(false);
+        setSearchQuery("");
+        return;
+      }
+
+      // 4. Si está dentro de una categoría, volver a la pantalla de Categorías
+      if (selectedCategoryIdRef.current) {
+        setSelectedCategoryId(null);
+        setSlideDirection("none");
+        return;
+      }
+
+      // 5. Si está en la pestaña Promos o Info, volver a la pestaña de Menú
+      if (activeTabRef.current !== "menu") {
+        setActiveTab("menu");
+        return;
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
 
   // Carga de menú público con initialData para SSR instantáneo
   const {
@@ -122,6 +194,99 @@ function MenuContent({
     if (!selectedCategoryId) return null;
     return categories.find((c) => c.id === selectedCategoryId) || null;
   }, [categories, selectedCategoryId]);
+
+  // Índice, categoría anterior y categoría siguiente para scroll/swipe horizontal
+  const currentCategoryIndex = useMemo(() => {
+    if (!selectedCategoryId) return -1;
+    return categories.findIndex((c) => c.id === selectedCategoryId);
+  }, [categories, selectedCategoryId]);
+
+  const prevCategory = useMemo(() => {
+    if (currentCategoryIndex <= 0) return null;
+    return categories[currentCategoryIndex - 1];
+  }, [categories, currentCategoryIndex]);
+
+  const nextCategory = useMemo(() => {
+    if (currentCategoryIndex < 0 || currentCategoryIndex >= categories.length - 1) return null;
+    return categories[currentCategoryIndex + 1];
+  }, [categories, currentCategoryIndex]);
+
+  const [slideDirection, setSlideDirection] = useState<"next" | "prev" | "none">("none");
+
+  const handleNextCategory = () => {
+    if (!nextCategory) return;
+    setSlideDirection("next");
+    if (typeof window !== "undefined") {
+      window.history.replaceState({ pioView: "category", categoryId: nextCategory.id }, "");
+    }
+    setSelectedCategoryId(nextCategory.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handlePrevCategory = () => {
+    if (!prevCategory) return;
+    setSlideDirection("prev");
+    if (typeof window !== "undefined") {
+      window.history.replaceState({ pioView: "category", categoryId: prevCategory.id }, "");
+    }
+    setSelectedCategoryId(prevCategory.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Soporte para gestos táctiles de deslizamiento horizontal (Swipe de izquierda a derecha y viceversa)
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+  const isHorizontalSwipe = useRef<boolean | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartPos.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
+    isHorizontalSwipe.current = null;
+    setIsDragging(false);
+    setDragOffset(0);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartPos.current) return;
+
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const deltaX = currentX - touchStartPos.current.x;
+    const deltaY = currentY - touchStartPos.current.y;
+
+    if (isHorizontalSwipe.current === null) {
+      if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+          isHorizontalSwipe.current = true;
+        } else {
+          isHorizontalSwipe.current = false;
+        }
+      }
+    }
+
+    if (isHorizontalSwipe.current === true) {
+      setIsDragging(true);
+      const dampened = deltaX * 0.4;
+      setDragOffset(Math.max(-80, Math.min(80, dampened)));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (isHorizontalSwipe.current === true && Math.abs(dragOffset) > 28) {
+      if (dragOffset < 0 && nextCategory) {
+        handleNextCategory();
+      } else if (dragOffset > 0 && prevCategory) {
+        handlePrevCategory();
+      }
+    }
+    setIsDragging(false);
+    setDragOffset(0);
+    touchStartPos.current = null;
+    isHorizontalSwipe.current = null;
+  };
 
   // Platos que están en oferta o con descuento para la pestaña de Promociones
   const promoDishes = useMemo(() => {
@@ -184,8 +349,76 @@ function MenuContent({
   };
 
   const handleSelectCategory = (catId: string) => {
+    setSlideDirection("none");
+    if (typeof window !== "undefined") {
+      if (!selectedCategoryIdRef.current) {
+        window.history.pushState({ pioView: "category", categoryId: catId }, "");
+      } else {
+        window.history.replaceState({ pioView: "category", categoryId: catId }, "");
+      }
+    }
     setSelectedCategoryId(catId);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleBackToCategories = () => {
+    if (typeof window !== "undefined" && window.history.state?.pioView === "category") {
+      window.history.back();
+    } else {
+      setSelectedCategoryId(null);
+      setSlideDirection("none");
+    }
+  };
+
+  const handleSelectDish = (dish: DishItem) => {
+    if (typeof window !== "undefined") {
+      window.history.pushState({ pioView: "dish", dishId: dish.id }, "");
+    }
+    setSelectedDish(dish);
+  };
+
+  const handleCloseDish = () => {
+    if (typeof window !== "undefined" && window.history.state?.pioView === "dish") {
+      window.history.back();
+    } else {
+      setSelectedDish(null);
+    }
+  };
+
+  const handleOpenCart = () => {
+    if (typeof window !== "undefined") {
+      window.history.pushState({ pioView: "cart" }, "");
+    }
+    setIsCartOpen(true);
+  };
+
+  const handleTabChange = (newTab: "menu" | "promos" | "info") => {
+    if (newTab === activeTab) return;
+    if (typeof window !== "undefined") {
+      if (newTab !== "menu" && activeTab === "menu") {
+        window.history.pushState({ pioView: "tab", tab: newTab }, "");
+      } else if (newTab === "menu" && window.history.state?.pioView === "tab") {
+        window.history.back();
+        return;
+      }
+    }
+    setActiveTab(newTab);
+  };
+
+  const handleToggleSearch = () => {
+    if (!isSearching) {
+      if (typeof window !== "undefined") {
+        window.history.pushState({ pioView: "search" }, "");
+      }
+      setIsSearching(true);
+    } else {
+      if (typeof window !== "undefined" && window.history.state?.pioView === "search") {
+        window.history.back();
+      } else {
+        setIsSearching(false);
+        setSearchQuery("");
+      }
+    }
   };
 
   const handleCopyWifi = () => {
@@ -206,107 +439,9 @@ function MenuContent({
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         isSearching={isSearching}
-        onToggleSearch={() => {
-          setIsSearching(!isSearching);
-          if (isSearching) setSearchQuery("");
-        }}
+        onToggleSearch={handleToggleSearch}
+        mesaNumber={mesaNumber}
       />
-
-      {/* TRES TARJETAS SUPERIORES: VER MENÚ COMPLETO | PROMOCIONES | INFORMACIÓN */}
-      <section className="px-3 pt-3 pb-2.5 bg-[#14161a]/95 border-b border-gray-800/80 sticky top-[60px] z-30 backdrop-blur-md">
-        <div className="grid grid-cols-3 gap-2 max-w-2xl mx-auto">
-          {/* Tarjeta 1: Ver Menú Completo */}
-          <button
-            onClick={() => {
-              setActiveTab("menu");
-              setSelectedCategoryId(null);
-            }}
-            className={`relative p-2.5 rounded-2xl border text-center transition-all duration-300 ease-out flex flex-col items-center justify-center min-h-[72px] active:scale-[0.96] ${
-              activeTab === "menu"
-                ? "bg-gradient-to-b from-amber-500/25 via-amber-500/10 to-transparent border-amber-500 text-white shadow-lg shadow-amber-500/20"
-                : "bg-[#181b20] border-gray-800 text-gray-400 hover:text-gray-200 hover:border-gray-700"
-            }`}
-          >
-            <div
-              className={`w-7 h-7 rounded-xl flex items-center justify-center mb-1 transition-all duration-300 ${
-                activeTab === "menu"
-                  ? "bg-amber-500 text-white shadow-md shadow-amber-500/30 scale-105"
-                  : "bg-gray-800 text-gray-400"
-              }`}
-            >
-              <UtensilsCrossed className="w-3.5 h-3.5" />
-            </div>
-            <span className="text-[11px] font-black leading-tight block">
-              Ver Menú Completo
-            </span>
-            <span className="text-[9px] text-amber-400 font-semibold mt-0.5 block">
-              {categories.length} Categorías
-            </span>
-          </button>
-
-          {/* Tarjeta 2: Promociones */}
-          <button
-            onClick={() => setActiveTab("promos")}
-            className={`relative p-2.5 rounded-2xl border text-center transition-all duration-300 ease-out flex flex-col items-center justify-center min-h-[72px] active:scale-[0.96] ${
-              activeTab === "promos"
-                ? "bg-gradient-to-b from-orange-500/25 via-orange-500/10 to-transparent border-orange-500 text-white shadow-lg shadow-orange-500/20"
-                : "bg-[#181b20] border-gray-800 text-gray-400 hover:text-gray-200 hover:border-gray-700"
-            }`}
-          >
-            <div
-              className={`w-7 h-7 rounded-xl flex items-center justify-center mb-1 transition-all duration-300 ${
-                activeTab === "promos"
-                  ? "bg-orange-500 text-white shadow-md shadow-orange-500/30 scale-105"
-                  : "bg-gray-800 text-gray-400"
-              }`}
-            >
-              <Flame className="w-3.5 h-3.5" />
-            </div>
-            <span className="text-[11px] font-black leading-tight block">
-              Promociones
-            </span>
-            <span className="text-[9px] text-orange-400 font-semibold mt-0.5 block">
-              Especial del Día
-            </span>
-          </button>
-
-          {/* Tarjeta 3: Información */}
-          <button
-            onClick={() => setActiveTab("info")}
-            className={`relative p-2.5 rounded-2xl border text-center transition-all duration-300 ease-out flex flex-col items-center justify-center min-h-[72px] active:scale-[0.96] ${
-              activeTab === "info"
-                ? "bg-gradient-to-b from-red-500/25 via-red-500/10 to-transparent border-red-500 text-white shadow-lg shadow-red-500/20"
-                : "bg-[#181b20] border-gray-800 text-gray-400 hover:text-gray-200 hover:border-gray-700"
-            }`}
-          >
-            <div
-              className={`w-7 h-7 rounded-xl flex items-center justify-center mb-1 transition-all duration-300 ${
-                activeTab === "info"
-                  ? "bg-red-500 text-white shadow-md shadow-red-500/30 scale-105"
-                  : "bg-gray-800 text-gray-400"
-              }`}
-            >
-              <Info className="w-3.5 h-3.5" />
-            </div>
-            <span className="text-[11px] font-black leading-tight block">
-              Información
-            </span>
-            <span className="text-[9px] text-red-400 font-semibold mt-0.5 block">
-              Horario & Wi-Fi
-            </span>
-          </button>
-        </div>
-
-        {/* Si el comensal está en mesa se muestra la insignia discreta */}
-        {mesaNumber && (
-          <div className="mt-2 text-center">
-            <span className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-black px-3 py-0.5 rounded-full">
-              <Table className="w-3 h-3 text-amber-400" />
-              <span>Atención en Mesa #{mesaNumber}</span>
-            </span>
-          </div>
-        )}
-      </section>
 
       {/* Barra de Chips (solo visible cuando está dentro de una categoría en la pestaña Menú) */}
       {!searchQuery && activeTab === "menu" && selectedCategoryId && categories.length > 0 && (
@@ -381,7 +516,7 @@ function MenuContent({
                   <DishCard
                     key={dish.id}
                     dish={dish}
-                    onSelect={(d) => setSelectedDish(d)}
+                    onSelect={handleSelectDish}
                   />
                 ))}
               </div>
@@ -424,40 +559,83 @@ function MenuContent({
                 </div>
               </div>
             ) : (
-              /* Si HAY categoría seleccionada: Muestra ÚNICA Y EXCLUSIVAMENTE los platos de esa categoría */
+              /* Si HAY categoría seleccionada: Muestra ÚNICA Y EXCLUSIVAMENTE los platos de esa categoría con soporte de Swipe horizontal */
               currentCategory && (
-                <div key={`cat-${currentCategory.id}`} className="space-y-4 animate-[fadeInUpSoft_0.32s_cubic-bezier(0.16,1,0.3,1)_both]">
-                  {/* Botón Volver a Categorías */}
-                  <div className="flex items-center justify-between">
+                <div
+                  key={`cat-${currentCategory.id}`}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                  style={{
+                    transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
+                    transition: isDragging ? "none" : "transform 0.25s ease-out",
+                  }}
+                  className={`space-y-4 touch-pan-y ${
+                    slideDirection === "next"
+                      ? "animate-in fade-in slide-in-from-right-8 duration-300"
+                      : slideDirection === "prev"
+                      ? "animate-in fade-in slide-in-from-left-8 duration-300"
+                      : "animate-[fadeInUpSoft_0.32s_cubic-bezier(0.16,1,0.3,1)_both]"
+                  }`}
+                >
+                  {/* Barra de Navegación Horizontal Superior: Volver + Flechas de Categoría */}
+                  <div className="flex items-center justify-between gap-2 p-2 bg-[#181b20] border border-gray-800 rounded-2xl shadow-sm">
                     <button
-                      onClick={() => setSelectedCategoryId(null)}
-                      className="inline-flex items-center gap-2 py-2 px-3.5 bg-gray-900 hover:bg-gray-800 text-amber-400 text-xs font-black rounded-xl border border-gray-800 active:scale-95 transition-all duration-300 ease-out shadow-md"
+                      onClick={handleBackToCategories}
+                      className="inline-flex items-center gap-1.5 py-1.5 px-3 bg-gray-900 hover:bg-gray-800 text-amber-400 text-xs font-bold rounded-xl border border-gray-800 active:scale-95 transition-all"
                     >
-                      <ArrowLeft className="w-4 h-4" />
-                      <span>Volver a Categorías</span>
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Categorías</span>
                     </button>
 
-                    <span className="text-xs text-gray-400 font-bold">
-                      {currentCategory.dishes.length}{" "}
-                      {currentCategory.dishes.length === 1 ? "plato" : "platos"}
-                    </span>
+                    {/* Selector Rápido Anterior / Siguiente */}
+                    <div className="flex items-center gap-1">
+                      <button
+                        disabled={!prevCategory}
+                        onClick={handlePrevCategory}
+                        aria-label="Categoría anterior"
+                        className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white disabled:opacity-25 disabled:pointer-events-none active:scale-90 transition-all"
+                      >
+                        <ChevronLeft className="w-4 h-4 text-amber-400" />
+                      </button>
+
+                      <span className="text-[10px] font-black text-gray-400 px-2 min-w-[50px] text-center">
+                        {currentCategoryIndex + 1} / {categories.length}
+                      </span>
+
+                      <button
+                        disabled={!nextCategory}
+                        onClick={handleNextCategory}
+                        aria-label="Categoría siguiente"
+                        className="w-8 h-8 flex items-center justify-center rounded-xl bg-gray-900 hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white disabled:opacity-25 disabled:pointer-events-none active:scale-90 transition-all"
+                      >
+                        <ChevronRight className="w-4 h-4 text-amber-400" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Cabecera de la Categoría Activa */}
-                  <div className="p-4 bg-gradient-to-r from-amber-500/10 via-[#181b20] to-orange-500/10 border border-amber-500/30 rounded-2xl flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/30 text-amber-300 flex items-center justify-center flex-shrink-0">
-                      <IconRenderer name={currentCategory.iconName} className="w-5 h-5" />
+                  <div className="p-4 bg-gradient-to-r from-amber-500/10 via-[#181b20] to-orange-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-between gap-3 shadow-md">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/30 text-amber-300 flex items-center justify-center flex-shrink-0">
+                        <IconRenderer name={currentCategory.iconName} className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <h2 className="text-base font-black text-white leading-tight truncate">
+                          {currentCategory.name}
+                        </h2>
+                        {currentCategory.description && (
+                          <p className="text-xs text-gray-400 leading-snug mt-0.5 truncate">
+                            {currentCategory.description}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-base font-black text-white leading-tight">
-                        {currentCategory.name}
-                      </h2>
-                      {currentCategory.description && (
-                        <p className="text-xs text-gray-400 leading-snug mt-0.5">
-                          {currentCategory.description}
-                        </p>
-                      )}
-                    </div>
+
+                    <span className="text-xs font-black text-amber-400 bg-black/40 px-2.5 py-1 rounded-full border border-amber-500/20 flex-shrink-0">
+                      {currentCategory.dishes.length}{" "}
+                      {currentCategory.dishes.length === 1 ? "plato" : "platos"}
+                    </span>
                   </div>
 
                   {/* Lista Única de los Platos de esta Categoría */}
@@ -466,23 +644,55 @@ function MenuContent({
                       <DishCard
                         key={dish.id}
                         dish={dish}
-                        onSelect={(d) => setSelectedDish(d)}
+                        onSelect={handleSelectDish}
                       />
                     ))}
                   </div>
 
-                  {/* Botón Inferior para regresar a ver más categorías */}
-                  <div className="pt-4 text-center">
-                    <button
-                      onClick={() => {
-                        setSelectedCategoryId(null);
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                      }}
-                      className="inline-flex items-center gap-2 py-3 px-6 bg-gradient-to-r from-gray-900 to-[#181b20] hover:bg-gray-800 text-gray-300 hover:text-white text-xs font-bold rounded-2xl border border-gray-800 active:scale-95 transition-all shadow-lg"
-                    >
-                      <ArrowLeft className="w-4 h-4 text-amber-400" />
-                      <span>Ver todas las categorías de Pío Pío</span>
-                    </button>
+                  {/* Navegación al Final de los Platos: Pasar a la Siguiente o Anterior Categoría */}
+                  <div className="pt-3 space-y-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      {prevCategory ? (
+                        <button
+                          onClick={handlePrevCategory}
+                          className="flex items-center gap-2 p-3 bg-[#181b20] hover:bg-gray-800 border border-gray-800 rounded-2xl text-left active:scale-95 transition-all"
+                        >
+                          <ChevronLeft className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                          <div className="min-w-0">
+                            <span className="text-[9px] text-gray-500 uppercase font-black block">Anterior</span>
+                            <span className="text-xs font-bold text-gray-200 truncate block">{prevCategory.name}</span>
+                          </div>
+                        </button>
+                      ) : <div />}
+
+                      {nextCategory && (
+                        <button
+                          onClick={handleNextCategory}
+                          className="flex items-center justify-end gap-2 p-3 bg-[#181b20] hover:bg-gray-800 border border-amber-500/30 rounded-2xl text-right active:scale-95 transition-all shadow-md shadow-amber-500/10"
+                        >
+                          <div className="min-w-0">
+                            <span className="text-[9px] text-amber-400 uppercase font-black block">Siguiente</span>
+                            <span className="text-xs font-bold text-white truncate block">{nextCategory.name}</span>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                        </button>
+                      )}
+                    </div>
+
+                    <p className="text-[10px] text-gray-500 text-center flex items-center justify-center gap-1.5 pt-1">
+                      <span>👈 Desliza la pantalla hacia los lados para cambiar de categoría 👉</span>
+                    </p>
+
+                    {/* Botón Inferior para regresar a ver más categorías */}
+                    <div className="pt-2 text-center">
+                      <button
+                        onClick={handleBackToCategories}
+                        className="inline-flex items-center gap-2 py-2.5 px-5 bg-gradient-to-r from-gray-900 to-[#181b20] hover:bg-gray-800 text-gray-300 hover:text-white text-xs font-bold rounded-2xl border border-gray-800 active:scale-95 transition-all shadow-lg"
+                      >
+                        <ArrowLeft className="w-4 h-4 text-amber-400" />
+                        <span>Ver todas las categorías de Pío Pío</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               )
@@ -581,7 +791,7 @@ function MenuContent({
                     <DishCard
                       key={dish.id}
                       dish={dish}
-                      onSelect={(d) => setSelectedDish(d)}
+                      onSelect={handleSelectDish}
                     />
                   ))}
                 </div>
@@ -776,16 +986,21 @@ function MenuContent({
       {/* Sheet de Detalle de Plato al tocar */}
       <DishDetailSheet
         dish={selectedDish}
-        onClose={() => setSelectedDish(null)}
+        onClose={handleCloseDish}
       />
-
-      {/* Botón Flotante de Carrito / Pedido */}
-      <CartFloatingButton />
 
       {/* Modal / Sheet del Pedido con WhatsApp dinámico */}
       <CartSheet
         initialMesa={mesaNumber}
         restaurantWhatsapp={settingsData?.whatsappNumber || "573001234567"}
+      />
+
+      {/* Barra de Navegación Inferior Móvil: MENÚ - PROMOS - PEDIDO - INFO */}
+      <PublicBottomBar
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        onResetCategory={handleBackToCategories}
+        onOpenCart={handleOpenCart}
       />
     </div>
   );

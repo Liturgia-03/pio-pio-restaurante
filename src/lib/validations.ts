@@ -64,7 +64,11 @@ export const promoModalSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  email: z.string().email("Correo electrónico inválido"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  username: z.string().min(1, "Ingresa tu usuario").optional(),
+  email: z.string().min(1, "Ingresa tu usuario").optional(),
+  password: z.string().min(1, "Ingresa tu contraseña"),
+}).refine((data) => data.username || data.email, {
+  message: "El usuario es requerido",
+  path: ["username"],
 });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   FolderTree,
@@ -26,6 +26,20 @@ export default function AdminCategoriesPage() {
   const [description, setDescription] = useState("");
   const [iconName, setIconName] = useState("Flame");
   const [isActive, setIsActive] = useState(true);
+
+  const isFormOpenRef = useRef(false);
+  isFormOpenRef.current = isCreating || editingId !== null;
+
+  // Manejar el botón Atrás del celular para cerrar el formulario sin salir de la página
+  useEffect(() => {
+    const onPopState = () => {
+      if (isFormOpenRef.current) {
+        resetForm();
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
 
   const { data: categories = [], isLoading } = useQuery({
     queryKey: ["admin-categories"],
@@ -83,7 +97,7 @@ export default function AdminCategoriesPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
       queryClient.invalidateQueries({ queryKey: ["public-menu"] });
       toast.success("Categoría creada");
-      resetForm();
+      handleCloseForm();
     },
     onError: (err: any) => toast.error(err.message || "Error al crear categoría"),
   });
@@ -104,7 +118,7 @@ export default function AdminCategoriesPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
       queryClient.invalidateQueries({ queryKey: ["public-menu"] });
       toast.success("Categoría actualizada");
-      resetForm();
+      handleCloseForm();
     },
     onError: (err: any) => toast.error(err.message || "Error al actualizar"),
   });
@@ -134,7 +148,25 @@ export default function AdminCategoriesPage() {
     setIsActive(true);
   };
 
+  const handleCloseForm = () => {
+    if (typeof window !== "undefined" && window.history.state?.pioAdminCategoryForm) {
+      window.history.back();
+      return;
+    }
+    resetForm();
+  };
+
+  const handleStartCreate = () => {
+    if (typeof window !== "undefined") {
+      window.history.pushState({ pioAdminCategoryForm: true }, "");
+    }
+    setIsCreating(true);
+  };
+
   const handleStartEdit = (cat: any) => {
+    if (typeof window !== "undefined") {
+      window.history.pushState({ pioAdminCategoryForm: true }, "");
+    }
     setEditingId(cat.id);
     setName(cat.name);
     setDescription(cat.description || "");
@@ -168,7 +200,7 @@ export default function AdminCategoriesPage() {
 
         {!isCreating && !editingId && (
           <button
-            onClick={() => setIsCreating(true)}
+            onClick={handleStartCreate}
             className="flex items-center gap-1.5 py-2 px-3.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-xl active:scale-95 transition-all shadow-md shadow-orange-500/20 min-h-[38px]"
           >
             <Plus className="w-4 h-4" />
@@ -181,7 +213,7 @@ export default function AdminCategoriesPage() {
       {(isCreating || editingId) && (
         <form
           onSubmit={handleSave}
-          className="bg-[#181b20] border border-orange-500/40 rounded-3xl p-5 space-y-4 animate-in fade-in zoom-in-95"
+          className="bg-[#181b20] border border-orange-500/40 rounded-3xl p-5 space-y-4 shadow-xl animate-[fadeInUpSoft_0.32s_cubic-bezier(0.16,1,0.3,1)_both]"
         >
           <div className="flex items-center justify-between border-b border-gray-800 pb-3">
             <span className="text-xs font-bold text-orange-400 uppercase tracking-wider">
@@ -189,8 +221,8 @@ export default function AdminCategoriesPage() {
             </span>
             <button
               type="button"
-              onClick={resetForm}
-              className="text-gray-400 hover:text-white"
+              onClick={handleCloseForm}
+              className="text-gray-400 hover:text-white active:scale-90 transition-all"
             >
               <X className="w-5 h-5" />
             </button>
@@ -271,7 +303,7 @@ export default function AdminCategoriesPage() {
           {categories.map((cat: any, index: number) => (
             <div
               key={cat.id}
-              className="flex items-center justify-between p-3.5 bg-[#181b20] border border-gray-800 rounded-2xl gap-3 transition-colors"
+              className="flex items-center justify-between p-3.5 bg-[#181b20] border border-gray-800 hover:border-gray-700/80 rounded-2xl gap-3 transition-all duration-300 ease-out hover:shadow-md"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-9 h-9 rounded-xl bg-orange-600/10 border border-orange-500/20 text-orange-400 flex items-center justify-center flex-shrink-0">
@@ -300,7 +332,7 @@ export default function AdminCategoriesPage() {
                   disabled={index === 0}
                   onClick={() => handleMove(index, "up")}
                   aria-label="Mover arriba"
-                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800/80 hover:bg-gray-700 text-gray-300 disabled:opacity-25"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800/80 hover:bg-gray-700 text-gray-300 active:scale-90 transition-all duration-200 disabled:opacity-25"
                 >
                   <ArrowUp className="w-3.5 h-3.5" />
                 </button>
@@ -308,7 +340,7 @@ export default function AdminCategoriesPage() {
                   disabled={index === categories.length - 1}
                   onClick={() => handleMove(index, "down")}
                   aria-label="Mover abajo"
-                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800/80 hover:bg-gray-700 text-gray-300 disabled:opacity-25"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800/80 hover:bg-gray-700 text-gray-300 active:scale-90 transition-all duration-200 disabled:opacity-25"
                 >
                   <ArrowDown className="w-3.5 h-3.5" />
                 </button>
@@ -316,7 +348,7 @@ export default function AdminCategoriesPage() {
                 <button
                   onClick={() => handleStartEdit(cat)}
                   aria-label="Editar categoría"
-                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800/80 hover:bg-gray-700 text-gray-300 ml-1"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-800/80 hover:bg-gray-700 text-gray-300 active:scale-90 transition-all duration-200 ml-1"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
@@ -328,7 +360,7 @@ export default function AdminCategoriesPage() {
                     }
                   }}
                   aria-label="Eliminar categoría"
-                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-950/30 hover:bg-red-900/40 text-red-400"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-950/30 hover:bg-red-900/40 text-red-400 active:scale-90 transition-all duration-200"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>

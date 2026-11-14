@@ -11,6 +11,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  const handleOpenDrawer = () => {
+    if (typeof window !== "undefined") {
+      window.history.pushState({ pioAdminDrawer: true }, "");
+    }
+    setDrawerOpen(true);
+  };
+
   if (pathname === "/admin/login") {
     return <div className="min-h-screen bg-[#0f1115] text-gray-100">{children}</div>;
   }
@@ -36,9 +43,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <div className="flex-1 md:pl-64 flex flex-col min-h-screen pb-20 md:pb-6">
         <AdminHeader
           title={pageTitle}
-          onOpenDrawer={() => setDrawerOpen(true)}
+          onOpenDrawer={handleOpenDrawer}
         />
-        <main className="flex-1 p-4 sm:p-6 max-w-5xl w-full mx-auto">
+        <main
+          key={pathname}
+          className="flex-1 p-4 sm:p-6 max-w-5xl w-full mx-auto animate-[fadeInUpSoft_0.32s_cubic-bezier(0.16,1,0.3,1)_both]"
+        >
           {children}
         </main>
       </div>

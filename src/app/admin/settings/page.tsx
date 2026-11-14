@@ -13,6 +13,9 @@ import {
   CheckCircle2,
   Lock,
   KeyRound,
+  User,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -26,10 +29,16 @@ export default function AdminSettingsPage() {
   const [wifiSsid, setWifiSsid] = useState("");
   const [wifiPassword, setWifiPassword] = useState("");
 
-  // Cambio de contraseña
+  // Credenciales de administración (Usuario y Contraseña)
+  const [adminUsername, setAdminUsername] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  // Visibilidad de contraseñas
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { data: settings, isLoading } = useQuery({
     queryKey: ["admin-settings"],
@@ -48,6 +57,7 @@ export default function AdminSettingsPage() {
       setOpeningHours(settings.openingHours || "");
       setWifiSsid(settings.wifiSsid || "");
       setWifiPassword(settings.wifiPassword || "");
+      if (settings.adminUsername) setAdminUsername(settings.adminUsername);
     }
   }, [settings]);
 
@@ -68,7 +78,7 @@ export default function AdminSettingsPage() {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      toast.success("Ajustes del restaurante guardados correctamente en la base de datos");
+      toast.success("Ajustes y credenciales guardados correctamente");
     },
     onError: (err: any) => {
       toast.error(err.message || "Error al guardar ajustes");
@@ -79,16 +89,12 @@ export default function AdminSettingsPage() {
     e.preventDefault();
 
     if (newPassword) {
-      if (newPassword.length < 6) {
-        toast.error("La nueva contraseña debe tener al menos 6 caracteres");
+      if (newPassword.length < 4) {
+        toast.error("La nueva contraseña debe tener al menos 4 caracteres");
         return;
       }
       if (newPassword !== confirmPassword) {
-        toast.error("Las contraseñas no coinciden");
-        return;
-      }
-      if (!currentPassword) {
-        toast.error("Debes ingresar la contraseña actual para confirmarla");
+        toast.error("Las nuevas contraseñas no coinciden");
         return;
       }
     }
@@ -100,7 +106,8 @@ export default function AdminSettingsPage() {
       openingHours,
       wifiSsid,
       wifiPassword,
-      ...(newPassword ? { currentPassword, newPassword } : {}),
+      adminUsername: adminUsername.trim(),
+      ...(newPassword ? { currentPassword, newPassword, confirmPassword } : {}),
     });
   };
 
@@ -220,56 +227,111 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        {/* Seguridad y Cambio de Contraseña */}
-        <div className="border-t border-gray-800/80 pt-4 space-y-3">
+        {/* Seguridad y Credenciales de Acceso */}
+        <div className="border-t border-gray-800/80 pt-4 space-y-4">
           <div className="flex items-center gap-2 text-amber-400">
             <Lock className="w-4 h-4" />
             <label className="text-xs font-bold text-white uppercase tracking-wider">
-              Seguridad y Contraseña de Administración
+              Credenciales de Acceso al Panel Administrativo
             </label>
           </div>
-          <p className="text-[11px] text-gray-400">
-            Deja estos campos en blanco si no deseas cambiar tu contraseña actual.
+          <p className="text-[11px] text-gray-400 leading-relaxed">
+            Desde aquí puedes cambiar tu <strong>Usuario</strong>, tu <strong>Contraseña</strong> o ambos en cualquier momento.
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-400">
-                Contraseña Actual
-              </label>
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-[#14161a] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
-              />
-            </div>
+          {/* Campo Usuario */}
+          <div className="space-y-1 max-w-sm">
+            <label className="text-[11px] font-bold text-gray-300 flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-amber-400" />
+              <span>Usuario Administrador</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={adminUsername}
+              onChange={(e) => setAdminUsername(e.target.value)}
+              placeholder="Ej: Piopio123"
+              className="w-full bg-[#14161a] border border-gray-800 rounded-xl px-3.5 py-2 text-xs text-white font-semibold focus:outline-none focus:border-amber-500"
+            />
+          </div>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-400">
-                Nueva Contraseña
-              </label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
-                className="w-full bg-[#14161a] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
-              />
-            </div>
+          <div className="pt-1">
+            <span className="text-[10px] font-black uppercase tracking-wider text-gray-500 block mb-2">
+              Cambio de Contraseña (Opcional - dejar en blanco para conservar la actual)
+            </span>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-400">
-                Confirmar Contraseña
-              </label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Repite la nueva contraseña"
-                className="w-full bg-[#14161a] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Contraseña Actual */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-gray-400">
+                  Contraseña Actual
+                </label>
+                <div className="relative">
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-[#14161a] border border-gray-800 rounded-xl pl-3 pr-8 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    tabIndex={-1}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-amber-400"
+                  >
+                    {showCurrentPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Nueva Contraseña */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-gray-400">
+                  Nueva Contraseña
+                </label>
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Mínimo 4 caracteres"
+                    className="w-full bg-[#14161a] border border-gray-800 rounded-xl pl-3 pr-8 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    tabIndex={-1}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-amber-400"
+                  >
+                    {showNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirmar Contraseña */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-gray-400">
+                  Confirmar Contraseña
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Repite la contraseña"
+                    className="w-full bg-[#14161a] border border-gray-800 rounded-xl pl-3 pr-8 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    tabIndex={-1}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-amber-400"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -279,7 +341,7 @@ export default function AdminSettingsPage() {
           <button
             type="submit"
             disabled={updateMutation.isPending}
-            className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 active:scale-95 text-white font-bold rounded-2xl shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 text-xs transition-all disabled:opacity-50 min-h-[46px]"
+            className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 active:scale-[0.98] text-white font-bold rounded-2xl shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 text-xs transition-all duration-300 ease-out disabled:opacity-50 min-h-[46px]"
           >
             {updateMutation.isPending ? (
               <>

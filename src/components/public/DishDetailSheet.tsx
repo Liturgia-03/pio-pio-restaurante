@@ -37,9 +37,31 @@ export function DishDetailSheet({ dish, onClose }: DishDetailSheetProps) {
     }
   }, [dish]);
 
+  // Soporte de botón Atrás del celular con animación suave de salida
+  useEffect(() => {
+    if (!dish) return;
+
+    const onPopState = () => {
+      setIsClosing(true);
+      setTimeout(() => {
+        onClose();
+        setIsClosing(false);
+      }, 240);
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, [dish, onClose]);
+
   if (!dish) return null;
 
   const handleSmoothClose = () => {
+    if (typeof window !== "undefined" && window.history.state?.pioView === "dish") {
+      window.history.back();
+      return;
+    }
     setIsClosing(true);
     setTimeout(() => {
       onClose();

@@ -71,10 +71,10 @@ export function AdminNavSidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 ease-out active:scale-[0.98] ${
                   isActive
-                    ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/20"
-                    : "text-gray-400 hover:bg-gray-800/60 hover:text-gray-100"
+                    ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/20 translate-x-1"
+                    : "text-gray-400 hover:bg-gray-800/60 hover:text-gray-100 hover:translate-x-1"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -90,7 +90,7 @@ export function AdminNavSidebar() {
         <Link
           href="/menu"
           target="_blank"
-          className="flex items-center justify-center gap-2 w-full py-2.5 px-3 bg-gray-800/80 hover:bg-gray-700 text-gray-200 text-xs font-semibold rounded-xl border border-gray-700 transition-colors"
+          className="flex items-center justify-center gap-2 w-full py-2.5 px-3 bg-gray-800/80 hover:bg-gray-700 text-gray-200 text-xs font-semibold rounded-xl border border-gray-700 active:scale-[0.98] transition-all duration-300 ease-out"
         >
           <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
           <span>Ver Carta de Clientes</span>
@@ -98,7 +98,7 @@ export function AdminNavSidebar() {
 
         <button
           onClick={handleLogout}
-          className="flex items-center justify-center gap-2 w-full py-2.5 px-3 bg-red-950/30 hover:bg-red-900/40 text-red-400 text-xs font-semibold rounded-xl border border-red-800/30 transition-colors"
+          className="flex items-center justify-center gap-2 w-full py-2.5 px-3 bg-red-950/30 hover:bg-red-900/40 text-red-400 text-xs font-semibold rounded-xl border border-red-800/30 active:scale-[0.98] transition-all duration-300 ease-out"
         >
           <LogOut className="w-3.5 h-3.5" />
           <span>Cerrar Sesión</span>

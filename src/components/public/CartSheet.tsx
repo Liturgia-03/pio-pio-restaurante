@@ -72,9 +72,31 @@ export function CartSheet({
     }
   }, [initialMesa]);
 
+  // Manejar el botón atrás del celular para cerrar el carrito suavemente
+  useEffect(() => {
+    if (!isCartOpen) return;
+
+    const onPopState = () => {
+      setIsClosing(true);
+      setTimeout(() => {
+        setIsCartOpen(false);
+        setIsClosing(false);
+      }, 240);
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, [isCartOpen, setIsCartOpen]);
+
   if (!isCartOpen) return null;
 
   const handleSmoothClose = () => {
+    if (typeof window !== "undefined" && window.history.state?.pioView === "cart") {
+      window.history.back();
+      return;
+    }
     setIsClosing(true);
     setTimeout(() => {
       setIsCartOpen(false);

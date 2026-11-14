@@ -68,6 +68,32 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
     }, 280);
   };
 
+  // Manejar el botón Atrás del celular para cerrar el modal suavemente
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (typeof window !== "undefined") {
+      window.history.pushState({ pioModal: "promo" }, "");
+    }
+
+    const onPopState = () => {
+      triggerClose();
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, [isOpen]);
+
+  const handleDismiss = () => {
+    if (typeof window !== "undefined" && window.history.state?.pioModal === "promo") {
+      window.history.back();
+      return;
+    }
+    triggerClose();
+  };
+
   // Transición suave entre Paso 1 y Paso 2
   const goToStep = (newStep: 1 | 2) => {
     setIsStepFading(true);
@@ -110,7 +136,7 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
       className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ease-out ${
         isClosing ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
-      onClick={triggerClose}
+      onClick={handleDismiss}
     >
       <div
         className={`relative w-full max-w-sm overflow-hidden bg-[#181b20] border border-amber-500/35 rounded-3xl shadow-2xl shadow-black/90 transform transition-all duration-300 ease-out ${
@@ -120,7 +146,7 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
       >
         {/* Botón Cerrar Global (X) */}
         <button
-          onClick={triggerClose}
+          onClick={handleDismiss}
           aria-label="Cerrar modal"
           className="absolute top-3.5 right-3.5 z-30 flex items-center justify-center w-10 h-10 text-gray-300 bg-black/60 backdrop-blur-sm rounded-full hover:bg-black/90 hover:text-white border border-white/10 active:scale-95 transition-all shadow-lg"
         >
@@ -239,7 +265,7 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
 
                 <button
                   type="button"
-                  onClick={triggerClose}
+                  onClick={handleDismiss}
                   className="w-full py-2 text-xs font-semibold text-gray-400 hover:text-gray-200 transition-colors"
                 >
                   Ir directo a la carta
@@ -330,7 +356,7 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
 
                   <button
                     type="button"
-                    onClick={triggerClose}
+                    onClick={handleDismiss}
                     className="w-full py-2 text-xs font-semibold text-gray-400 hover:text-gray-200 transition-colors"
                   >
                     Ver toda la carta

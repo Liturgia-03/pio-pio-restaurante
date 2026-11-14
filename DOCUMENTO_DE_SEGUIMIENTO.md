@@ -23,8 +23,8 @@
 ### Punto de Entrada y Credenciales de Acceso
 - **Ruta Raíz (`/`):** Redirección automática del lado del servidor hacia `/admin/dashboard` (protegida por `middleware.ts`, enviando a `/admin/login` si no hay sesión).
 - **URL de Producción (En Vivo):** `https://pio-pio-restaurante.vercel.app` (o `/admin/login`)
-- **Correo de Administrador:** `admin@asaderopiopio.com`
-- **Contraseña de Administrador:** `PioPio2026*`
+- **Usuario Administrador:** `Piopio123`
+- **Contraseña de Administrador:** `123456`
 
 ### Entornos de Ejecución y Carta Digital Pública
 - **Carta Digital de Clientes:** `https://pio-pio-restaurante.vercel.app/menu`
@@ -301,6 +301,87 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - Entrada fluida con `fadeInUpSoft` y feedback táctil amortiguado (`active:scale-[0.98]`).
 - **Certificación Técnica:**
   - Compilación verificada con `npm run build` en Turbopack: 21 rutas compiladas y optimizadas exitosamente con código de salida `0`.
+
+### Hito 19: Suavidad y Fluidez en el Panel Administrativo (Admin Shell, Drawer, Switches y Navegación)
+- **Transición Global de Pantallas Admin (`AdminShell.tsx`):**
+  - Se asignó clave reactiva `key={pathname}` y animación `animate-[fadeInUpSoft_0.32s_cubic-bezier(0.16,1,0.3,1)_both]` al contenedor principal `<main>`. Cada cambio de sección en el panel administrativo (Dashboard, Platos, Categorías, Promo Modal, QR, Ajustes) se eleva y desvanece con suavidad cinemática sin saltos secos.
+- **Menú Móvil Desplegable Admin (`AdminMobileDrawer.tsx`):**
+  - Implementación de `isClosing` y `handleSmoothClose` (260ms) con bloqueo de scroll corporal.
+  - Entrada y salida fluidas: el panel se desliza suavemente (`-translate-x-full opacity-0`) y el fondo desenfocado se desvanece de manera sedosa.
+- **Barra Inferior Móvil (`AdminBottomBar.tsx`):**
+  - Micro-escalado y feedback suave en cada pestaña (`active:scale-95 duration-300 ease-out`) y botón central flotante (+) con escala suave `active:scale-90 hover:scale-105`.
+- **Sidebar de Escritorio (`AdminNavSidebar.tsx`):**
+  - Enlaces con transición lateral suave `hover:translate-x-1 duration-300 ease-out` y respuesta táctil `active:scale-[0.98]`.
+- **Switches de Disponibilidad iOS (`dashboard/page.tsx` y `dishes/page.tsx`):**
+  - Transición fluida de color y desplazamiento elástico de la perilla (`transition-transform duration-300 ease-out`).
+- **Formularios, Categorías y Login (`categories/page.tsx`, `promo-modal/page.tsx`, `login/page.tsx`, `DishForm.tsx`):**
+  - Formulario de categorías con elevación suave `fadeInUpSoft`.
+  - Pestañas del editor promocional con transiciones de elevación de 320ms.
+  - Tarjeta de Login con animación `modalPopIn` y logo pulsante con resplandor dorado.
+  - Botones de acción con respuesta elástica `active:scale-[0.98] duration-300 ease-out`.
+- **Certificación Técnica:**
+  - Compilación verificada con `npm run build` en Turbopack: 21 rutas compiladas con 0 errores (código de salida `0`). Cambios conservados localmente a la espera de la indicación del usuario para el despliegue.
+
+### Hito 20: Nueva Barra de Navegación Inferior Móvil (MENÚ - PROMOS - PEDIDO - INFO) y Optimización de Cabecera
+- **Eliminación de las 3 Tarjetas Superiores Masivas (`PublicMenuClient.tsx`):**
+  - Se eliminó el bloque superior pegajoso que contenía las tarjetas de "Ver Menú Completo", "Promociones" e "Información", liberando más de 110px de altura vertical en la pantalla del celular para dar máximo protagonismo a la comida y las categorías.
+- **Conservación del Buscador Superior en Cabecera (`PublicHeader.tsx`):**
+  - El buscador se mantiene exactamente en su ubicación superior original, con su botón de lupa interactivo y campo expandible con autofocus.
+  - Se añadió la insignia de mesa (`Mesa #XX`) de manera discreta y elegante junto al nombre del restaurante en la cabecera.
+- **Nueva Barra Inferior Móvil (`PublicBottomBar.tsx`):**
+  - Barra fija al borde inferior (`bottom-0 z-40`) con acabado *glassmorphism* oscuro (`bg-[#14161a]/95 backdrop-blur-xl border-t border-gray-800/80`) y soporte para `safe-area-inset-bottom`.
+  - Distribución ergonómica de 4 pestañas de fácil acceso con el pulgar:
+    1. **MENÚ:** Retorna a la carta general de categorías y desplaza suavemente la vista arriba.
+    2. **PROMOS:** Abre la pestaña de platos especiales, combos y plato estrella del día.
+    3. **PEDIDO:** Conexión directa al carrito con badge numérico en vivo (`totalItems`), monto acumulado en COP y apertura instantánea del pedido para WhatsApp.
+    4. **INFO:** Despliega horarios de atención, clave de Wi-Fi y datos de contacto.
+- **Erradicación del Botón Flotante Obstructivo:**
+  - Al integrar "PEDIDO" directamente en la barra inferior, se eliminó la necesidad del botón flotante anterior (`CartFloatingButton.tsx`) que tapaba platos en la parte baja de la pantalla.
+- **Certificación Técnica:**
+  - Compilación verificada con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`. Cambios retenidos a nivel local.
+
+### Hito 21: Navegación Horizontal Táctil (Swipe Gestures) entre Categorías de Platos
+- **Detección Táctil Horizontal de Alta Precisión (`PublicMenuClient.tsx`):**
+  - Implementación de `handleTouchStart`, `handleTouchMove` y `handleTouchEnd` con discriminación de ángulo de arrastre (`deltaX` vs `deltaY`). Si el comensal desliza verticalmente, la lista de platos hace scroll arriba/abajo sin fricción; si desliza horizontalmente de derecha a izquierda o viceversa, la lista activa el cambio de categoría.
+  - Efecto de rebote elástico en tiempo real (*rubber-band drag offset*) mientras el dedo acompaña el gesto, con retorno elástico suave si el arrastre no supera el umbral de activación (28px).
+- **Animaciones Direccionales de Entrada (`slide-in-from-right-8` y `slide-in-from-left-8`):**
+  - Al avanzar a la siguiente categoría, los platos entran deslizándose desde la derecha.
+  - Al retroceder a la categoría anterior, los platos entran deslizándose desde la izquierda.
+- **Sincronización Total con `CategoryChips.tsx`:**
+  - Cada vez que se cambia de categoría mediante swipe horizontal, la barra superior de chips activa el auto-centrado automático (`scrollIntoView({ inline: "center", behavior: "smooth" })`), manteniendo el chip activo siempre a la vista del cliente.
+- **Controles de Paginación Superior e Inferior:**
+  - Barra de navegación rápida superior: Botón `← Categorías`, flechas de categoría anterior/siguiente (`<` y `>`) y contador de posición (ej: `2 / 9`).
+  - Tarjetas de navegación al final de la lista: botones grandes `← Anterior: [Nombre]` y `Siguiente: [Nombre] →` para facilitar el paso continuo entre secciones sin tener que volver arriba.
+  - Mensaje guía discreto: *"👈 Desliza la pantalla hacia los lados para cambiar de categoría 👉"*.
+- **Certificación Técnica:**
+  - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0` y 0 advertencias de tipo. Cambios mantenidos a nivel local.
+
+### Hito 22: Integración Nativa del Botón "Atrás" del Celular (Android / iOS / Navegador) en Menú y Admin
+- **Problema Solucionado:** Al navegar por la app móvil, pulsar el botón físico o gesto de "Atrás" del teléfono provocaba que el navegador retrocediera la página web por completo y se saliera de la aplicación, en vez de retroceder un paso dentro de las capas activas (categoría -> menú, modal de plato -> categoría, carrito -> menú, drawer -> panel, formulario de categoría -> listado).
+- **Sincronización Bidireccional en el Menú Digital (`PublicMenuClient.tsx`, `CartSheet.tsx`, `DishDetailSheet.tsx`, `PromoModal.tsx`):**
+  - **Apertura de Categoría:** Al seleccionar una categoría se registra estado en el historial (`pushState`). Al deslizar entre categorías por swipe o chips se usa `replaceState`. Al pulsar el botón "Atrás" del celular (o el botón en pantalla "← Categorías"), el historial retrocede y vuelve a la vista de todas las categorías sin salirse de la web.
+  - **Detalle de Plato (`DishDetailSheet.tsx`):** Al tocar un plato se registra entrada en el historial. Al presionar "Atrás" del celular o la "X", se activa el listener de `popstate` ejecutando la animación cinemática suave de cierre antes de desmontarse.
+  - **Carrito del Pedido (`CartSheet.tsx`):** Al abrir el carrito se inserta entrada en el historial. Al pulsar "Atrás" en el celular o la "X" en pantalla, el cajón se desliza hacia abajo con transición fluida de salida.
+  - **Modal Promocional & Bienvenida (`PromoModal.tsx`):** Al presionar "Atrás" en el teléfono, el modal de presentación o promoción del día se cierra suavemente permitiendo acceder de inmediato a la carta digital.
+  - **Pestañas Secundarias (Promos & Info) y Buscador:** Si el usuario está en "Promos", "Info" o con la barra de búsqueda abierta y pulsa atrás en su móvil, el sistema regresa a la carta principal "Menú" y limpia la búsqueda.
+- **Sincronización en el Panel Administrativo (`AdminShell.tsx`, `AdminMobileDrawer.tsx`, `AdminCategoriesPage`):**
+  - **Drawer de Menú Móvil:** Al abrir el menú lateral en el celular se inserta estado de historial. Si el administrador pulsa el botón "Atrás" de su teléfono o toca el fondo oscuro, el drawer se repliega suavemente hacia la izquierda sin salirse del panel.
+  - **Formulario de Categorías (`/admin/categories`):** Al pulsar "Nueva Categoría" o "Editar Categoría", presionar "Atrás" en el celular cierra el formulario y restablece la lista de categorías intacta.
+- **Certificación Técnica:**
+  - Compilación exitosa con Turbopack (`npm run build`): 21 rutas verificadas con código de salida `0`. Cambios retenidos a nivel local según instrucción del usuario sin realizar despliegue todavía.
+
+### Hito 23: Renovación de Autenticación, Credenciales y Gestión de Acceso
+- **Campos Limpios en Login (`/admin/login`):** Eliminación de valores hardcodeados por defecto; los campos de usuario y contraseña cargan ahora completamente vacíos (`""`).
+- **Cambio de "Correo" por "Usuario":** Reemplazo de etiqueta, placeholder e icono (`Mail` -> `User`), permitiendo autenticación por nombre de usuario (`Piopio123`).
+- **Visibilidad Dinámica de Contraseñas:** Integración de botón táctil de mostrar/ocultar con iconos `Eye` y `EyeOff` en la pantalla de login y en el formulario de ajustes.
+- **Nuevas Credenciales Establecidas y Sincronizadas:**
+  - **Usuario:** `Piopio123`
+  - **Contraseña:** `123456`
+  - Base de datos Neon PostgreSQL actualizada con el nuevo hash bcrypt.
+- **Gestión Editable de Credenciales en el Panel (`/admin/settings`):**
+  - El administrador puede actualizar su nombre de usuario y su contraseña desde el módulo de ajustes en cualquier momento.
+- **Certificación Técnica:**
+  - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
 
 ---
 

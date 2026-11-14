@@ -115,7 +115,7 @@ export default function AdminDashboardPage() {
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Link
             href="/admin/dishes/new"
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-2.5 px-4 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-xl active:scale-95 transition-all min-h-[40px]"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-2.5 px-4 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-xl active:scale-[0.98] transition-all duration-300 ease-out min-h-[40px]"
           >
             <Plus className="w-4 h-4" />
             <span>Agregar Plato</span>
@@ -123,7 +123,7 @@ export default function AdminDashboardPage() {
           <Link
             href="/menu"
             target="_blank"
-            className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold rounded-xl border border-gray-700 active:scale-95 transition-all min-h-[40px]"
+            className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold rounded-xl border border-gray-700 active:scale-[0.98] transition-all duration-300 ease-out min-h-[40px]"
           >
             <ExternalLink className="w-4 h-4 text-orange-400" />
             <span className="hidden sm:inline">Ver Menú</span>
@@ -173,7 +173,7 @@ export default function AdminDashboardPage() {
 
       {/* Métricas KPI Rápidas (Mobile-First 2x2 Grid) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-[#181b20] border border-gray-800 rounded-2xl p-4 space-y-1">
+        <div className="bg-[#181b20] border border-gray-800 hover:border-gray-700/80 rounded-2xl p-4 space-y-1 transition-all duration-300 ease-out hover:shadow-lg">
           <div className="flex items-center justify-between text-emerald-400">
             <span className="text-xs font-semibold">Disponibles</span>
             <CheckCircle2 className="w-4 h-4" />
@@ -182,7 +182,7 @@ export default function AdminDashboardPage() {
           <span className="text-[10px] text-gray-500 block">Visibles en carta</span>
         </div>
 
-        <div className="bg-[#181b20] border border-gray-800 rounded-2xl p-4 space-y-1">
+        <div className="bg-[#181b20] border border-gray-800 hover:border-gray-700/80 rounded-2xl p-4 space-y-1 transition-all duration-300 ease-out hover:shadow-lg">
           <div className="flex items-center justify-between text-red-400">
             <span className="text-xs font-semibold">Agotados</span>
             <AlertTriangle className="w-4 h-4" />
@@ -191,7 +191,7 @@ export default function AdminDashboardPage() {
           <span className="text-[10px] text-gray-500 block">Marcados no disponibles</span>
         </div>
 
-        <div className="bg-[#181b20] border border-gray-800 rounded-2xl p-4 space-y-1">
+        <div className="bg-[#181b20] border border-gray-800 hover:border-gray-700/80 rounded-2xl p-4 space-y-1 transition-all duration-300 ease-out hover:shadow-lg">
           <div className="flex items-center justify-between text-amber-400">
             <span className="text-xs font-semibold">Categorías</span>
             <FolderTree className="w-4 h-4" />
@@ -200,7 +200,7 @@ export default function AdminDashboardPage() {
           <span className="text-[10px] text-gray-500 block">Secciones activas</span>
         </div>
 
-        <div className="bg-[#181b20] border border-gray-800 rounded-2xl p-4 space-y-1">
+        <div className="bg-[#181b20] border border-gray-800 hover:border-gray-700/80 rounded-2xl p-4 space-y-1 transition-all duration-300 ease-out hover:shadow-lg">
           <div className="flex items-center justify-between text-orange-400">
             <span className="text-xs font-semibold">Modal Promo</span>
             <Sparkles className="w-4 h-4" />
@@ -242,13 +242,13 @@ export default function AdminDashboardPage() {
           {dishes.slice(0, 6).map((dish) => (
             <div
               key={dish.id}
-              className="flex items-center justify-between p-3.5 bg-[#181b20] border border-gray-800 rounded-2xl gap-3"
+              className="flex items-center justify-between p-3.5 bg-[#181b20] border border-gray-800 hover:border-gray-700/80 rounded-2xl gap-3 transition-all duration-300 ease-out hover:shadow-lg"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <img
                   src={dish.imageUrl}
                   alt={dish.name}
-                  className={`w-12 h-12 rounded-xl object-cover flex-shrink-0 ${
+                  className={`w-12 h-12 rounded-xl object-cover flex-shrink-0 transition-opacity duration-300 ${
                     !dish.isAvailable ? "grayscale opacity-60" : ""
                   }`}
                 />
@@ -273,12 +273,12 @@ export default function AdminDashboardPage() {
                     isAvailable: !dish.isAvailable,
                   })
                 }
-                className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-out focus:outline-none ${
                   dish.isAvailable ? "bg-emerald-600" : "bg-gray-700"
                 }`}
               >
                 <span
-                  className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                  className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-lg ring-0 transition-transform duration-300 ease-out ${
                     dish.isAvailable ? "translate-x-6" : "translate-x-0"
                   }`}
                 />

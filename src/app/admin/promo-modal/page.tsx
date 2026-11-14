@@ -192,7 +192,7 @@ export default function AdminPromoModalPage() {
             setActiveTab("welcome");
             setPreviewStep(1);
           }}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-300 ease-out active:scale-95 ${
             activeTab === "welcome"
               ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/20"
               : "text-gray-400 hover:text-white"
@@ -208,7 +208,7 @@ export default function AdminPromoModalPage() {
             setActiveTab("promo");
             setPreviewStep(2);
           }}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all ${
+          className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all duration-300 ease-out active:scale-95 ${
             activeTab === "promo"
               ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md shadow-amber-500/20"
               : "text-gray-400 hover:text-white"
@@ -242,12 +242,12 @@ export default function AdminPromoModalPage() {
               role="switch"
               aria-checked={isActive}
               onClick={() => setIsActive(!isActive)}
-              className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+              className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-out ${
                 isActive ? "bg-emerald-600" : "bg-gray-700"
               }`}
             >
               <span
-                className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out ${
+                className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md transition-transform duration-300 ease-out ${
                   isActive ? "translate-x-5" : "translate-x-0"
                 }`}
               />
@@ -258,7 +258,7 @@ export default function AdminPromoModalPage() {
           {/* SECCIÓN 1: EDICIÓN DE TARJETA DE BIENVENIDA               */}
           {/* ======================================================== */}
           {activeTab === "welcome" && (
-            <div className="space-y-4 animate-in fade-in duration-200">
+            <div className="space-y-4 animate-[fadeInUpSoft_0.32s_cubic-bezier(0.16,1,0.3,1)_both]">
               <div className="flex items-center gap-2 pb-2 border-b border-gray-800">
                 <Layers className="w-4 h-4 text-amber-400" />
                 <h3 className="text-xs font-black uppercase text-amber-400 tracking-wider">
@@ -406,7 +406,7 @@ export default function AdminPromoModalPage() {
           {/* SECCIÓN 2: EDICIÓN DEL PLATO PROMOCIONAL                  */}
           {/* ======================================================== */}
           {activeTab === "promo" && (
-            <div className="space-y-4 animate-in fade-in duration-200">
+            <div className="space-y-4 animate-[fadeInUpSoft_0.32s_cubic-bezier(0.16,1,0.3,1)_both]">
               <div className="flex items-center gap-2 pb-2 border-b border-gray-800">
                 <Flame className="w-4 h-4 text-orange-400" />
                 <h3 className="text-xs font-black uppercase text-orange-400 tracking-wider">

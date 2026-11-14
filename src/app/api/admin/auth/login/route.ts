@@ -20,10 +20,16 @@ export async function POST(request: Request) {
       );
     }
 
-    const { email, password } = parsed.data;
+    const identifier = (parsed.data.username || parsed.data.email || "").trim();
+    const { password } = parsed.data;
 
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: { equals: identifier, mode: "insensitive" } },
+          { name: { equals: identifier, mode: "insensitive" } },
+        ],
+      },
     });
 
     if (!user) {
@@ -31,7 +37,7 @@ export async function POST(request: Request) {
         {
           success: false,
           data: null,
-          message: "Credenciales incorrectas",
+          message: "Usuario o contraseña incorrectos",
           error: "Invalid credentials",
         },
         { status: 401 }
@@ -44,7 +50,7 @@ export async function POST(request: Request) {
         {
           success: false,
           data: null,
-          message: "Credenciales incorrectas",
+          message: "Usuario o contraseña incorrectos",
           error: "Invalid credentials",
         },
         { status: 401 }

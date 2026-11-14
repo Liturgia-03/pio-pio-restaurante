@@ -24,6 +24,11 @@ export async function GET() {
       });
     }
 
+    const adminUser = await prisma.user.findFirst({
+      where: { role: "ADMIN" },
+      select: { email: true, name: true },
+    });
+
     return NextResponse.json({
       success: true,
       data: {
@@ -34,6 +39,7 @@ export async function GET() {
         openingHours: settings.schedule,
         wifiSsid: settings.wifiSsid,
         wifiPassword: settings.wifiPassword,
+        adminUsername: adminUser?.name || adminUser?.email || "Piopio123",
       },
     });
   } catch (error: any) {
@@ -72,8 +78,11 @@ export async function PUT(request: Request) {
       },
     });
 
-    // 2. Si el usuario solicitó cambio de contraseña de administración
-    if (body.newPassword && body.newPassword.trim().length >= 6) {
+    // 2. Si el usuario solicitó cambio de credenciales de administración (Usuario o Contraseña)
+    const newUsername = (body.adminUsername || body.username || "").trim();
+    const newPassword = (body.newPassword || "").trim();
+
+    if (newUsername || newPassword) {
       const adminUser = await prisma.user.findFirst({
         where: { role: "ADMIN" },
       });
@@ -85,21 +94,33 @@ export async function PUT(request: Request) {
         );
       }
 
-      if (body.currentPassword) {
-        const isValid = await bcrypt.compare(body.currentPassword, adminUser.passwordHash);
-        if (!isValid) {
-          return NextResponse.json(
-            { success: false, message: "La contraseña actual es incorrecta" },
-            { status: 400 }
-          );
+      if (newPassword) {
+        if (body.currentPassword) {
+          const isValid = await bcrypt.compare(body.currentPassword, adminUser.passwordHash);
+          if (!isValid) {
+            return NextResponse.json(
+              { success: false, message: "La contraseña actual es incorrecta" },
+              { status: 400 }
+            );
+          }
         }
       }
 
-      const newHash = await bcrypt.hash(body.newPassword.trim(), 10);
-      await prisma.user.update({
-        where: { id: adminUser.id },
-        data: { passwordHash: newHash },
-      });
+      const userUpdateData: any = {};
+      if (newUsername && newUsername.length >= 2) {
+        userUpdateData.email = newUsername;
+        userUpdateData.name = newUsername;
+      }
+      if (newPassword && newPassword.length >= 4) {
+        userUpdateData.passwordHash = await bcrypt.hash(newPassword, 10);
+      }
+
+      if (Object.keys(userUpdateData).length > 0) {
+        await prisma.user.update({
+          where: { id: adminUser.id },
+          data: userUpdateData,
+        });
+      }
     }
 
     // Invalidar caché de Next.js para que el menú público refleje cambios al instante

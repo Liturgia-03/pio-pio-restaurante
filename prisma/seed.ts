@@ -13,13 +13,13 @@ async function main() {
   await prisma.user.deleteMany();
 
   // 1. Usuario Administrador de Pío Pío (con soporte para variables de entorno)
-  const adminEmail = process.env.ADMIN_INITIAL_EMAIL || "admin@asaderopiopio.com";
-  const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || "PioPio2026*";
+  const adminEmail = process.env.ADMIN_INITIAL_EMAIL || "Piopio123";
+  const adminPassword = process.env.ADMIN_INITIAL_PASSWORD || "123456";
   const passwordHash = await bcrypt.hash(adminPassword, 10);
   const admin = await prisma.user.create({
     data: {
       email: adminEmail,
-      name: "Administrador Pío Pío",
+      name: "Piopio123",
       passwordHash,
       role: "ADMIN",
     },

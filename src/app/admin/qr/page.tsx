@@ -230,7 +230,7 @@ export default function AdminQRPage() {
         <div className="flex items-center gap-3 w-full max-w-xs">
           <button
             onClick={handleDownload}
-            className="flex-1 flex items-center justify-center gap-1.5 py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white text-xs font-bold rounded-2xl border border-gray-700 active:scale-95 transition-all shadow-md min-h-[44px]"
+            className="flex-1 flex items-center justify-center gap-1.5 py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white text-xs font-bold rounded-2xl border border-gray-700 active:scale-95 transition-all duration-300 ease-out shadow-md min-h-[44px]"
           >
             <Download className="w-4 h-4 text-amber-400" />
             <span>Descargar QR</span>
@@ -238,7 +238,7 @@ export default function AdminQRPage() {
 
           <button
             onClick={handlePrint}
-            className="flex-1 flex items-center justify-center gap-1.5 py-3 px-4 bg-gradient-to-r from-red-600 via-orange-600 to-amber-500 hover:opacity-90 text-white text-xs font-bold rounded-2xl active:scale-95 transition-all shadow-lg shadow-amber-500/25 min-h-[44px]"
+            className="flex-1 flex items-center justify-center gap-1.5 py-3 px-4 bg-gradient-to-r from-red-600 via-orange-600 to-amber-500 hover:opacity-90 text-white text-xs font-bold rounded-2xl active:scale-95 transition-all duration-300 ease-out shadow-lg shadow-amber-500/25 min-h-[44px]"
           >
             <Printer className="w-4 h-4" />
             <span>Imprimir Tarjeta</span>

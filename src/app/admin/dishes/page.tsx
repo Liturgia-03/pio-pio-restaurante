@@ -130,9 +130,9 @@ export default function AdminDishesPage() {
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
         <button
           onClick={() => setSelectedCategory("ALL")}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+          className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-300 ease-out active:scale-95 ${
             selectedCategory === "ALL"
-              ? "bg-orange-500 text-white"
+              ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
               : "bg-[#181b20] text-gray-400 hover:text-white border border-gray-800"
           }`}
         >
@@ -142,9 +142,9 @@ export default function AdminDishesPage() {
           <button
             key={cat.id}
             onClick={() => setSelectedCategory(cat.id)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-300 ease-out active:scale-95 ${
               selectedCategory === cat.id
-                ? "bg-orange-500 text-white"
+                ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
                 : "bg-[#181b20] text-gray-400 hover:text-white border border-gray-800"
             }`}
           >
@@ -172,7 +172,7 @@ export default function AdminDishesPage() {
           {filteredDishes.map((dish) => (
             <div
               key={dish.id}
-              className={`p-3.5 bg-[#181b20] border rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-colors ${
+              className={`p-3.5 bg-[#181b20] border rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all duration-300 ease-out hover:border-gray-700/80 hover:shadow-md ${
                 dish.isAvailable ? "border-gray-800" : "border-red-950/40 bg-[#14161a]"
               }`}
             >
@@ -180,7 +180,7 @@ export default function AdminDishesPage() {
                 <img
                   src={dish.imageUrl}
                   alt={dish.name}
-                  className={`w-14 h-14 rounded-xl object-cover flex-shrink-0 border border-gray-800 ${
+                  className={`w-14 h-14 rounded-xl object-cover flex-shrink-0 border border-gray-800 transition-opacity duration-300 ${
                     !dish.isAvailable ? "grayscale opacity-60" : ""
                   }`}
                 />
@@ -228,12 +228,12 @@ export default function AdminDishesPage() {
                         isAvailable: !dish.isAvailable,
                       })
                     }
-                    className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-300 ease-out focus:outline-none ${
                       dish.isAvailable ? "bg-emerald-600" : "bg-gray-700"
                     }`}
                   >
                     <span
-                      className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                      className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-md ring-0 transition-transform duration-300 ease-out ${
                         dish.isAvailable ? "translate-x-5" : "translate-x-0"
                       }`}
                     />
@@ -244,7 +244,7 @@ export default function AdminDishesPage() {
                   <Link
                     href={`/admin/dishes/${dish.id}`}
                     aria-label="Editar plato"
-                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white transition-colors"
+                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white active:scale-90 transition-all duration-200 ease-out"
                   >
                     <Edit2 className="w-4 h-4" />
                   </Link>
@@ -256,7 +256,7 @@ export default function AdminDishesPage() {
                       }
                     }}
                     aria-label="Eliminar plato"
-                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-950/30 hover:bg-red-900/40 text-red-400 transition-colors"
+                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-950/30 hover:bg-red-900/40 text-red-400 active:scale-90 transition-all duration-200 ease-out"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

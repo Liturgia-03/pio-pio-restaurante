@@ -273,6 +273,15 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Desvanecimiento al Entrar:**
   - Al cerrar el modal o pulsar el botón de ver carta, el fondo sólido se desvanece suavemente (`duration-300`) revelando el menú al comensal de manera impecable.
 
+### Hito 17: Fondo Ultra Oscuro (95% Opacidad) y Desenfoque Cinemático Intenso (24px Blur)
+- **Eliminación de Fuga de Transparencia:**
+  - Se eliminó el gradiente radial anterior que provocaba que el 92% del centro de la pantalla fuera transparente.
+- **Oscurecimiento Profundo y Desenfoque Máximo:**
+  - Se implementó `backgroundColor: rgba(5, 5, 8, 0.95)` (95% de negro carbón profundo).
+  - Se aplicó `backdropFilter: blur(24px)` y `-webkit-backdrop-filter: blur(24px)`, difuminando por completo cualquier texto, tarjeta o botón detrás, haciéndolos totalmente ilegibles e imperceptibles.
+- **Enfoque Total en la Tarjeta:**
+  - El modal ahora resalta como el elemento protagonista exclusivo sobre un fondo oscuro, sedoso y desenfocado con acabado de alta gama.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

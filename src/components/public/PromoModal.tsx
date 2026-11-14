@@ -103,9 +103,11 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
       role="dialog"
       aria-modal="true"
       style={{
-        background: "radial-gradient(circle at 50% 35%, rgba(245, 158, 11, 0.08) 0%, #0f1115 70%)",
+        backgroundColor: "rgba(5, 5, 8, 0.95)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
       }}
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0f1115] transition-opacity duration-300 ease-out ${
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300 ease-out ${
         isClosing ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       onClick={triggerClose}

@@ -429,6 +429,14 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
 
+### Hito 28: Limpieza de Ajustes Asadero (Eliminación de Portada Duplicada)
+- **Ajustes Asadero (`/admin/settings`):**
+  - Se eliminó completamente la tarjeta duplicada de *"Fotos de Portada del Encabezado (Carrusel)"*, subtítulo y eslogan en [src/app/admin/settings/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/settings/page.tsx).
+  - La administración de la portada y su carrusel queda centralizada de forma exclusiva y limpia en la sección **Ajustes Menú** (`/admin/promo-modal`).
+  - La sección de Ajustes Asadero ahora se enfoca únicamente en: WhatsApp para pedidos, Horario de Atención, Dirección física, Red Wi-Fi para clientes y Credenciales de acceso de Administrador.
+- **Certificación Técnica:**
+  - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

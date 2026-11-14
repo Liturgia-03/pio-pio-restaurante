@@ -16,10 +16,6 @@ import {
   User,
   Eye,
   EyeOff,
-  Images,
-  Trash2,
-  Plus,
-  Upload,
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -34,13 +30,11 @@ export default function AdminSettingsPage() {
   const [wifiSsid, setWifiSsid] = useState("");
   const [wifiPassword, setWifiPassword] = useState("");
 
-  // Carrusel de Fotos de Portada del Encabezado
+  // Datos de encabezado conservados internamente (configurables en Ajustes Menú)
   const [headerImages, setHeaderImages] = useState<string[]>([]);
-  const [newImageUrl, setNewImageUrl] = useState("");
   const [headerTagline, setHeaderTagline] = useState("Asadero & Restaurante Tradicional");
   const [headerDescription, setHeaderDescription] = useState("El auténtico sabor a la brasa, broaster y platos típicos");
   const [logoUrl, setLogoUrl] = useState("/logo-pio-pio.png");
-  const [isUploadingHeader, setIsUploadingHeader] = useState(false);
 
   // Credenciales de administración (Usuario y Contraseña)
   const [adminUsername, setAdminUsername] = useState("");
@@ -79,45 +73,6 @@ export default function AdminSettingsPage() {
       if (settings.logoUrl) setLogoUrl(settings.logoUrl);
     }
   }, [settings]);
-
-  const handleAddImageUrl = () => {
-    if (!newImageUrl.trim()) {
-      toast.error("Ingresa una URL de imagen válida");
-      return;
-    }
-    setHeaderImages((prev) => [...prev, newImageUrl.trim()]);
-    setNewImageUrl("");
-    toast.success("Foto añadida al carrusel");
-  };
-
-  const handleRemoveImage = (index: number) => {
-    setHeaderImages((prev) => prev.filter((_, i) => i !== index));
-    toast.success("Foto eliminada del carrusel");
-  };
-
-  const handleUploadHeaderImage = async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    setIsUploadingHeader(true);
-    try {
-      toast.info("Subiendo foto de portada...");
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const json = await res.json();
-      if (json.success && json.data?.url) {
-        setHeaderImages((prev) => [...prev, json.data.url]);
-        toast.success("Foto subida y agregada al carrusel");
-      } else {
-        toast.error(json.message || "Error al subir imagen");
-      }
-    } catch {
-      toast.error("Error al conectar con el servidor de carga");
-    } finally {
-      setIsUploadingHeader(false);
-    }
-  };
 
   const updateMutation = useMutation({
     mutationFn: async (payload: any) => {
@@ -199,140 +154,6 @@ export default function AdminSettingsPage() {
         onSubmit={handleSubmit}
         className="bg-[#181b20] border border-gray-800 rounded-3xl p-5 sm:p-6 space-y-5 shadow-xl"
       >
-        {/* ============================================================== */}
-        {/* 1. FOTOS DE PORTADA DEL ENCABEZADO (CARRUSEL)                 */}
-        {/* ============================================================== */}
-        <div className="space-y-4 border-b border-gray-800/80 pb-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-amber-400">
-              <Images className="w-5 h-5" />
-              <label className="text-xs font-bold text-white uppercase tracking-wider">
-                Fotos de Portada del Encabezado (Carrusel)
-              </label>
-            </div>
-            <span className="text-[10px] font-black text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
-              {headerImages.length} {headerImages.length === 1 ? "foto activa" : "fotos activas"}
-            </span>
-          </div>
-
-          <p className="text-[11px] text-gray-400 leading-relaxed">
-            Sube fotos horizontales del asadero (brasas, pollos dorados, parrilladas). Estas imágenes rotarán automáticamente en el encabezado de la carta digital de tus clientes.
-          </p>
-
-          {/* Grid de Fotos Actuales en el Carrusel */}
-          {headerImages.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {headerImages.map((url, idx) => (
-                <div
-                  key={`${url}-${idx}`}
-                  className="relative group rounded-2xl overflow-hidden border border-gray-800 bg-gray-950 aspect-[16/9] shadow-md"
-                >
-                  <img
-                    src={url}
-                    alt={`Foto portada ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
-                  
-                  <span className="absolute bottom-1.5 left-2 text-[9px] font-black text-amber-300 uppercase tracking-wider">
-                    {idx === 0 ? "★ Principal" : `Foto #${idx + 1}`}
-                  </span>
-
-                  {/* Botón Eliminar Foto */}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveImage(idx)}
-                    title="Eliminar foto"
-                    className="absolute top-1.5 right-1.5 w-7 h-7 rounded-xl bg-red-600/90 hover:bg-red-700 text-white flex items-center justify-center shadow-lg active:scale-90 transition-all opacity-90 group-hover:opacity-100"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-4 bg-gray-950/60 rounded-2xl border border-dashed border-gray-800 text-center text-xs text-gray-500">
-              No has subido fotos personalizadas. Se mostrarán las fotos por defecto del asadero.
-            </div>
-          )}
-
-          {/* Controles para Agregar Fotos (Subir Archivo o Pegar URL) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-            {/* Botón Subir Archivo */}
-            <label className="cursor-pointer flex items-center justify-center gap-2 p-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 hover:to-orange-500/20 border border-amber-500/30 rounded-2xl text-xs font-bold text-amber-300 transition-all active:scale-[0.98]">
-              {isUploadingHeader ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
-                  <span>Subiendo foto...</span>
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4 text-amber-400" />
-                  <span>Subir desde Galería / Cámara</span>
-                </>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                disabled={isUploadingHeader}
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleUploadHeaderImage(file);
-                }}
-              />
-            </label>
-
-            {/* Input Pegar URL */}
-            <div className="flex gap-2">
-              <input
-                type="url"
-                value={newImageUrl}
-                onChange={(e) => setNewImageUrl(e.target.value)}
-                placeholder="O pega una URL de imagen..."
-                className="flex-1 bg-[#14161a] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-500"
-              />
-              <button
-                type="button"
-                onClick={handleAddImageUrl}
-                className="px-3.5 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-bold rounded-xl border border-gray-700 active:scale-95 transition-all flex items-center gap-1"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Agregar</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Campos de Subtítulo y Descripción del Encabezado */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-300">
-                Subtítulo del Encabezado
-              </label>
-              <input
-                type="text"
-                value={headerTagline}
-                onChange={(e) => setHeaderTagline(e.target.value)}
-                placeholder="Ej: Asadero & Restaurante Tradicional"
-                className="w-full bg-[#14161a] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-gray-300">
-                Eslogan / Descripción Breve
-              </label>
-              <input
-                type="text"
-                value={headerDescription}
-                onChange={(e) => setHeaderDescription(e.target.value)}
-                placeholder="Ej: El auténtico sabor a la brasa, broaster y platos típicos"
-                className="w-full bg-[#14161a] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
-              />
-            </div>
-          </div>
-        </div>
-
         {/* WhatsApp para Pedidos */}
         <div className="space-y-1.5 border-b border-gray-800/80 pb-4">
           <div className="flex items-center gap-2 text-emerald-400">

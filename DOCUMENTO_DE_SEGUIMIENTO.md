@@ -239,6 +239,18 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: 0 errores de tipado.
   - `npm run build`: 21 rutas compiladas y optimizadas exitosamente con código de salida `0`.
 
+### Hito 14: Modal de Entrada de 2 Pasos (Bienvenida + Promo) y Editor Administrativo Completo
+- **Experiencia de Entrada de 2 Pasos (`PromoModal.tsx`):**
+  - **Paso 1 (Presentación y Bienvenida):** Logo oficial animado de Pío Pío con resplandor dorado, distintivo `El Sabor Que Nos Une`, títulos institucionales, descripción apetecible, 3 cápsulas de especialidades y botón principal `Ver Oferta Especial de Hoy →`.
+  - **Paso 2 (Plato Promocional):** Foto en alta resolución, badge de oferta, precios (regular tachado vs especial) y botón CTA directo hacia el plato en la carta.
+  - **Transiciones y Salidas Suaves:** Cero retraso en el inicio (SSR inmediato), cambio suave entre pasos de 160ms con desvanecimiento, salida fluida de 280ms (`scale-95 opacity-0`) y transiciones de navegación fluidas en la carta (`animate-in fade-in slide-in-from-right-3 duration-300`).
+- **Persistencia en Base de Datos Cloud (Neon PostgreSQL):**
+  - Se añadieron campos configurables al modelo `PromotionalModal`: `welcomeBadge`, `welcomeTitle`, `welcomeSubtitle`, `welcomeDescription`, `welcomeButtonText`, `welcomeTag1`, `welcomeTag1Sub`, `welcomeTag2`, `welcomeTag2Sub`, `welcomeTag3`, `welcomeTag3Sub`.
+  - Sincronización exitosa con Neon mediante `npx prisma db push`.
+- **Editor en Panel Administrativo (`/admin/promo-modal`):**
+  - Pestañas para editar independientemente: `1. Tarjeta de Bienvenida` y `2. Plato Promocional`.
+  - **Simulador Móvil en Vivo Interactivo:** Permite previsualizar en tiempo real el smartphone del comensal alternando entre la vista del Paso 1 y la vista del Paso 2 a medida que se escriben los cambios.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

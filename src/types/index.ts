@@ -43,6 +43,20 @@ export interface CategoryWithDishes {
 
 export interface PromoModalData {
   id?: string;
+  // Campos editables de la Tarjeta de Bienvenida (Paso 1)
+  welcomeBadge?: string | null;
+  welcomeTitle?: string | null;
+  welcomeSubtitle?: string | null;
+  welcomeDescription?: string | null;
+  welcomeButtonText?: string | null;
+  welcomeTag1?: string | null;
+  welcomeTag1Sub?: string | null;
+  welcomeTag2?: string | null;
+  welcomeTag2Sub?: string | null;
+  welcomeTag3?: string | null;
+  welcomeTag3Sub?: string | null;
+
+  // Campos del Plato Promocional (Paso 2)
   title: string;
   subtitle: string | null;
   description: string;

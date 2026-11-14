@@ -35,6 +35,20 @@ export const categorySchema = z.object({
 });
 
 export const promoModalSchema = z.object({
+  // Campos de la Tarjeta de Bienvenida (Paso 1)
+  welcomeBadge: z.string().max(60).optional().nullable(),
+  welcomeTitle: z.string().max(80).optional().nullable(),
+  welcomeSubtitle: z.string().max(100).optional().nullable(),
+  welcomeDescription: z.string().max(500).optional().nullable(),
+  welcomeButtonText: z.string().max(60).optional().nullable(),
+  welcomeTag1: z.string().max(40).optional().nullable(),
+  welcomeTag1Sub: z.string().max(40).optional().nullable(),
+  welcomeTag2: z.string().max(40).optional().nullable(),
+  welcomeTag2Sub: z.string().max(40).optional().nullable(),
+  welcomeTag3: z.string().max(40).optional().nullable(),
+  welcomeTag3Sub: z.string().max(40).optional().nullable(),
+
+  // Campos del Plato Promocional (Paso 2)
   title: z.string().min(3, "Título requerido").max(80),
   subtitle: z.string().max(120).optional().nullable(),
   description: z.string().min(5, "Descripción requerida").max(300),
@@ -45,7 +59,7 @@ export const promoModalSchema = z.object({
   ctaText: z.string().default("Ver en el Menú"),
   targetDishId: z.string().optional().nullable(),
   isActive: z.boolean().default(true),
-  autoShowDelayMs: z.coerce.number().int().min(0).max(5000).default(800),
+  autoShowDelayMs: z.coerce.number().int().min(0).max(5000).default(0),
   showOncePerSession: z.boolean().default(true),
 });
 

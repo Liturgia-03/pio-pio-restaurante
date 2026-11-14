@@ -396,7 +396,7 @@ function MenuContent({
           <>
             {/* Si NO hay categoría seleccionada: Muestra las TARJETAS DE CATEGORÍAS apiladas */}
             {selectedCategoryId === null ? (
-              <div className="space-y-4 animate-in fade-in duration-300">
+              <div key="all-categories" className="space-y-4 animate-in fade-in duration-300">
                 <div className="flex items-center justify-between pb-2 border-b border-gray-800/80">
                   <div>
                     <h2 className="text-base font-black text-white tracking-tight flex items-center gap-2">
@@ -426,7 +426,7 @@ function MenuContent({
             ) : (
               /* Si HAY categoría seleccionada: Muestra ÚNICA Y EXCLUSIVAMENTE los platos de esa categoría */
               currentCategory && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
+                <div key={`cat-${currentCategory.id}`} className="space-y-4 animate-in fade-in slide-in-from-right-3 duration-300">
                   {/* Botón Volver a Categorías */}
                   <div className="flex items-center justify-between">
                     <button
@@ -494,7 +494,7 @@ function MenuContent({
         {/* PESTAÑA 2: PROMOCIONES Y ESPECIALES DEL DÍA              */}
         {/* ======================================================== */}
         {!isLoadingMenu && !searchQuery && activeTab === "promos" && (
-          <div className="space-y-5 animate-in fade-in duration-300">
+          <div key="tab-promos" className="space-y-5 animate-in fade-in duration-300">
             <div className="flex items-center justify-between pb-2 border-b border-gray-800/80">
               <div>
                 <h2 className="text-base font-black text-white tracking-tight flex items-center gap-2">
@@ -594,7 +594,7 @@ function MenuContent({
         {/* PESTAÑA 3: INFORMACIÓN DEL NEGOCIO, HORARIOS Y WI-FI     */}
         {/* ======================================================== */}
         {!isLoadingMenu && !searchQuery && activeTab === "info" && (
-          <div className="space-y-5 animate-in fade-in duration-300">
+          <div key="tab-info" className="space-y-5 animate-in fade-in duration-300">
             {/* 1. Presentación del Asadero y Restaurante */}
             <div className="relative rounded-3xl overflow-hidden bg-[#181b20] border border-gray-800 p-6 space-y-4 shadow-xl">
               <div className="flex items-center gap-3">

@@ -76,6 +76,20 @@ model DishPortion {
 
 model PromotionalModal {
   id                 String   @id @default(uuid())
+  // Campos de la Tarjeta de Bienvenida / Presentación (Paso 1)
+  welcomeBadge       String?  @default("El Sabor Que Nos Une")
+  welcomeTitle       String?  @default("¡Bienvenidos a Pío Pío!")
+  welcomeSubtitle    String?  @default("Asadero & Restaurante Tradicional")
+  welcomeDescription String?  @default("Disfruta de nuestros auténticos pollos asados al carbón y apanados crocantes, jugosos cortes a la brasa y las recetas típicas más queridas de nuestra tierra.")
+  welcomeButtonText  String?  @default("Ver Oferta Especial de Hoy")
+  welcomeTag1        String?  @default("Pollos")
+  welcomeTag1Sub     String?  @default("Asado & Broaster")
+  welcomeTag2        String?  @default("Parrilla")
+  welcomeTag2Sub     String?  @default("A la Brasa")
+  welcomeTag3        String?  @default("Típicos")
+  welcomeTag3Sub     String?  @default("Bandejas & Sopas")
+
+  // Campos del Plato Promocional (Paso 2)
   title              String   // Ej: "¡Especial del Día en Brasa y Carbón!"
   subtitle           String?  // Ej: "Costillas BBQ Campesinas + Cerveza Artesanal"
   description        String   // Descripción seductora para incentivar el consumo
@@ -87,7 +101,7 @@ model PromotionalModal {
   ctaText            String   @default("Ver en el Menú")
   targetDishId       String?  // ID del plato para navegar al hacer clic
   isActive           Boolean  @default(true) // Control global para mostrar/ocultar el modal
-  autoShowDelayMs    Int      @default(800)  // Milisegundos de espera antes de desplegar
+  autoShowDelayMs    Int      @default(0)  // Milisegundos de espera antes de desplegar
   showOncePerSession Boolean  @default(true) // Evita molestar si el cliente navega internamente
   updatedAt          DateTime @updatedAt
 

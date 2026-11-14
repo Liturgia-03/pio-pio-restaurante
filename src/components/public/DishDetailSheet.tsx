@@ -15,6 +15,7 @@ interface DishDetailSheetProps {
 export function DishDetailSheet({ dish, onClose }: DishDetailSheetProps) {
   const { addItem, setIsCartOpen } = useCart();
   const [selectedPortion, setSelectedPortion] = useState<Portion | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
     if (dish && dish.portions && dish.portions.length > 0) {
@@ -27,6 +28,14 @@ export function DishDetailSheet({ dish, onClose }: DishDetailSheetProps) {
 
   if (!dish) return null;
 
+  const handleSmoothClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+      setIsClosing(false);
+    }, 200);
+  };
+
   const currentPrice = selectedPortion
     ? selectedPortion.price
     : dish.discountPrice || dish.basePrice;
@@ -35,11 +44,15 @@ export function DishDetailSheet({ dish, onClose }: DishDetailSheetProps) {
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto"
-      onClick={onClose}
+      className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm transition-opacity duration-200 overflow-y-auto ${
+        isClosing ? "opacity-0 pointer-events-none" : "opacity-100 animate-in fade-in"
+      }`}
+      onClick={handleSmoothClose}
     >
       <div
-        className="relative w-full max-w-md max-h-[88vh] overflow-y-auto no-scrollbar bg-[#181b20] border border-gray-800 rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200 my-auto"
+        className={`relative w-full max-w-md max-h-[88vh] overflow-y-auto no-scrollbar bg-[#181b20] border border-gray-800 rounded-3xl shadow-2xl transition-all duration-200 my-auto ${
+          isClosing ? "scale-95 opacity-0" : "scale-100 opacity-100 animate-in zoom-in-95"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Barra superior */}
@@ -49,7 +62,7 @@ export function DishDetailSheet({ dish, onClose }: DishDetailSheetProps) {
             Detalle del Plato
           </span>
           <button
-            onClick={onClose}
+            onClick={handleSmoothClose}
             aria-label="Cerrar detalle"
             className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-white bg-gray-800/80 hover:bg-gray-700 rounded-full active:scale-95 transition-all"
           >
@@ -156,7 +169,7 @@ export function DishDetailSheet({ dish, onClose }: DishDetailSheetProps) {
                 onClick={() => {
                   addItem(dish, selectedPortion);
                   toast.success(`"${dish.name}" agregado al pedido`);
-                  onClose();
+                  handleSmoothClose();
                 }}
                 className="py-3 px-5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 active:scale-95 text-white font-extrabold rounded-2xl shadow-lg shadow-amber-500/25 transition-all text-xs flex items-center gap-1.5 min-h-[46px]"
               >

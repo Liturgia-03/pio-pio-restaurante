@@ -22,17 +22,21 @@ export function CategoryChips({
 }: CategoryChipsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll the active chip into view horizontally
+  // Auto-scroll del chip activo horizontalmente (sin alterar el scroll vertical de la ventana)
   useEffect(() => {
     if (!containerRef.current) return;
     const activeBtn = containerRef.current.querySelector<HTMLButtonElement>(
       `[data-category-id="${activeCategoryId}"]`
     );
     if (activeBtn) {
-      activeBtn.scrollIntoView({
+      const container = containerRef.current;
+      const btnLeft = activeBtn.offsetLeft;
+      const btnWidth = activeBtn.offsetWidth;
+      const containerWidth = container.offsetWidth;
+      const targetScrollLeft = btnLeft - containerWidth / 2 + btnWidth / 2;
+      container.scrollTo({
+        left: targetScrollLeft,
         behavior: "smooth",
-        inline: "center",
-        block: "nearest",
       });
     }
   }, [activeCategoryId]);

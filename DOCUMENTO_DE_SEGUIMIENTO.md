@@ -455,6 +455,16 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
 
+### Hito 30: Transición Natural Entre Categorías Sin Recorridos Verticales Ni Saltos a la Cima
+- **Causa Raíz del Desplazamiento Brusco:**
+  En `PublicMenuClient.tsx`, tanto `handleNextCategory`, `handlePrevCategory` como `handleSelectCategory` ejecutaban `window.scrollTo({ top: 0, behavior: "smooth" })`. Esto provocaba que, cada vez que el usuario deslizaba con el dedo (swipe) de izquierda a derecha o seleccionaba otra categoría, la página realizara un recorrido visual forzado subiendo cientos de píxeles hasta el encabezado/carrusel. Adicionalmente, en `CategoryChips.tsx`, el uso de `scrollIntoView` forzaba saltos verticales indeseados en navegadores móviles.
+- **Solución Implementada:**
+  - Se eliminaron las llamadas a `window.scrollTo({ top: 0, behavior: "smooth" })` al transicionar entre categorías ([PublicMenuClient.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/PublicMenuClient.tsx)).
+  - En `CategoryChips.tsx`, se reemplazó `activeBtn.scrollIntoView` por un desplazamiento horizontal aislado sobre el contenedor `container.scrollTo({ left: targetScrollLeft, behavior: "smooth" })`, garantizando que el scroll vertical de la ventana permanezca 100% inalterado.
+  - La transición entre platos y categorías ahora ocurre de forma completamente natural en el mismo punto de lectura.
+- **Certificación Técnica:**
+  - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

@@ -224,7 +224,6 @@ function MenuContent({
       window.history.replaceState({ pioView: "category", categoryId: nextCategory.id }, "");
     }
     setSelectedCategoryId(nextCategory.id);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handlePrevCategory = () => {
@@ -234,7 +233,6 @@ function MenuContent({
       window.history.replaceState({ pioView: "category", categoryId: prevCategory.id }, "");
     }
     setSelectedCategoryId(prevCategory.id);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Soporte para gestos táctiles de deslizamiento horizontal (Swipe de izquierda a derecha y viceversa)
@@ -362,7 +360,6 @@ function MenuContent({
       }
     }
     setSelectedCategoryId(catId);
-    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleBackToCategories = () => {

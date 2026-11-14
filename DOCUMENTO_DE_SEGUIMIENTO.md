@@ -419,6 +419,16 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
 
+### Hito 27: Corrección de Navegación en el Cajón Móvil Desplegable del Panel Administrativo
+- **Causa Raíz del Bloqueo de Navegación:**
+  En `AdminMobileDrawer.tsx`, al hacer clic en cualquier opción del menú desplegable, el enlace ejecutaba `handleSmoothClose()`, el cual invocaba de forma indiscriminada `window.history.back()`. Esto provocaba una colisión de historial: mientras Next.js intentaba transicionar hacia la nueva ruta (`/admin/dishes`, `/admin/categories`, etc.), el navegador retrocedía a la ruta actual (`/admin/dashboard`), abortando la navegación y dejando al usuario atrapado en la pantalla seleccionada en la barra inferior.
+- **Solución Implementada:**
+  - Se desacopló el cierre por descarte (`handleDismiss`: 'X' o toque en el fondo oscuro) de la navegación intencional (`handleNavigate`).
+  - Al presionar una opción, `handleNavigate` limpia el estado huérfano con `window.history.replaceState(null, "")` sin emitir `popstate`, cierra el cajón inmediatamente y ejecuta `router.push(href)`. Si el usuario ya está en esa pantalla, simplemente cierra el drawer.
+  - En `AdminShell.tsx`, se añadió un efecto reactivo que garantiza que el drawer siempre permanezca cerrado al cambiar de ruta (`[pathname]`).
+- **Certificación Técnica:**
+  - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

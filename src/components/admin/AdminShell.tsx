@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { AdminNavSidebar } from "@/components/admin/AdminNavSidebar";
 import { AdminMobileDrawer } from "@/components/admin/AdminMobileDrawer";
@@ -10,6 +10,11 @@ import { AdminHeader } from "@/components/admin/AdminHeader";
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Cerrar el drawer automáticamente cada vez que cambia la ruta
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname]);
 
   const handleOpenDrawer = () => {
     if (typeof window !== "undefined") {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   X,
@@ -38,7 +37,7 @@ export function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawerProps) {
     };
   }, [isOpen, isClosing]);
 
-  // Manejar el botón atrás del celular para cerrar el drawer suavemente
+  // Manejar el botón atrás nativo del celular para cerrar el drawer suavemente
   useEffect(() => {
     if (!isOpen) return;
 
@@ -47,7 +46,7 @@ export function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawerProps) {
       setTimeout(() => {
         onClose();
         setIsClosing(false);
-      }, 240);
+      }, 200);
     };
 
     window.addEventListener("popstate", onPopState);
@@ -58,23 +57,41 @@ export function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawerProps) {
 
   if (!isOpen) return null;
 
-  const handleSmoothClose = (callback?: () => void) => {
+  // Cierre cuando se presiona la 'X' o se toca fuera del drawer (backdrop)
+  const handleDismiss = () => {
     if (typeof window !== "undefined" && window.history.state?.pioAdminDrawer) {
       window.history.back();
-      if (callback) {
-        setTimeout(callback, 260);
-      }
       return;
     }
     setIsClosing(true);
     setTimeout(() => {
       onClose();
       setIsClosing(false);
-      if (callback) callback();
-    }, 260);
+    }, 200);
+  };
+
+  // Navegación inmediata a la sección elegida
+  const handleNavigate = (href: string) => {
+    // Si ya está en esa misma pantalla, solo cerramos el drawer
+    if (pathname === href) {
+      handleDismiss();
+      return;
+    }
+
+    // Limpiar el estado de historia del drawer sin disparar popstate
+    if (typeof window !== "undefined" && window.history.state?.pioAdminDrawer) {
+      window.history.replaceState(null, "");
+    }
+
+    onClose();
+    router.push(href);
   };
 
   const handleLogout = async () => {
+    if (typeof window !== "undefined" && window.history.state?.pioAdminDrawer) {
+      window.history.replaceState(null, "");
+    }
+    onClose();
     try {
       await fetch("/api/admin/auth/logout", { method: "POST" });
       toast.success("Sesión cerrada");
@@ -99,16 +116,16 @@ export function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawerProps) {
     <div
       role="dialog"
       aria-modal="true"
-      className={`fixed inset-0 z-50 flex bg-black/85 backdrop-blur-md md:hidden transition-all duration-300 ease-out ${
+      className={`fixed inset-0 z-50 flex bg-black/85 backdrop-blur-md md:hidden transition-all duration-200 ease-out ${
         isClosing ? "opacity-0 pointer-events-none" : "opacity-100 animate-in fade-in"
       }`}
-      onClick={() => handleSmoothClose()}
+      onClick={handleDismiss}
     >
       <div
-        className={`relative w-4/5 max-w-xs h-full bg-[#181b20] border-r border-gray-800 p-5 flex flex-col justify-between shadow-2xl transform transition-all duration-300 ease-out ${
+        className={`relative w-4/5 max-w-xs h-full bg-[#181b20] border-r border-gray-800 p-5 flex flex-col justify-between shadow-2xl transform transition-all duration-200 ease-out ${
           isClosing
             ? "-translate-x-full opacity-0"
-            : "translate-x-0 opacity-100 animate-in slide-in-from-left duration-300"
+            : "translate-x-0 opacity-100 animate-in slide-in-from-left duration-200"
         }`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -131,7 +148,8 @@ export function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawerProps) {
               </div>
             </div>
             <button
-              onClick={() => handleSmoothClose()}
+              type="button"
+              onClick={handleDismiss}
               aria-label="Cerrar navegación"
               className="w-9 h-9 flex items-center justify-center rounded-xl text-gray-400 hover:text-white bg-gray-800/80 hover:bg-gray-700 active:scale-95 transition-all duration-200"
             >
@@ -140,24 +158,26 @@ export function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawerProps) {
           </div>
 
           {/* Links de Navegación */}
-          <nav className="mt-6 space-y-1.5">
+          <nav className="mt-5 space-y-1.5">
             {menuItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive =
+                pathname === item.href ||
+                (item.href !== "/admin/dashboard" && pathname.startsWith(item.href));
               const Icon = item.icon;
               return (
-                <Link
+                <button
                   key={item.href}
-                  href={item.href}
-                  onClick={() => handleSmoothClose()}
-                  className={`flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all duration-200 ease-out active:scale-[0.98] ${
+                  type="button"
+                  onClick={() => handleNavigate(item.href)}
+                  className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all duration-150 ease-out active:scale-[0.98] text-left ${
                     isActive
                       ? "bg-gradient-to-r from-amber-500/20 to-orange-500/10 text-amber-400 border border-amber-500/30 font-bold shadow-sm"
                       : "text-gray-300 hover:bg-gray-800/60 hover:text-white"
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </Link>
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{item.label}</span>
+                </button>
               );
             })}
           </nav>
@@ -165,16 +185,24 @@ export function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawerProps) {
 
         {/* Footer del Drawer */}
         <div className="pt-4 border-t border-gray-800 space-y-2">
-          <Link
+          <a
             href="/menu"
             target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => {
+              if (typeof window !== "undefined" && window.history.state?.pioAdminDrawer) {
+                window.history.replaceState(null, "");
+              }
+              onClose();
+            }}
             className="flex items-center justify-center gap-2 w-full py-2.5 px-3 bg-gray-800/80 hover:bg-gray-700 text-gray-200 text-xs font-semibold rounded-xl border border-gray-700 active:scale-[0.98] transition-all duration-200"
           >
             <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
             <span>Ver Carta en Vivo</span>
-          </Link>
+          </a>
 
           <button
+            type="button"
             onClick={handleLogout}
             className="flex items-center justify-center gap-2 w-full py-2.5 px-3 bg-red-950/30 hover:bg-red-900/40 text-red-400 text-xs font-semibold rounded-xl border border-red-800/30 active:scale-[0.98] transition-all duration-200"
           >

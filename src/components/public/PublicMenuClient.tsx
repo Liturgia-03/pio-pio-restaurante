@@ -415,6 +415,9 @@ function MenuContent({
         window.history.back();
         return;
       }
+      if (newTab === "promos") {
+        window.scrollTo({ top: 0, behavior: "instant" });
+      }
     }
     setActiveTab(newTab);
   };
@@ -448,20 +451,22 @@ function MenuContent({
       suppressHydrationWarning
       className="min-h-screen bg-[#0f1115] text-gray-100 flex flex-col selection:bg-amber-500 selection:text-black"
     >
-      {/* Header Panorámico con Carrusel, Logo Grande y Buscador */}
-      <PublicHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        isSearching={isSearching}
-        onToggleSearch={handleToggleSearch}
-        mesaNumber={mesaNumber}
-        headerImages={settingsData?.headerImages}
-        headerTagline={settingsData?.headerTagline}
-        headerDescription={settingsData?.headerDescription}
-        restaurantName={settingsData?.restaurantName}
-        logoUrl={settingsData?.logoUrl}
-        openingHours={settingsData?.openingHours}
-      />
+      {/* Header Panorámico con Carrusel, Logo Grande y Buscador (Oculto únicamente en la sección de Promos) */}
+      {activeTab !== "promos" && (
+        <PublicHeader
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          isSearching={isSearching}
+          onToggleSearch={handleToggleSearch}
+          mesaNumber={mesaNumber}
+          headerImages={settingsData?.headerImages}
+          headerTagline={settingsData?.headerTagline}
+          headerDescription={settingsData?.headerDescription}
+          restaurantName={settingsData?.restaurantName}
+          logoUrl={settingsData?.logoUrl}
+          openingHours={settingsData?.openingHours}
+        />
+      )}
 
       {/* Barra de Chips (solo visible cuando está dentro de una categoría en la pestaña Menú) */}
       {!searchQuery && activeTab === "menu" && selectedCategoryId && categories.length > 0 && (
@@ -473,7 +478,11 @@ function MenuContent({
       )}
 
       {/* Contenido Principal */}
-      <main className="flex-1 max-w-2xl w-full mx-auto px-4 py-5 space-y-6 pb-28">
+      <main
+        className={`flex-1 max-w-2xl w-full mx-auto px-4 ${
+          activeTab === "promos" ? "pt-5 sm:pt-6" : "py-5"
+        } space-y-6 pb-28`}
+      >
         {/* Estado de Carga */}
         {isLoadingMenu && (
           <div className="py-20 flex flex-col items-center justify-center space-y-3 text-gray-400">

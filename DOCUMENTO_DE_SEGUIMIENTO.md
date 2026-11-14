@@ -479,6 +479,16 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - Compilación exitosa en Turbopack (`npm run build`), 21/21 rutas verificadas sin errores.
 
+### Hito 32: Ocultamiento Exclusivo de la Portada en la Sección de Promociones
+- **Requerimiento:**
+  En la sección de promociones del menú (`activeTab === "promos"`), quitar/ocultar la portada (carrusel de fotos, logotipo grande, eslogan y buscador) de forma exclusiva para esa sección, de modo que la pantalla inicie directamente con el título institucional *"🔥 Promociones & Especiales Pío Pío"* y las tarjetas de promoción y ofertas del día, tal como se especificó en la imagen de referencia.
+- **Solución Implementada:**
+  - En `PublicMenuClient.tsx`, se condicionó la renderización de `PublicHeader` con `{activeTab !== "promos" && <PublicHeader ... />}`, preservando la portada intacta en las pestañas de **Menú** e **Info**.
+  - Se ajustó el espaciado superior del contenedor principal `main` para que al estar en la pestaña de promociones aplique `pt-5 sm:pt-6`, garantizando una presentación visual limpia y perfectamente separada del borde superior del móvil.
+  - Se añadió en `handleTabChange` el desplazamiento instantáneo a la cima (`window.scrollTo({ top: 0, behavior: "instant" })`) al entrar a la sección de promociones.
+- **Certificación Técnica:**
+  - Compilación exitosa en Turbopack (`npm run build`), 21/21 rutas verificadas sin errores.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

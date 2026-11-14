@@ -92,13 +92,13 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
       role="dialog"
       aria-modal="true"
       className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300 ease-out ${
-        isClosing ? "opacity-0 pointer-events-none" : "opacity-100"
+        isClosing ? "opacity-0 pointer-events-none" : "animate-modal-backdrop"
       }`}
       onClick={triggerClose}
     >
       <div
-        className={`relative w-full max-w-sm overflow-hidden bg-[#181b20] border border-amber-500/30 rounded-3xl shadow-2xl shadow-black/80 transform transition-all duration-300 ease-out ${
-          isClosing ? "scale-95 opacity-0" : "scale-100 opacity-100"
+        className={`relative w-full max-w-sm overflow-hidden bg-[#181b20] border border-amber-500/35 rounded-3xl shadow-2xl shadow-black/90 transform transition-all duration-300 ease-out ${
+          isClosing ? "scale-90 opacity-0 pointer-events-none" : "animate-modal-card"
         }`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -139,18 +139,18 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
         {/* ======================================================== */}
         <div
           className={`transition-all duration-200 ease-in-out ${
-            isStepFading ? "opacity-0 translate-y-1 scale-[0.98]" : "opacity-100 translate-y-0 scale-100"
+            isStepFading ? "opacity-0 translate-y-2 scale-[0.97]" : "opacity-100 translate-y-0 scale-100"
           }`}
         >
           {/* ======================================================== */}
           {/* PASO 1: TARJETA DE PRESENTACIÓN Y BIENVENIDA             */}
           {/* ======================================================== */}
           {step === 1 && (
-            <div className="flex flex-col text-center p-6 pt-12 space-y-4 bg-gradient-to-b from-amber-950/30 via-[#181b20] to-[#14161a]">
-              {/* Logo Oficial Central con Anillo Dorado y Resplandor */}
+            <div className="flex flex-col text-center p-6 pt-12 space-y-4 bg-gradient-to-b from-amber-950/35 via-[#181b20] to-[#14161a]">
+              {/* Logo Oficial Central con Anillo Dorado y Resplandor Animado */}
               <div className="relative mx-auto mt-2">
-                <div className="absolute -inset-2 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full blur-md opacity-40 animate-pulse" />
-                <div className="relative w-24 h-24 rounded-full overflow-hidden border-3 border-amber-400 bg-amber-950 shadow-2xl flex items-center justify-center">
+                <div className="absolute -inset-2 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full blur-md opacity-50 animate-logo-glow" />
+                <div className="relative w-24 h-24 rounded-full overflow-hidden border-3 border-amber-400 bg-amber-950 shadow-2xl flex items-center justify-center animate-logo-glow">
                   <img
                     src="/logo-pio-pio.png"
                     alt="Pío Pío Asadero y Restaurante"
@@ -160,9 +160,9 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
               </div>
 
               {/* Títulos de Bienvenida */}
-              <div className="space-y-1">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/25 rounded-full text-[11px] font-extrabold text-amber-400 uppercase tracking-widest">
-                  <Flame className="w-3.5 h-3.5 fill-amber-400" />
+              <div className="space-y-1 animate-fade-in-up-1">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/25 rounded-full text-[11px] font-extrabold text-amber-400 uppercase tracking-widest shadow-sm">
+                  <Flame className="w-3.5 h-3.5 fill-amber-400 animate-flame-wiggle" />
                   <span>{promo.welcomeBadge || "El Sabor Que Nos Une"}</span>
                 </div>
                 <h3 className="text-2xl font-black text-white tracking-tight leading-tight pt-1">
@@ -173,50 +173,52 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
                 </span>
               </div>
 
-              {/* Mensaje de Presentación */}
-              <p className="text-xs text-gray-300 leading-relaxed px-1">
-                {promo.welcomeDescription ||
-                  "Disfruta de nuestros auténticos pollos asados al carbón y apanados crocantes, jugosos cortes a la brasa y las recetas típicas más queridas de nuestra tierra."}
-              </p>
+              {/* Mensaje de Presentación y Especialidades */}
+              <div className="space-y-3 animate-fade-in-up-2">
+                <p className="text-xs text-gray-300 leading-relaxed px-1">
+                  {promo.welcomeDescription ||
+                    "Disfruta de nuestros auténticos pollos asados al carbón y apanados crocantes, jugosos cortes a la brasa y las recetas típicas más queridas de nuestra tierra."}
+                </p>
 
-              {/* Píldoras de Especialidades */}
-              <div className="grid grid-cols-3 gap-2 py-1">
-                <div className="bg-[#14161a] border border-gray-800 rounded-xl p-2 text-center">
-                  <span className="text-[10px] font-bold text-gray-300 block">
-                    {promo.welcomeTag1 || "Pollos"}
-                  </span>
-                  <span className="text-[9px] text-amber-400 font-medium">
-                    {promo.welcomeTag1Sub || "Asado & Broaster"}
-                  </span>
-                </div>
-                <div className="bg-[#14161a] border border-gray-800 rounded-xl p-2 text-center">
-                  <span className="text-[10px] font-bold text-gray-300 block">
-                    {promo.welcomeTag2 || "Parrilla"}
-                  </span>
-                  <span className="text-[9px] text-orange-400 font-medium">
-                    {promo.welcomeTag2Sub || "A la Brasa"}
-                  </span>
-                </div>
-                <div className="bg-[#14161a] border border-gray-800 rounded-xl p-2 text-center">
-                  <span className="text-[10px] font-bold text-gray-300 block">
-                    {promo.welcomeTag3 || "Típicos"}
-                  </span>
-                  <span className="text-[9px] text-emerald-400 font-medium">
-                    {promo.welcomeTag3Sub || "Bandejas & Sopas"}
-                  </span>
+                {/* Píldoras de Especialidades */}
+                <div className="grid grid-cols-3 gap-2 py-1">
+                  <div className="bg-[#14161a] border border-gray-800 rounded-xl p-2 text-center hover:border-amber-500/40 transition-colors">
+                    <span className="text-[10px] font-bold text-gray-300 block">
+                      {promo.welcomeTag1 || "Pollos"}
+                    </span>
+                    <span className="text-[9px] text-amber-400 font-medium">
+                      {promo.welcomeTag1Sub || "Asado & Broaster"}
+                    </span>
+                  </div>
+                  <div className="bg-[#14161a] border border-gray-800 rounded-xl p-2 text-center hover:border-orange-500/40 transition-colors">
+                    <span className="text-[10px] font-bold text-gray-300 block">
+                      {promo.welcomeTag2 || "Parrilla"}
+                    </span>
+                    <span className="text-[9px] text-orange-400 font-medium">
+                      {promo.welcomeTag2Sub || "A la Brasa"}
+                    </span>
+                  </div>
+                  <div className="bg-[#14161a] border border-gray-800 rounded-xl p-2 text-center hover:border-emerald-500/40 transition-colors">
+                    <span className="text-[10px] font-bold text-gray-300 block">
+                      {promo.welcomeTag3 || "Típicos"}
+                    </span>
+                    <span className="text-[9px] text-emerald-400 font-medium">
+                      {promo.welcomeTag3Sub || "Bandejas & Sopas"}
+                    </span>
+                  </div>
                 </div>
               </div>
 
               {/* Botón Siguiente (Ver Promo) y Botón Omitir */}
-              <div className="space-y-2 pt-2">
+              <div className="space-y-2 pt-2 animate-fade-in-up-3">
                 <button
                   type="button"
                   onClick={() => goToStep(2)}
-                  className="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 hover:from-amber-600 hover:to-red-700 active:scale-[0.98] text-white font-extrabold rounded-2xl shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 text-xs transition-all min-h-[46px]"
+                  className="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 hover:from-amber-600 hover:to-red-700 active:scale-[0.98] text-white font-extrabold rounded-2xl shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 text-xs transition-all min-h-[46px] group"
                 >
-                  <Sparkles className="w-4 h-4" />
+                  <Sparkles className="w-4 h-4 text-amber-200 group-hover:rotate-12 transition-transform" />
                   <span>{promo.welcomeButtonText || "Ver Oferta Especial de Hoy"}</span>
-                  <ArrowRight className="w-4 h-4 ml-0.5" />
+                  <ArrowRight className="w-4 h-4 ml-0.5 group-hover:translate-x-1 transition-transform" />
                 </button>
 
                 <button
@@ -234,7 +236,7 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
           {/* PASO 2: MODAL DE PROMOCIÓN DEL PLATO ESTRELLA            */}
           {/* ======================================================== */}
           {step === 2 && (
-            <div className="flex flex-col">
+            <div className="flex flex-col animate-fade-in-up-1">
               {/* Imagen con Badge de Descuento */}
               <div className="relative w-full h-48 bg-gray-900">
                 <img

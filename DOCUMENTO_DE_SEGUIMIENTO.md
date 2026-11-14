@@ -251,6 +251,19 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - Pestañas para editar independientemente: `1. Tarjeta de Bienvenida` y `2. Plato Promocional`.
   - **Simulador Móvil en Vivo Interactivo:** Permite previsualizar en tiempo real el smartphone del comensal alternando entre la vista del Paso 1 y la vista del Paso 2 a medida que se escriben los cambios.
 
+### Hito 15: Animación Cinemática de Entrada para el Modal de Bienvenida
+- **Efecto de Entrada Dinámico y Fluido (`animate-modal-card`):**
+  - Se eliminó la aparición súbita o en seco del modal.
+  - Se implementó una curva de animación física elástica (`cubic-bezier(0.16, 1, 0.3, 1)`) que hace emerger la tarjeta suavemente desde abajo hacia el centro con micro-escala (`scale(0.90)` a `scale(1.015)` y reposo en `scale(1.0)`).
+- **Fondo Desenfoque Progresivo (`animate-modal-backdrop`):**
+  - El fondo oscuro y el desenfoque (`backdrop-filter: blur(12px)`) transicionan de `opacity: 0` a `opacity: 1` en 450ms.
+- **Micro-Animaciones Escalonadas Internas:**
+  - **Logo de Pío Pío:** Resplandor de brasa dorado/ámbar pulsante suave (`animate-logo-glow`).
+  - **Llama de Fuego:** Oscilación sutil viva (`animate-flame-wiggle`).
+  - **Títulos, Contenido y Botón:** Entrada escalonada en cascada (`animate-fade-in-up-1`, `2`, `3`) para una presentación atractiva y elegante de alta gama.
+- **Certificación:**
+  - Compilación verificada con 0 errores de TypeScript y `npm run build` exitoso.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

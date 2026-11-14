@@ -46,3 +46,93 @@ body {
 .highlight-dish {
   animation: highlightPulse 1.8s ease-out;
 }
+
+/* ============================================================== */
+/* ANIMACIONES CINEMÁTICAS SUAVES: MODAL DE BIENVENIDA Y PROMO    */
+/* ============================================================== */
+@keyframes modalBackdropIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
+}
+
+@keyframes modalPopIn {
+  0% {
+    opacity: 0;
+    transform: translateY(32px) scale(0.90);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.015);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeInUpSoft {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes logoGlowPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 25px rgba(245, 158, 11, 0.35);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 45px rgba(249, 115, 22, 0.65);
+  }
+}
+
+@keyframes flameWiggle {
+  0%, 100% {
+    transform: rotate(-4deg) scale(1);
+  }
+  50% {
+    transform: rotate(4deg) scale(1.15);
+  }
+}
+
+.animate-modal-backdrop {
+  animation: modalBackdropIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-modal-card {
+  animation: modalPopIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in-up-1 {
+  animation: fadeInUpSoft 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+}
+
+.animate-fade-in-up-2 {
+  animation: fadeInUpSoft 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both;
+}
+
+.animate-fade-in-up-3 {
+  animation: fadeInUpSoft 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.32s both;
+}
+
+.animate-logo-glow {
+  animation: logoGlowPulse 2.8s ease-in-out infinite;
+}
+
+.animate-flame-wiggle {
+  display: inline-block;
+  animation: flameWiggle 1.4s ease-in-out infinite;
+}
+

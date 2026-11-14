@@ -489,6 +489,23 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - Compilación exitosa en Turbopack (`npm run build`), 21/21 rutas verificadas sin errores.
 
+### Hito 33: Navegación de Categorías con Swipe Táctil, Filtros de Estado y Distintivos en Gestión de Platos
+- **Requerimiento:**
+  En el panel administrativo (`/admin/dishes`):
+  1. Agregar el mismo efecto de desplazamiento/scroll y swipe táctil de derecha a izquierda implementado en el menú público para navegar entre categorías.
+  2. Mostrar visiblemente la etiqueta de distintivo (*badge*: Más Vendido, Recomendado, Nuevo, Oferta Especial) en cada plato si la tiene asignada.
+  3. Implementar filtros de estado: *Todos*, *Disponibles*, *Agotados* y *Promos* (en el filtro de promos deben aparecer los platos con descuento activo y los que tienen distintivo asignado).
+- **Solución Implementada:**
+  - En `src/app/admin/dishes/page.tsx`:
+    - **Filtros de Estado Rápido:** Se añadió una barra superior con las opciones *Todos*, *Disponibles* (`isAvailable: true`), *Agotados* (`isAvailable: false`) y *Promos & Distintivos* (`(discountPrice > 0) || (badge && badge !== 'NONE')`), con contadores dinámicos para cada grupo.
+    - **Visualización de Distintivos:** En la ficha de cada plato se incluyeron badges oficiales con iconos y estilos acordes: `🔥 Más Vendido`, `⭐ Recomendado`, `✨ Nuevo`, `🏷️ Oferta Especial` y `🏷️ En Descuento` con precio tachado.
+    - **Efecto de Desplazamiento y Swipe Horizontal:**
+      - Se implementó el soporte táctil con `onTouchStart`, `onTouchMove` y `onTouchEnd` con seguimiento elástico (`dragOffset`) y animaciones de entrada (`slide-in-from-right-8` y `slide-in-from-left-8`).
+      - Se integró el carrusel horizontal de chips con centrado automático suave (`container.scrollTo({ left, behavior: 'smooth' })`).
+      - Se incorporó la barra de navegación con botones *Anterior* y *Siguiente* para alternar entre categorías con un toque.
+- **Certificación Técnica:**
+  - Compilación exitosa en Turbopack (`npm run build`), 21/21 rutas verificadas sin errores.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

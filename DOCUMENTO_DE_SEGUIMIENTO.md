@@ -264,6 +264,15 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación:**
   - Compilación verificada con 0 errores de TypeScript y `npm run build` exitoso.
 
+### Hito 16: Ocultamiento Total del Menú de Fondo Durante los Modales
+- **Fondo Sólido y Opaco (`bg-[#0f1115]`):**
+  - Se eliminó la semitransparencia del fondo (`bg-black/80`) y la transición desde `opacity: 0`.
+  - El fondo nace al 100% de opacidad con el tono oscuro oficial del restaurante y un gradiente radial cálido de brasa en el centro, ocultando por completo las categorías, platos, buscador y cabecera mientras el modal está activo.
+- **Bloqueo de Desplazamiento (`overflow: hidden`):**
+  - Se bloqueó el scroll del documento mientras el modal esté visible para evitar que el usuario desplace la carta detrás.
+- **Desvanecimiento al Entrar:**
+  - Al cerrar el modal o pulsar el botón de ver carta, el fondo sólido se desvanece suavemente (`duration-300`) revelando el menú al comensal de manera impecable.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

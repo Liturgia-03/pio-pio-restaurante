@@ -41,6 +41,17 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
     }
   }, [promo]);
 
+  useEffect(() => {
+    if (isOpen && !isClosing) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen, isClosing]);
+
   if (!isOpen || !promo || !promo.isActive) return null;
 
   // Cierre con animación suave de salida
@@ -91,8 +102,11 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
     <div
       role="dialog"
       aria-modal="true"
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all duration-300 ease-out ${
-        isClosing ? "opacity-0 pointer-events-none" : "animate-modal-backdrop"
+      style={{
+        background: "radial-gradient(circle at 50% 35%, rgba(245, 158, 11, 0.08) 0%, #0f1115 70%)",
+      }}
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0f1115] transition-opacity duration-300 ease-out ${
+        isClosing ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       onClick={triggerClose}
     >

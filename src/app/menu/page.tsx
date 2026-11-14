@@ -15,6 +15,9 @@ export default async function PublicMenuPage() {
     openingHours: "Lunes a Domingo: 10:00 AM a 9:00 PM",
     wifiSsid: "PioPio-Clientes",
     wifiPassword: "Parrilla2026*",
+    facebookUrl: "",
+    instagramUrl: "",
+    websiteUrl: "",
   };
 
   try {
@@ -51,6 +54,9 @@ export default async function PublicMenuPage() {
         openingHours: rawSettings.schedule,
         wifiSsid: rawSettings.wifiSsid,
         wifiPassword: rawSettings.wifiPassword,
+        facebookUrl: rawSettings.facebookUrl || "",
+        instagramUrl: rawSettings.instagramUrl || "",
+        websiteUrl: rawSettings.websiteUrl || "",
       };
     }
   } catch (error) {

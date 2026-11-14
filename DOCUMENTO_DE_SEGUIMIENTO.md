@@ -465,6 +465,20 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
 
+### Hito 31: Disposición Horizontal de Redes Sociales y Página Web con Enlaces Dinámicos
+- **Requerimiento:**
+  Ubicar los iconos/logos de Facebook, Instagram y Página Web en la sección de información de la carta digital de forma 100% horizontal uno al lado del otro (en móviles y escritorio), enlazados a las URLs configuradas en el admin, abriendo las páginas correspondientes al ser tocados.
+- **Solución Implementada:**
+  - En `PublicMenuClient.tsx`, se reestructuró la sección de Redes Sociales sustituyendo el grid apilado de una sola columna móvil (`grid-cols-1 sm:grid-cols-3`) por una cuadrícula horizontal de tres columnas fijas (`grid grid-cols-3 gap-2 sm:gap-3.5`).
+  - Se implementó la función auxiliar `ensureExternalUrl` para garantizar que cualquier URL introducida en el admin (incluso sin prefijo `https://`) sea tratada como enlace externo absoluto hacia una nueva pestaña (`target="_blank" rel="noopener noreferrer"`).
+  - Cada icono cuenta con su contenedor táctil de alta visibilidad:
+    - **Facebook:** Logotipo oficial vectorizado con fondo brand blue `#1877F2`.
+    - **Instagram:** Glifo oficial vectorizado con gradiente auténtico de la marca (`#f09433`, `#dc2743`, `#bc1888`).
+    - **Página Web:** Icono `Globe` estilizado en tonos dorados/ámbar de Pío Pío.
+  - En `src/app/menu/page.tsx`, se incluyeron `facebookUrl`, `instagramUrl` y `websiteUrl` en la precarga SSR de `settings` para disponibilidad inmediata en la renderización inicial.
+- **Certificación Técnica:**
+  - Compilación exitosa en Turbopack (`npm run build`), 21/21 rutas verificadas sin errores.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

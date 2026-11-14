@@ -29,6 +29,7 @@ export async function PUT(request: Request) {
     );
 
     revalidatePath("/");
+    revalidatePath("/menu");
 
     return NextResponse.json({
       success: true,

@@ -104,6 +104,7 @@ export async function PUT(request: Request) {
 
     // Invalidar caché de Next.js para que el menú público refleje cambios al instante
     revalidatePath("/");
+    revalidatePath("/menu");
 
     return NextResponse.json({
       success: true,

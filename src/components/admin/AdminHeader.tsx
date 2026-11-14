@@ -37,7 +37,7 @@ export function AdminHeader({ title, onOpenDrawer }: AdminHeaderProps) {
 
       {/* Botón Ver Carta */}
       <Link
-        href="/"
+        href="/menu"
         target="_blank"
         className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold transition-colors min-h-[36px]"
       >

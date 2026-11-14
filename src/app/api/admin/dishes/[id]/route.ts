@@ -89,6 +89,7 @@ export async function PUT(
     });
 
     revalidatePath("/");
+    revalidatePath("/menu");
 
     return NextResponse.json({
       success: true,
@@ -121,6 +122,7 @@ export async function DELETE(
     });
 
     revalidatePath("/");
+    revalidatePath("/menu");
 
     return NextResponse.json({
       success: true,

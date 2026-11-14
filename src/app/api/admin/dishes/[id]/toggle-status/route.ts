@@ -29,6 +29,7 @@ export async function PATCH(
 
     // Invalidar caché de Next.js para que el menú público refleje el cambio de disponibilidad de inmediato
     revalidatePath("/");
+    revalidatePath("/menu");
 
     return NextResponse.json({
       success: true,

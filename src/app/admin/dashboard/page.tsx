@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import {
@@ -13,6 +14,7 @@ import {
   Flame,
   CheckCircle2,
   XCircle,
+  Copy,
 } from "lucide-react";
 import { formatPrice } from "@/lib/formatters";
 import { DishItem, PromoModalData } from "@/types";
@@ -20,6 +22,13 @@ import { toast } from "sonner";
 
 export default function AdminDashboardPage() {
   const queryClient = useQueryClient();
+  const [baseUrl, setBaseUrl] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setBaseUrl(window.location.origin);
+    }
+  }, []);
 
   const { data: dishes = [], isLoading: loadingDishes } = useQuery<DishItem[]>({
     queryKey: ["admin-dishes"],
@@ -112,13 +121,53 @@ export default function AdminDashboardPage() {
             <span>Agregar Plato</span>
           </Link>
           <Link
-            href="/"
+            href="/menu"
             target="_blank"
             className="flex items-center justify-center gap-1.5 py-2.5 px-3 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold rounded-xl border border-gray-700 active:scale-95 transition-all min-h-[40px]"
           >
             <ExternalLink className="w-4 h-4 text-orange-400" />
             <span className="hidden sm:inline">Ver Menú</span>
           </Link>
+        </div>
+      </div>
+
+      {/* Barra Destacada: Enlace Público de la Carta Digital */}
+      <div className="bg-gradient-to-r from-amber-500/10 via-[#181b20] to-orange-500/10 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 flex-shrink-0">
+            <ExternalLink className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-[10px] font-extrabold text-amber-400 uppercase tracking-wider block">
+              Enlace Público de la Carta Digital
+            </span>
+            <p className="text-xs font-mono text-gray-300 truncate">
+              {baseUrl ? `${baseUrl}/menu` : "/menu"}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => {
+              const link = baseUrl ? `${baseUrl}/menu` : `${window.location.origin}/menu`;
+              navigator.clipboard.writeText(link);
+              toast.success("Enlace de la carta copiado al portapapeles");
+            }}
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-2 px-3.5 bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-bold rounded-xl border border-gray-700 active:scale-95 transition-all min-h-[38px]"
+          >
+            <Copy className="w-3.5 h-3.5 text-amber-400" />
+            <span>Copiar Link del Menú</span>
+          </button>
+          <a
+            href="/menu"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-2 px-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-95 text-white text-xs font-bold rounded-xl active:scale-95 transition-all shadow-md shadow-amber-500/20 min-h-[38px]"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Abrir Carta Pública</span>
+          </a>
         </div>
       </div>
 

@@ -18,18 +18,18 @@
 | **Iconografía** | **Lucide Icons** |
 | **Notificaciones** | **Sonner** (Toasts táctiles de alta visibilidad) |
 | **PWA & Offline** | Web App Manifest (`/manifest.json`), Service Worker (`/sw.js`) e iconos oficiales |
-| **Rutas Compiladas** | **24 rutas** (estáticas y dinámicas) con 0 errores en `npm run build` |
+| **Rutas Compiladas** | **25 rutas** (estáticas y dinámicas) con 0 errores en `npm run build` |
 
-### Credenciales de Acceso Administrativo
-- **URL de Producción (En Vivo):** `https://pio-pio-restaurante.vercel.app/admin/login`
-- **URL Local:** `http://localhost:3000/admin/login`
-- **Correo:** `admin@asaderopiopio.com`
-- **Contraseña:** `PioPio2026*`
+### Punto de Entrada y Credenciales de Acceso
+- **Ruta Raíz (`/`):** Redirección automática del lado del servidor hacia `/admin/dashboard` (protegida por `middleware.ts`, enviando a `/admin/login` si no hay sesión).
+- **URL de Producción (En Vivo):** `https://pio-pio-restaurante.vercel.app` (o `/admin/login`)
+- **Correo de Administrador:** `admin@asaderopiopio.com`
+- **Contraseña de Administrador:** `PioPio2026*`
 
-### Entornos de Ejecución
-- **Dominio Público Oficial (Vercel):** `https://pio-pio-restaurante.vercel.app`
-- **Carta Digital con Parámetro de Mesa (Ejemplo Mesa 1):** `https://pio-pio-restaurante.vercel.app/?mesa=01`
-- **Servidor Local de Desarrollo:** `http://localhost:3000`
+### Entornos de Ejecución y Carta Digital Pública
+- **Carta Digital de Clientes:** `https://pio-pio-restaurante.vercel.app/menu`
+- **Carta Digital con Mesa (Ejemplo Mesa 1):** `https://pio-pio-restaurante.vercel.app/menu?mesa=01`
+- **Servidor Local de Desarrollo:** `http://localhost:3000` (Redirige a `/admin/dashboard` y carta en `http://localhost:3000/menu`)
 
 ---
 
@@ -221,6 +221,23 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - SSR Híbrido: Server Components precargados con hidratación instantánea en TanStack Query.
   - Caché: `force-dynamic` en endpoints de datos públicos y `revalidatePath` en mutaciones.
 - **Veredicto Final:** Sistema 100% operativo en vivo en la web. Listo para imprimir códigos QR y operar en el restaurante.
+
+### Hito 13: Reestructuración de Rutas - Admin como Punto de Entrada Raíz (`/`) y Carta Pública en `/menu`
+- **Carta Digital Pública en `/menu`:**
+  - Creado `src/app/menu/page.tsx` conteniendo la experiencia completa de la carta digital de comensales con SSR, precarga Prisma (`initialCategories`, `initialPromo`, `initialSettings`) y `force-dynamic`.
+- **Redirección Inmediata en Ruta Raíz (`/`):**
+  - `src/app/page.tsx` ahora ejecuta `redirect("/admin/dashboard")` del lado del servidor.
+  - El flujo de seguridad orquestado por `src/middleware.ts` intercepta la ruta: si el usuario tiene sesión válida accede directamente a `/admin/dashboard`; si no tiene sesión o es la primera vez, lo redirige fluidamente a `/admin/login`.
+- **Actualización de Códigos QR para Mesas (`/admin/qr`):**
+  - Generador de códigos QR ajustado para construir la URL oficial `${baseUrl}/menu?mesa=XX`.
+  - Tarjeta destacada agregada tanto en `/admin/qr` como en `/admin/dashboard` mostrando el enlace público de la carta con botones de acción directa: **"Copiar Link del Menú"** (al portapapeles con toast Sonner) y **"Abrir Carta Pública"** (`target="_blank"`).
+- **Actualización de Enlaces Internos:**
+  - Modificados botones de "Ver Carta" / "Ver Menú" en `AdminHeader.tsx`, `AdminNavSidebar.tsx`, `AdminMobileDrawer.tsx` y `AdminDashboardPage.tsx` para navegar a `/menu`.
+- **Revalidación de Caché Atómica:**
+  - Agregado `revalidatePath("/menu")` en todos los endpoints de mutación administrativa (`/api/admin/dishes`, `toggle-status`, `categories`, `reorder`, `promo-modal`, `settings`) para invalidación en tiempo real.
+- **Certificación de Build:**
+  - `npx tsc --noEmit`: 0 errores de tipado.
+  - `npm run build`: 21 rutas compiladas y optimizadas exitosamente con código de salida `0`.
 
 ---
 

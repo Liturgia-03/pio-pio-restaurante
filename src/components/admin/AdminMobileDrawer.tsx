@@ -111,7 +111,7 @@ export function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawerProps) {
         {/* Footer del Drawer */}
         <div className="pt-4 border-t border-gray-800 space-y-2">
           <Link
-            href="/"
+            href="/menu"
             target="_blank"
             className="flex items-center justify-center gap-2 w-full py-2.5 px-3 bg-gray-800/80 hover:bg-gray-700 text-gray-200 text-xs font-semibold rounded-xl border border-gray-700 transition-colors"
           >

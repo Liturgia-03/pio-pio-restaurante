@@ -74,6 +74,7 @@ export async function POST(request: Request) {
     });
 
     revalidatePath("/");
+    revalidatePath("/menu");
 
     return NextResponse.json(
       {

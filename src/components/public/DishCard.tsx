@@ -61,9 +61,9 @@ export function DishCard({ dish, onSelect }: DishCardProps) {
     <div
       id={`dish-${dish.id}`}
       onClick={() => onSelect(dish)}
-      className={`group relative flex gap-3 p-3 bg-[#181b20] border rounded-2xl cursor-pointer transition-all duration-200 active:scale-[0.99] ${
+      className={`group relative flex gap-3 p-3 bg-[#181b20] border rounded-2xl cursor-pointer transition-all duration-300 ease-out active:scale-[0.98] ${
         isAvailable
-          ? "border-gray-800/80 hover:border-orange-500/40 shadow-sm"
+          ? "border-gray-800/80 hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/10 shadow-sm"
           : "border-gray-800/40 bg-[#14161a] opacity-65"
       }`}
     >

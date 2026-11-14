@@ -221,16 +221,16 @@ function MenuContent({
               setActiveTab("menu");
               setSelectedCategoryId(null);
             }}
-            className={`relative p-2.5 rounded-2xl border text-center transition-all duration-200 flex flex-col items-center justify-center min-h-[72px] active:scale-95 ${
+            className={`relative p-2.5 rounded-2xl border text-center transition-all duration-300 ease-out flex flex-col items-center justify-center min-h-[72px] active:scale-[0.96] ${
               activeTab === "menu"
                 ? "bg-gradient-to-b from-amber-500/25 via-amber-500/10 to-transparent border-amber-500 text-white shadow-lg shadow-amber-500/20"
                 : "bg-[#181b20] border-gray-800 text-gray-400 hover:text-gray-200 hover:border-gray-700"
             }`}
           >
             <div
-              className={`w-7 h-7 rounded-xl flex items-center justify-center mb-1 transition-colors ${
+              className={`w-7 h-7 rounded-xl flex items-center justify-center mb-1 transition-all duration-300 ${
                 activeTab === "menu"
-                  ? "bg-amber-500 text-white shadow-md shadow-amber-500/30"
+                  ? "bg-amber-500 text-white shadow-md shadow-amber-500/30 scale-105"
                   : "bg-gray-800 text-gray-400"
               }`}
             >
@@ -247,16 +247,16 @@ function MenuContent({
           {/* Tarjeta 2: Promociones */}
           <button
             onClick={() => setActiveTab("promos")}
-            className={`relative p-2.5 rounded-2xl border text-center transition-all duration-200 flex flex-col items-center justify-center min-h-[72px] active:scale-95 ${
+            className={`relative p-2.5 rounded-2xl border text-center transition-all duration-300 ease-out flex flex-col items-center justify-center min-h-[72px] active:scale-[0.96] ${
               activeTab === "promos"
                 ? "bg-gradient-to-b from-orange-500/25 via-orange-500/10 to-transparent border-orange-500 text-white shadow-lg shadow-orange-500/20"
                 : "bg-[#181b20] border-gray-800 text-gray-400 hover:text-gray-200 hover:border-gray-700"
             }`}
           >
             <div
-              className={`w-7 h-7 rounded-xl flex items-center justify-center mb-1 transition-colors ${
+              className={`w-7 h-7 rounded-xl flex items-center justify-center mb-1 transition-all duration-300 ${
                 activeTab === "promos"
-                  ? "bg-orange-500 text-white shadow-md shadow-orange-500/30"
+                  ? "bg-orange-500 text-white shadow-md shadow-orange-500/30 scale-105"
                   : "bg-gray-800 text-gray-400"
               }`}
             >
@@ -273,16 +273,16 @@ function MenuContent({
           {/* Tarjeta 3: Información */}
           <button
             onClick={() => setActiveTab("info")}
-            className={`relative p-2.5 rounded-2xl border text-center transition-all duration-200 flex flex-col items-center justify-center min-h-[72px] active:scale-95 ${
+            className={`relative p-2.5 rounded-2xl border text-center transition-all duration-300 ease-out flex flex-col items-center justify-center min-h-[72px] active:scale-[0.96] ${
               activeTab === "info"
                 ? "bg-gradient-to-b from-red-500/25 via-red-500/10 to-transparent border-red-500 text-white shadow-lg shadow-red-500/20"
                 : "bg-[#181b20] border-gray-800 text-gray-400 hover:text-gray-200 hover:border-gray-700"
             }`}
           >
             <div
-              className={`w-7 h-7 rounded-xl flex items-center justify-center mb-1 transition-colors ${
+              className={`w-7 h-7 rounded-xl flex items-center justify-center mb-1 transition-all duration-300 ${
                 activeTab === "info"
-                  ? "bg-red-500 text-white shadow-md shadow-red-500/30"
+                  ? "bg-red-500 text-white shadow-md shadow-red-500/30 scale-105"
                   : "bg-gray-800 text-gray-400"
               }`}
             >
@@ -396,7 +396,7 @@ function MenuContent({
           <>
             {/* Si NO hay categoría seleccionada: Muestra las TARJETAS DE CATEGORÍAS apiladas */}
             {selectedCategoryId === null ? (
-              <div key="all-categories" className="space-y-4 animate-in fade-in duration-300">
+              <div key="all-categories" className="space-y-4 animate-[fadeInUpSoft_0.32s_cubic-bezier(0.16,1,0.3,1)_both]">
                 <div className="flex items-center justify-between pb-2 border-b border-gray-800/80">
                   <div>
                     <h2 className="text-base font-black text-white tracking-tight flex items-center gap-2">
@@ -426,12 +426,12 @@ function MenuContent({
             ) : (
               /* Si HAY categoría seleccionada: Muestra ÚNICA Y EXCLUSIVAMENTE los platos de esa categoría */
               currentCategory && (
-                <div key={`cat-${currentCategory.id}`} className="space-y-4 animate-in fade-in slide-in-from-right-3 duration-300">
+                <div key={`cat-${currentCategory.id}`} className="space-y-4 animate-[fadeInUpSoft_0.32s_cubic-bezier(0.16,1,0.3,1)_both]">
                   {/* Botón Volver a Categorías */}
                   <div className="flex items-center justify-between">
                     <button
                       onClick={() => setSelectedCategoryId(null)}
-                      className="inline-flex items-center gap-2 py-2 px-3.5 bg-gray-900 hover:bg-gray-800 text-amber-400 text-xs font-black rounded-xl border border-gray-800 active:scale-95 transition-all shadow-md"
+                      className="inline-flex items-center gap-2 py-2 px-3.5 bg-gray-900 hover:bg-gray-800 text-amber-400 text-xs font-black rounded-xl border border-gray-800 active:scale-95 transition-all duration-300 ease-out shadow-md"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       <span>Volver a Categorías</span>
@@ -494,7 +494,7 @@ function MenuContent({
         {/* PESTAÑA 2: PROMOCIONES Y ESPECIALES DEL DÍA              */}
         {/* ======================================================== */}
         {!isLoadingMenu && !searchQuery && activeTab === "promos" && (
-          <div key="tab-promos" className="space-y-5 animate-in fade-in duration-300">
+          <div key="tab-promos" className="space-y-5 animate-[fadeInUpSoft_0.32s_cubic-bezier(0.16,1,0.3,1)_both]">
             <div className="flex items-center justify-between pb-2 border-b border-gray-800/80">
               <div>
                 <h2 className="text-base font-black text-white tracking-tight flex items-center gap-2">
@@ -594,7 +594,7 @@ function MenuContent({
         {/* PESTAÑA 3: INFORMACIÓN DEL NEGOCIO, HORARIOS Y WI-FI     */}
         {/* ======================================================== */}
         {!isLoadingMenu && !searchQuery && activeTab === "info" && (
-          <div key="tab-info" className="space-y-5 animate-in fade-in duration-300">
+          <div key="tab-info" className="space-y-5 animate-[fadeInUpSoft_0.32s_cubic-bezier(0.16,1,0.3,1)_both]">
             {/* 1. Presentación del Asadero y Restaurante */}
             <div className="relative rounded-3xl overflow-hidden bg-[#181b20] border border-gray-800 p-6 space-y-4 shadow-xl">
               <div className="flex items-center gap-3">

@@ -18,6 +18,17 @@ export function DishDetailSheet({ dish, onClose }: DishDetailSheetProps) {
   const [isClosing, setIsClosing] = useState(false);
 
   useEffect(() => {
+    if (dish && !isClosing) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [dish, isClosing]);
+
+  useEffect(() => {
     if (dish && dish.portions && dish.portions.length > 0) {
       const defaultPortion = dish.portions.find((p) => p.isDefault) || dish.portions[0];
       setSelectedPortion(defaultPortion);
@@ -33,7 +44,7 @@ export function DishDetailSheet({ dish, onClose }: DishDetailSheetProps) {
     setTimeout(() => {
       onClose();
       setIsClosing(false);
-    }, 200);
+    }, 260);
   };
 
   const currentPrice = selectedPortion
@@ -44,14 +55,16 @@ export function DishDetailSheet({ dish, onClose }: DishDetailSheetProps) {
     <div
       role="dialog"
       aria-modal="true"
-      className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm transition-opacity duration-200 overflow-y-auto ${
+      className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md transition-all duration-300 ease-out overflow-y-auto ${
         isClosing ? "opacity-0 pointer-events-none" : "opacity-100 animate-in fade-in"
       }`}
       onClick={handleSmoothClose}
     >
       <div
-        className={`relative w-full max-w-md max-h-[88vh] overflow-y-auto no-scrollbar bg-[#181b20] border border-gray-800 rounded-3xl shadow-2xl transition-all duration-200 my-auto ${
-          isClosing ? "scale-95 opacity-0" : "scale-100 opacity-100 animate-in zoom-in-95"
+        className={`relative w-full max-w-md max-h-[88vh] overflow-y-auto no-scrollbar bg-[#181b20] border border-gray-800 rounded-3xl shadow-2xl transform transition-all duration-300 my-auto ${
+          isClosing
+            ? "scale-90 translate-y-6 opacity-0"
+            : "scale-100 translate-y-0 opacity-100 animate-[modalPopIn_0.35s_cubic-bezier(0.16,1,0.3,1)_forwards]"
         }`}
         onClick={(e) => e.stopPropagation()}
       >

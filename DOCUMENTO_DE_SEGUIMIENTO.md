@@ -282,6 +282,26 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Enfoque Total en la Tarjeta:**
   - El modal ahora resalta como el elemento protagonista exclusivo sobre un fondo oscuro, sedoso y desenfocado con acabado de alta gama.
 
+### Hito 18: Suavidad Cinemática y Transiciones Fluidas en Navegación, Categorías, Platos y Carrito
+- **Ficha de Detalle de Plato (`DishDetailSheet.tsx`):**
+  - Se eliminó la apertura en seco y el cierre abrupto. Se aplicó animación de entrada elástica iOS (`modalPopIn` en 350ms con curva `cubic-bezier(0.16, 1, 0.3, 1)`).
+  - Se implementó salida animada con retardo programado de 260ms (`handleSmoothClose`), donde la tarjeta se reduce suavemente y desciende (`scale-90 translate-y-6 opacity-0`) mientras el fondo se desvanece de forma sedosa.
+  - Bloqueo automático de scroll en `document.body` mientras el detalle esté abierto.
+- **Tarjetas de Platos (`DishCard.tsx`):**
+  - Micro-interacción táctil suave (`active:scale-[0.98] transition-all duration-300 ease-out`) con resplandor sutil al toque/hover.
+- **Navegación entre Categorías y Pestañas (`PublicMenuClient.tsx`):**
+  - Se erradicó el tirón lateral tosco (`slide-in-from-right-3`). Tanto el cambio de categorías como la apertura de las pestañas ("Ver Menú Completo", "Promociones", "Información") ahora utilizan elevación vertical con desvanecimiento orgánico (`animate-[fadeInUpSoft_0.32s_cubic-bezier(0.16,1,0.3,1)_both]`).
+  - Botones de pestañas superiores y botones de retorno ("Volver a Categorías") con transiciones suaves de 300ms y micro-escalado elástico.
+- **Barra de Chips de Categorías (`CategoryChips.tsx`):**
+  - Transición fluida de 300ms con micro-escala (`scale-[1.02]`) en la categoría activa.
+- **Carrito de Compras Móvil (`CartSheet.tsx`):**
+  - Apertura y cierre con animación suave: `handleSmoothClose` con 260ms de transición descendente (`translate-y-full opacity-0`) y desvanecimiento progresivo del fondo oscuro con desenfoque (`backdrop-blur-md`).
+  - Bloqueo de scroll del fondo mientras el carrito esté visible.
+- **Botón Flotante del Carrito (`CartFloatingButton.tsx`):**
+  - Entrada fluida con `fadeInUpSoft` y feedback táctil amortiguado (`active:scale-[0.98]`).
+- **Certificación Técnica:**
+  - Compilación verificada con `npm run build` en Turbopack: 21 rutas compiladas y optimizadas exitosamente con código de salida `0`.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

@@ -43,6 +43,18 @@ export function CartSheet({
   const [customerName, setCustomerName] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [notes, setNotes] = useState("");
+  const [isClosing, setIsClosing] = useState(false);
+
+  useEffect(() => {
+    if (isCartOpen && !isClosing) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isCartOpen, isClosing]);
 
   // Sincronizar mesa desde parámetro URL o almacenamiento de sesión
   useEffect(() => {
@@ -61,6 +73,14 @@ export function CartSheet({
   }, [initialMesa]);
 
   if (!isCartOpen) return null;
+
+  const handleSmoothClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsCartOpen(false);
+      setIsClosing(false);
+    }, 260);
+  };
 
   const handleSendWhatsapp = () => {
     if (items.length === 0) {
@@ -119,11 +139,19 @@ export function CartSheet({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
-      onClick={() => setIsCartOpen(false)}
+      role="dialog"
+      aria-modal="true"
+      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md transition-all duration-300 ease-out ${
+        isClosing ? "opacity-0 pointer-events-none" : "opacity-100 animate-in fade-in"
+      }`}
+      onClick={handleSmoothClose}
     >
       <div
-        className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto no-scrollbar bg-[#181b20] border-t sm:border border-gray-800 rounded-t-3xl sm:rounded-3xl shadow-2xl animate-in slide-in-from-bottom duration-300 flex flex-col"
+        className={`relative w-full max-w-lg max-h-[92vh] overflow-y-auto no-scrollbar bg-[#181b20] border-t sm:border border-gray-800 rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col transform transition-all duration-300 ease-out ${
+          isClosing
+            ? "translate-y-full sm:translate-y-6 sm:scale-95 opacity-0"
+            : "translate-y-0 sm:scale-100 opacity-100 animate-[fadeInUpSoft_0.32s_cubic-bezier(0.16,1,0.3,1)_both]"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header del Carrito */}
@@ -152,8 +180,9 @@ export function CartSheet({
               </button>
             )}
             <button
-              onClick={() => setIsCartOpen(false)}
-              className="w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:text-white bg-gray-800/80 active:scale-95"
+              onClick={handleSmoothClose}
+              aria-label="Cerrar carrito"
+              className="w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:text-white bg-gray-800/80 hover:bg-gray-700 active:scale-95 transition-all"
             >
               <X className="w-4 h-4" />
             </button>

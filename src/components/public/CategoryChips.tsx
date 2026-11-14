@@ -50,9 +50,9 @@ export function CategoryChips({
               key={cat.id}
               data-category-id={cat.id}
               onClick={() => onSelectCategory(cat.id)}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 min-h-[38px] active:scale-95 ${
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-300 ease-out min-h-[38px] active:scale-95 ${
                 isActive
-                  ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-md shadow-orange-500/20"
+                  ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-md shadow-orange-500/25 scale-[1.02]"
                   : "bg-[#181b20] text-gray-400 hover:text-gray-200 border border-gray-800"
               }`}
             >

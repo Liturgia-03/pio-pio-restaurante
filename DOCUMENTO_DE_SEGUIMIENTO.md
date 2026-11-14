@@ -21,13 +21,15 @@
 | **Rutas Compiladas** | **24 rutas** (estáticas y dinámicas) con 0 errores en `npm run build` |
 
 ### Credenciales de Acceso Administrativo
-- **URL de Acceso:** `http://localhost:3000/admin/login`
+- **URL de Producción (En Vivo):** `https://pio-pio-restaurante.vercel.app/admin/login`
+- **URL Local:** `http://localhost:3000/admin/login`
 - **Correo:** `admin@asaderopiopio.com`
 - **Contraseña:** `PioPio2026*`
 
-### Entornos de Ejecución Local y LAN
-- **Servidor Local:** `http://localhost:3000`
-- **Acceso Móvil en red local (Wi-Fi):** `http://10.241.81.201:3000` (o la IP asignada en la red local)
+### Entornos de Ejecución
+- **Dominio Público Oficial (Vercel):** `https://pio-pio-restaurante.vercel.app`
+- **Carta Digital con Parámetro de Mesa (Ejemplo Mesa 1):** `https://pio-pio-restaurante.vercel.app/?mesa=01`
+- **Servidor Local de Desarrollo:** `http://localhost:3000`
 
 ---
 
@@ -199,6 +201,26 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npm run build` ejecutado exitosamente: 20 páginas estáticas y 6 rutas dinámicas SSR/API generadas con 0 errores.
 - **Control de Versiones:**
   - Commit formal realizado en la rama `master` con 69 archivos preparados para GitHub.
+
+### Hito 11: Publicación en Repositorio Remoto GitHub
+- **Repositorio Oficial:** `https://github.com/Liturgia-03/pio-pio-restaurante.git`
+- **Rama Principal:** `main` sincronizada y configurada con upstream (`origin/main`).
+- **Seguridad Garantizada:** `.env` y bases de datos locales `dev.db` excluidas del repositorio público mediante `.gitignore`.
+- **Estado Actual:** Listo para importación y despliegue continuo (CI/CD) en Vercel.
+
+### Hito 12: Despliegue en Producción Exitoso en Vercel (Cloud-Ready 100%)
+- **Plataforma:** Vercel Serverless Platform.
+- **Dominio Público:** `https://pio-pio-restaurante.vercel.app`.
+- **Métricas de Build:**
+  - Tiempo de compilación: **46 segundos**.
+  - Estado: **Listo / Producción (Latest) 🟢**.
+  - Servido a través de la red global Edge CDN con certificado SSL / HTTPS automático.
+- **Infraestructura Conectada:**
+  - Base de Datos: Neon PostgreSQL Serverless (AWS us-east-1).
+  - Autenticación: JWT en Edge Runtime con `jose`.
+  - SSR Híbrido: Server Components precargados con hidratación instantánea en TanStack Query.
+  - Caché: `force-dynamic` en endpoints de datos públicos y `revalidatePath` en mutaciones.
+- **Veredicto Final:** Sistema 100% operativo en vivo en la web. Listo para imprimir códigos QR y operar en el restaurante.
 
 ---
 

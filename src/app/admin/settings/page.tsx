@@ -39,6 +39,7 @@ export default function AdminSettingsPage() {
   const [newImageUrl, setNewImageUrl] = useState("");
   const [headerTagline, setHeaderTagline] = useState("Asadero & Restaurante Tradicional");
   const [headerDescription, setHeaderDescription] = useState("El auténtico sabor a la brasa, broaster y platos típicos");
+  const [logoUrl, setLogoUrl] = useState("/logo-pio-pio.png");
   const [isUploadingHeader, setIsUploadingHeader] = useState(false);
 
   // Credenciales de administración (Usuario y Contraseña)
@@ -75,6 +76,7 @@ export default function AdminSettingsPage() {
       }
       if (settings.headerTagline) setHeaderTagline(settings.headerTagline);
       if (settings.headerDescription) setHeaderDescription(settings.headerDescription);
+      if (settings.logoUrl) setLogoUrl(settings.logoUrl);
     }
   }, [settings]);
 
@@ -163,6 +165,7 @@ export default function AdminSettingsPage() {
       wifiSsid,
       wifiPassword,
       headerImages,
+      logoUrl,
       headerTagline: headerTagline.trim(),
       headerDescription: headerDescription.trim(),
       adminUsername: adminUsername.trim(),

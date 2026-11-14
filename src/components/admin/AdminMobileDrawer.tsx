@@ -90,7 +90,7 @@ export function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawerProps) {
     { label: "Gestión de Platos", href: "/admin/dishes", icon: UtensilsCrossed },
     { label: "Nuevo Plato", href: "/admin/dishes/new", icon: PlusCircle },
     { label: "Categorías", href: "/admin/categories", icon: FolderTree },
-    { label: "Modal Promocional", href: "/admin/promo-modal", icon: Sparkles },
+    { label: "Ajustes Menú", href: "/admin/promo-modal", icon: Sparkles },
     { label: "Códigos QR Mesas", href: "/admin/qr", icon: QrCode },
     { label: "Ajustes Asadero", href: "/admin/settings", icon: Settings },
   ];

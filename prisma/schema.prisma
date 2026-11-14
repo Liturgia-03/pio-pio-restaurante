@@ -117,6 +117,7 @@ model RestaurantSettings {
   schedule          String   @default("Lunes a Domingo: 10:00 AM a 9:00 PM")
   wifiSsid          String?  @default("PioPio-Clientes")
   wifiPassword      String?  @default("Parrilla2026*")
+  logoUrl           String?  @default("/logo-pio-pio.png")
   headerImages      String?  @default("[]")
   headerTagline     String?  @default("Asadero & Restaurante Tradicional")
   headerDescription String?  @default("El auténtico sabor a la brasa, broaster y platos típicos")

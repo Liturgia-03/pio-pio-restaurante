@@ -405,6 +405,20 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
 
+### Hito 26: Renombramiento a "Ajustes Menú", Edición de Portada en 3 Pasos y Horario Sincronizado
+- **Renombramiento en Navegación Administrativa:**
+  - En la barra lateral (`AdminNavSidebar.tsx`), cajón móvil deslizable (`AdminMobileDrawer.tsx`), barra inferior (`AdminBottomBar.tsx`) y shell (`AdminShell.tsx`), la sección *"Modal Promocional"* se renombró a **"Ajustes Menú"**.
+- **Módulo Integral de 3 Pasos en `/admin/promo-modal`:**
+  - `1. Tarjeta Bienvenida`: Editor del mensaje de bienvenida inicial, especialidades (pilares) y botón.
+  - `2. Plato Promocional`: Editor de la oferta del día con imagen, badge, precios y enlace a plato.
+  - `3. Portada Menú` (**Nuevo**): Editor de imágenes del carrusel de portada (subida, galería con borrado, URLs), edición y subida de logotipo oficial, personalización del nombre ("Pío Pío"), subtítulo/eslogan, descripción y **horario de atención sincronizado**.
+- **Sincronización Total del Horario de Atención:**
+  - El horario configurado en el asadero se muestra dinámicamente en `PublicHeader.tsx` (`openingHours || "10:00 AM - 9:00 PM"`), coincidiendo exactamente con la sección informativa de la carta digital y los ajustes generales.
+- **Simulador Móvil en Vivo (Live Smartphone Mockup):**
+  - Integra alternador de 3 pasos: permite previsualizar en tiempo real el paso 1 (Bienvenida), paso 2 (Promo) y el paso 3 (**Portada en vivo con carrusel, logo, horario y buscador**).
+- **Certificación Técnica:**
+  - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

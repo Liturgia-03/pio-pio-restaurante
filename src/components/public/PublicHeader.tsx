@@ -10,6 +10,9 @@ interface PublicHeaderProps {
   headerImages?: string[];
   headerTagline?: string;
   headerDescription?: string;
+  restaurantName?: string;
+  logoUrl?: string;
+  openingHours?: string;
   // Mantenemos por retrocompatibilidad
   isSearching?: boolean;
   onToggleSearch?: () => void;
@@ -29,6 +32,9 @@ export function PublicHeader({
   headerImages = [],
   headerTagline = "Asadero & Restaurante Tradicional",
   headerDescription = "El auténtico sabor a la brasa, broaster y platos típicos",
+  restaurantName = "Pío Pío",
+  logoUrl = "/logo-pio-pio.png",
+  openingHours = "10:00 AM - 9:00 PM",
 }: PublicHeaderProps) {
   const images = headerImages && headerImages.length > 0 ? headerImages : DEFAULT_HEADER_IMAGES;
 
@@ -171,8 +177,8 @@ export function PublicHeader({
           <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-amber-400 shadow-2xl shadow-black bg-amber-950 flex-shrink-0 p-1 group">
             <div className="w-full h-full rounded-xl sm:rounded-2xl overflow-hidden bg-gradient-to-tr from-[#1b0903] via-[#2d1105] to-[#120601] flex items-center justify-center">
               <img
-                src="/logo-pio-pio.png"
-                alt="Pío Pío Asadero y Restaurante"
+                src={logoUrl || "/logo-pio-pio.png"}
+                alt={restaurantName || "Pío Pío Asadero y Restaurante"}
                 className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
               />
             </div>
@@ -184,7 +190,7 @@ export function PublicHeader({
           <div className="min-w-0 pb-1 flex-1">
             <div className="flex items-center gap-2">
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-none">
-                Pío Pío
+                {restaurantName || "Pío Pío"}
               </h1>
               <span className="hidden sm:inline-block bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
                 🟢 Abierto hoy
@@ -204,7 +210,7 @@ export function PublicHeader({
                 🟢 Abierto hoy
               </span>
               <span className="text-[10px] text-gray-400">
-                10:00 AM - 9:00 PM
+                {openingHours || "10:00 AM - 9:00 PM"}
               </span>
             </div>
           </div>

@@ -11,7 +11,7 @@ export function AdminBottomBar() {
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { label: "Platos", href: "/admin/dishes", icon: UtensilsCrossed },
     { label: "Categorías", href: "/admin/categories", icon: FolderTree },
-    { label: "Promo", href: "/admin/promo-modal", icon: Sparkles },
+    { label: "Ajustes Menú", href: "/admin/promo-modal", icon: Sparkles },
   ];
 
   return (

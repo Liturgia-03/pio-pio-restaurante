@@ -444,6 +444,9 @@ function MenuContent({
         headerImages={settingsData?.headerImages}
         headerTagline={settingsData?.headerTagline}
         headerDescription={settingsData?.headerDescription}
+        restaurantName={settingsData?.restaurantName}
+        logoUrl={settingsData?.logoUrl}
+        openingHours={settingsData?.openingHours}
       />
 
       {/* Barra de Chips (solo visible cuando está dentro de una categoría en la pestaña Menú) */}

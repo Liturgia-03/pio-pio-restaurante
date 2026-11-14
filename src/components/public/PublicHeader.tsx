@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Search, X, ChevronLeft, ChevronRight, Flame } from "lucide-react";
+import { getRestaurantOpenStatus } from "@/lib/openingHours";
 
 interface PublicHeaderProps {
   searchQuery: string;
@@ -37,6 +38,7 @@ export function PublicHeader({
   openingHours = "10:00 AM - 9:00 PM",
 }: PublicHeaderProps) {
   const images = headerImages && headerImages.length > 0 ? headerImages : DEFAULT_HEADER_IMAGES;
+  const openStatus = getRestaurantOpenStatus(openingHours);
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -192,8 +194,8 @@ export function PublicHeader({
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white leading-none">
                 {restaurantName || "Pío Pío"}
               </h1>
-              <span className="hidden sm:inline-block bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
-                🟢 Abierto hoy
+              <span className={`hidden sm:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${openStatus.badgeClass}`}>
+                {openStatus.label}
               </span>
             </div>
 
@@ -206,8 +208,8 @@ export function PublicHeader({
             </p>
 
             <div className="flex items-center gap-2 mt-1 sm:hidden">
-              <span className="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
-                🟢 Abierto hoy
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${openStatus.badgeClass}`}>
+                {openStatus.shortLabel}
               </span>
               <span className="text-[10px] text-gray-400">
                 {openingHours || "10:00 AM - 9:00 PM"}

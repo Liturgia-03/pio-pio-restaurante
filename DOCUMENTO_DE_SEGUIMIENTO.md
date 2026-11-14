@@ -437,6 +437,24 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
 
+### Hito 29: Redes Sociales en Pestaña Info y Estado de Apertura Dinámico en Tiempo Real
+- **Redes Sociales & Sitio Web Oficial:**
+  - Se eliminó la tarjeta fija de presentación en la pestaña *Info* de la carta digital y se reemplazó por la tarjeta interactiva **"Nuestras Redes Sociales & Web"** ([PublicMenuClient.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/PublicMenuClient.tsx)), mostrando botones de acceso directo a:
+    - **Facebook** (icono oficial `#1877F2`).
+    - **Instagram** (icono con degradado característico).
+    - **Sitio Web** (icono dorado de globo terráqueo).
+  - En **Ajustes Asadero** (`/admin/settings`), se agregaron los campos editables para configurar las URLs de Facebook, Instagram y Página Web oficial.
+  - Modelo `RestaurantSettings` extendido con `facebookUrl`, `instagramUrl` y `websiteUrl` (sincronizado a Neon PostgreSQL).
+- **Cálculo Dinámico de Estado: "🟢 Abierto ahora" vs "🔴 Cerrado ahora":**
+  - Implementación del módulo de cálculo horario [src/lib/openingHours.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/lib/openingHours.ts) con soporte para la zona horaria de Colombia (`America/Bogota`).
+  - Evalúa la hora actual contra el horario configurado en el admin (ej: `08:00 AM a 10:00 PM`). Si un usuario ingresa fuera de ese rango (ej: a la 1:00 AM), el badge cambia automáticamente a **"🔴 Cerrado ahora"** / **"🔴 Cerrado"**. Si está dentro del rango, muestra **"🟢 Abierto ahora"** / **"🟢 Abierto"**.
+  - Sincronizado en:
+    - Encabezado de la carta digital ([PublicHeader.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/PublicHeader.tsx)).
+    - Pestaña informativa de la carta digital ([PublicMenuClient.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/PublicMenuClient.tsx)).
+    - Simulador móvil en vivo de ajustes del menú ([admin/promo-modal/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/promo-modal/page.tsx)).
+- **Certificación Técnica:**
+  - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

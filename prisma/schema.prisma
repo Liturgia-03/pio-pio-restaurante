@@ -121,6 +121,9 @@ model RestaurantSettings {
   headerImages      String?  @default("[]")
   headerTagline     String?  @default("Asadero & Restaurante Tradicional")
   headerDescription String?  @default("El auténtico sabor a la brasa, broaster y platos típicos")
+  facebookUrl       String?  @default("")
+  instagramUrl      String?  @default("")
+  websiteUrl        String?  @default("")
   updatedAt         DateTime @updatedAt
 
   @@map("restaurant_settings")

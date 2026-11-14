@@ -21,6 +21,7 @@ import {
   ImageIcon,
 } from "lucide-react";
 import { formatPrice } from "@/lib/formatters";
+import { getRestaurantOpenStatus } from "@/lib/openingHours";
 import { DishItem } from "@/types";
 import { toast } from "sonner";
 
@@ -1237,9 +1238,14 @@ export default function AdminPromoModalPage() {
                           <h4 className="text-sm font-black text-white leading-tight truncate">
                             {restaurantName || "Pío Pío"}
                           </h4>
-                          <span className="bg-emerald-500/20 text-emerald-400 text-[8px] font-bold px-1.5 py-0.2 rounded-full border border-emerald-500/30">
-                            🟢 Abierto
-                          </span>
+                          {(() => {
+                            const status = getRestaurantOpenStatus(openingHours);
+                            return (
+                              <span className={`text-[8px] font-bold px-1.5 py-0.2 rounded-full border ${status.badgeClass}`}>
+                                {status.shortLabel}
+                              </span>
+                            );
+                          })()}
                         </div>
                         <p className="text-[10px] font-extrabold text-amber-400 truncate leading-tight">
                           {headerTagline}

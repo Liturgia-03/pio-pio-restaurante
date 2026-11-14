@@ -109,15 +109,18 @@ model PromotionalModal {
 }
 
 model RestaurantSettings {
-  id           String   @id @default("default")
-  name         String   @default("Pío Pío - Asadero y Restaurante")
-  whatsapp     String   @default("573001234567")
-  phone        String?  @default("573001234567")
-  address      String   @default("Carrera Principal con Calle 10, Centro")
-  schedule     String   @default("Lunes a Domingo: 10:00 AM a 9:00 PM")
-  wifiSsid     String?  @default("PioPio-Clientes")
-  wifiPassword String?  @default("Parrilla2026*")
-  updatedAt    DateTime @updatedAt
+  id                String   @id @default("default")
+  name              String   @default("Pío Pío - Asadero y Restaurante")
+  whatsapp          String   @default("573001234567")
+  phone             String?  @default("573001234567")
+  address           String   @default("Carrera Principal con Calle 10, Centro")
+  schedule          String   @default("Lunes a Domingo: 10:00 AM a 9:00 PM")
+  wifiSsid          String?  @default("PioPio-Clientes")
+  wifiPassword      String?  @default("Parrilla2026*")
+  headerImages      String?  @default("[]")
+  headerTagline     String?  @default("Asadero & Restaurante Tradicional")
+  headerDescription String?  @default("El auténtico sabor a la brasa, broaster y platos típicos")
+  updatedAt         DateTime @updatedAt
 
   @@map("restaurant_settings")
 }

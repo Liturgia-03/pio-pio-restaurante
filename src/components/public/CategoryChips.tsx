@@ -38,7 +38,7 @@ export function CategoryChips({
   }, [activeCategoryId]);
 
   return (
-    <div className="sticky top-[65px] z-30 bg-[#0f1115]/95 backdrop-blur-md border-b border-gray-800/80 py-2 px-3">
+    <div className="sticky top-0 z-30 bg-[#0f1115]/95 backdrop-blur-md border-b border-gray-800/80 py-2 px-3 shadow-md">
       <div
         ref={containerRef}
         className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth"

@@ -434,13 +434,16 @@ function MenuContent({
       suppressHydrationWarning
       className="min-h-screen bg-[#0f1115] text-gray-100 flex flex-col selection:bg-amber-500 selection:text-black"
     >
-      {/* Header Sticky con Buscador y Logo */}
+      {/* Header Panorámico con Carrusel, Logo Grande y Buscador */}
       <PublicHeader
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         isSearching={isSearching}
         onToggleSearch={handleToggleSearch}
         mesaNumber={mesaNumber}
+        headerImages={settingsData?.headerImages}
+        headerTagline={settingsData?.headerTagline}
+        headerDescription={settingsData?.headerDescription}
       />
 
       {/* Barra de Chips (solo visible cuando está dentro de una categoría en la pestaña Menú) */}

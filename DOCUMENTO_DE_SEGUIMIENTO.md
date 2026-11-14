@@ -389,6 +389,22 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
 
+### Hito 25: Nuevo Encabezado Gourmet con Carrusel de Fotos Horizontales y Administración desde el Panel
+- **Diseño "Opción 3: Perfil Gourmet" en la Carta Digital (`/menu`):**
+  - **Carrusel Panorámico:** Portada horizontal rectangular (`h-48 sm:h-56`) con carrusel de múltiples fotos en rotación automática cada 4.5 segundos, soporte táctil (swipe gesture), puntos indicadores (dots) interactivos y flechas de navegación discretas.
+  - **Logo de Pío Pío Destacado:** Logotipo oficial ampliado a 80×80px (sm: 96×96px) con esquinas redondeadas tipo app gourmet (`rounded-2xl sm:rounded-3xl`), doble borde dorado con resplandor suave y sombra profunda sobre el carrusel.
+  - **Identidad de Marca:** Tipografía de alto impacto ("Pío Pío"), eslogan/subtítulo personalizable, descripción y badge de estado *"🟢 Abierto hoy"*.
+  - **Buscador Integrado Amplio:** Campo de búsqueda completo y visible de inmediato con icono de lupa, placeholder intuitivo y botón "X" para limpiar, eliminando la necesidad de interactuar con un botón de lupa pequeño.
+  - **Chips Adheribles (`CategoryChips.tsx`):** Ajustados a `sticky top-0 z-30` para que se anclen perfectamente al borde superior de la pantalla al hacer scroll sobre los platos de una categoría.
+- **Gestión desde el Panel Administrativo (`/admin/settings`):**
+  - Sección *"Fotos de Portada del Encabezado (Carrusel)"*: visualización de miniaturas de fotos actuales, botón para eliminar foto individual, subida de nuevas imágenes locales (vía `/api/upload`) y opción para agregar por URL directa.
+  - Campos de texto para personalizar el subtítulo (`headerTagline`) y la descripción del asadero (`headerDescription`).
+- **Base de Datos y APIs:**
+  - Modelo `RestaurantSettings` extendido con `headerImages`, `headerTagline` y `headerDescription` (sincronizado a Neon PostgreSQL).
+  - Endpoints `/api/public/settings` y `/api/admin/settings` actualizados con soporte de lectura, guardado e imágenes por defecto de alta calidad.
+- **Certificación Técnica:**
+  - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

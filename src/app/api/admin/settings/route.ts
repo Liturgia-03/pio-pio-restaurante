@@ -3,6 +3,22 @@ import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import * as bcrypt from "bcrypt";
 
+const defaultHeaderImages = [
+  "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?q=80&w=1200&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1200&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=1200&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=1200&auto=format&fit=crop",
+];
+
+function parseImages(raw: string | null | undefined): string[] {
+  if (!raw) return defaultHeaderImages;
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+  } catch {}
+  return defaultHeaderImages;
+}
+
 export async function GET() {
   try {
     let settings = await prisma.restaurantSettings.findUnique({
@@ -20,6 +36,9 @@ export async function GET() {
           schedule: "Lunes a Domingo: 10:00 AM a 9:00 PM",
           wifiSsid: "PioPio-Clientes",
           wifiPassword: "Parrilla2026*",
+          headerImages: JSON.stringify(defaultHeaderImages),
+          headerTagline: "Asadero & Restaurante Tradicional",
+          headerDescription: "El auténtico sabor a la brasa, broaster y platos típicos",
         },
       });
     }
@@ -28,6 +47,8 @@ export async function GET() {
       where: { role: "ADMIN" },
       select: { email: true, name: true },
     });
+
+    const headerImages = parseImages(settings.headerImages);
 
     return NextResponse.json({
       success: true,
@@ -39,6 +60,9 @@ export async function GET() {
         openingHours: settings.schedule,
         wifiSsid: settings.wifiSsid,
         wifiPassword: settings.wifiPassword,
+        headerImages,
+        headerTagline: settings.headerTagline || "Asadero & Restaurante Tradicional",
+        headerDescription: settings.headerDescription || "El auténtico sabor a la brasa, broaster y platos típicos",
         adminUsername: adminUser?.name || adminUser?.email || "Piopio123",
       },
     });
@@ -54,6 +78,12 @@ export async function PUT(request: Request) {
   try {
     const body = await request.json();
 
+    const headerImagesStr = Array.isArray(body.headerImages)
+      ? JSON.stringify(body.headerImages)
+      : typeof body.headerImages === "string"
+      ? body.headerImages
+      : undefined;
+
     // 1. Actualización de ajustes del restaurante en Base de Datos
     const updatedSettings = await prisma.restaurantSettings.upsert({
       where: { id: "default" },
@@ -65,6 +95,9 @@ export async function PUT(request: Request) {
         schedule: body.openingHours || "",
         wifiSsid: body.wifiSsid || "",
         wifiPassword: body.wifiPassword || "",
+        ...(headerImagesStr !== undefined ? { headerImages: headerImagesStr } : {}),
+        ...(body.headerTagline !== undefined ? { headerTagline: body.headerTagline } : {}),
+        ...(body.headerDescription !== undefined ? { headerDescription: body.headerDescription } : {}),
       },
       create: {
         id: "default",
@@ -75,6 +108,9 @@ export async function PUT(request: Request) {
         schedule: body.openingHours || "",
         wifiSsid: body.wifiSsid || "",
         wifiPassword: body.wifiPassword || "",
+        headerImages: headerImagesStr || JSON.stringify(defaultHeaderImages),
+        headerTagline: body.headerTagline || "Asadero & Restaurante Tradicional",
+        headerDescription: body.headerDescription || "El auténtico sabor a la brasa, broaster y platos típicos",
       },
     });
 
@@ -137,6 +173,9 @@ export async function PUT(request: Request) {
         openingHours: updatedSettings.schedule,
         wifiSsid: updatedSettings.wifiSsid,
         wifiPassword: updatedSettings.wifiPassword,
+        headerImages: parseImages(updatedSettings.headerImages),
+        headerTagline: updatedSettings.headerTagline || "Asadero & Restaurante Tradicional",
+        headerDescription: updatedSettings.headerDescription || "El auténtico sabor a la brasa, broaster y platos típicos",
       },
       message: "Ajustes guardados correctamente en la base de datos",
     });

@@ -52,12 +52,10 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
     };
   }, [isOpen, isClosing]);
 
-  if (!isOpen || !promo || !promo.isActive) return null;
-
   // Cierre con animación suave de salida
   const triggerClose = () => {
     setIsClosing(true);
-    if (promo.showOncePerSession) {
+    if (promo?.showOncePerSession) {
       try {
         sessionStorage.setItem("hasSeenPromoModal", "true");
       } catch {}
@@ -106,7 +104,7 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
   // Acción al pulsar el botón CTA del plato promocional
   const handleCtaClick = () => {
     triggerClose();
-    if (promo.targetDishId) {
+    if (promo?.targetDishId) {
       setTimeout(() => {
         if (onNavigateToDish) {
           onNavigateToDish(promo.targetDishId!);
@@ -123,6 +121,9 @@ export function PromoModal({ promo, onNavigateToDish }: PromoModalProps) {
       }, 300);
     }
   };
+
+  // Early return colocado SIEMPRE después de todos los hooks de React
+  if (!isOpen || !promo || !promo.isActive) return null;
 
   return (
     <div

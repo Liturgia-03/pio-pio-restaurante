@@ -383,6 +383,12 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
 
+### Hito 24: Corrección de Violación de Reglas de Hooks (Minified React Error #300 en PromoModal)
+- **Causa Raíz:** En `PromoModal.tsx`, la cláusula de salida anticipada `if (!isOpen || !promo || !promo.isActive) return null;` se encontraba posicionada antes del hook `useEffect` correspondiente a la sincronización del historial `popstate`. Al hacer clic en "Ver toda la carta" o "Ir directo a la carta", `isOpen` pasaba a `false`, provocando que el hook de `useEffect` no se ejecutara en ese ciclo de render, lo cual violaba las reglas fundamentales de Hooks en React 19 y disparaba el error fatal `#300` (*Rendered fewer hooks than expected*).
+- **Solución Implementada:** Se reubicaron todos los hooks (`useState`, `useEffect`) para ejecutarse de manera incondicional en el nivel superior del componente antes de cualquier bifurcación de retorno.
+- **Certificación Técnica:**
+  - Verificado con `npm run build` en Turbopack: 21 rutas compiladas con código de salida `0`.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

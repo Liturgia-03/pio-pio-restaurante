@@ -615,6 +615,29 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit` completado con **0 errores**.
   - Cambios confirmados a nivel local.
 
+### Hito 38: Carrito con Quitado Rápido, Confirmación Definitiva y Barra Inferior de Navegación en Salón
+- **Gestión Completa del Carrito de Pedido para Meseros ([src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)):**
+  - **Quitar Platos del Pedido antes de Confirmar:**
+    - Botón de basurero `Trash2` explícito por cada producto en el carrito desplegable para remover platos de un toque.
+    - Controles interactivos `+` y `-` tanto en el carrito desplegable como directamente en la tarjeta del catálogo (`[-] cant [+]`) para sumar o restar porciones al instante sin rodeos.
+    - Opción de *"Vaciar todo"* para reiniciar la comanda en preparación si el cliente cambia de parecer.
+  - **Botón Explícito "Confirmar Pedido":**
+    - Se integró el botón principal de gran tamaño y degradado verde: **`✅ Confirmar Pedido • $ Total COP`**.
+  - **Bloqueo Definitivo tras la Confirmación:**
+    - Una vez que el mesero presiona *"Confirmar Pedido"*, la comanda se marcha a cocina y se fija en la cuenta de la mesa.
+    - En el detalle de la mesa ocupada, los productos confirmados se muestran bloqueados con el icono de candado `🔒 Fijada en Caja` e indicador `✓ En marcha`.
+    - Se elimina cualquier opción de quitar o borrar productos confirmados para el rol de mesero (garantía de cero fugas; cualquier anulación debe realizarse en Caja por el Administrador con motivo registrado).
+- **Barra de Navegación Inferior Móvil (Bottom Navigation Bar):**
+  - Barra fija en la parte inferior de la pantalla con efecto *glassmorphism* y 5 secciones ergonómicas:
+    1. **Salón (`LayoutGrid`):** Cuadrícula completa de mesas 1..totalTables con su semáforo en vivo.
+    2. **Por Confirmar (`AlertCircle`):** Filtro directo de mesas con pedidos QR enviados por clientes (con badge numérico parpadeante si hay alertas).
+    3. **Ocupadas (`Utensils`):** Filtro de mesas activas consumiendo en salón.
+    4. **Carta (`BookOpen`):** Vista de consulta rápida del catálogo, fotos, precios y porciones para resolver dudas de clientes al instante.
+    5. **Mi Turno (`UserCheck`):** Resumen del turno del mesero, mesas asignadas y botón para cerrar turno.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: 0 errores.
+  - Servidor de desarrollo respondiendo en HTTP 200 OK.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

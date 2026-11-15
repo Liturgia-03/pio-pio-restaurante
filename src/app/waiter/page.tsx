@@ -30,6 +30,11 @@ import {
   ChevronUp,
   Layers,
   MessageSquare,
+  LayoutGrid,
+  BookOpen,
+  Trash2,
+  Lock,
+  ShieldAlert,
 } from "lucide-react";
 import { IconRenderer } from "@/components/common/IconRenderer";
 import { toast } from "sonner";
@@ -78,6 +83,11 @@ export default function WaiterApp() {
   const [waiter, setWaiter] = useState<WaiterUser | null>(null);
   const [pinInput, setPinInput] = useState<string>("");
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
+
+  // Pestaña de navegación inferior (Bottom Navigation Bar)
+  const [activeBottomNav, setActiveBottomNav] = useState<
+    "all" | "pending" | "active" | "menu" | "profile"
+  >("all");
 
   // Datos de mesas y menú
   const [tablesData, setTablesData] = useState<TableCardData[]>([]);
@@ -319,7 +329,7 @@ export default function WaiterApp() {
     }
   };
 
-  // Adición de ítems a la cuenta en preparación
+  // Adición de platos a la comanda en borrador
   const handleAddDishToStaging = (
     dish: MenuItem,
     portion?: { label: string; price: number }
@@ -358,12 +368,38 @@ export default function WaiterApp() {
     });
   };
 
+  // Restar un plato de la comanda en borrador (directamente desde la tarjeta o carrito)
+  const handleSubtractDishFromStaging = (
+    dishId: string,
+    portionLabel?: string
+  ) => {
+    setStagedItems((prev) => {
+      const existingIdx = prev.findIndex(
+        (it) => it.dishId === dishId && it.portionLabel === portionLabel
+      );
+      if (existingIdx < 0) return prev;
+
+      const copy = [...prev];
+      if (copy[existingIdx].quantity > 1) {
+        copy[existingIdx].quantity -= 1;
+      } else {
+        copy.splice(existingIdx, 1);
+        toast.info("Plato quitado del pedido");
+      }
+      return copy;
+    });
+  };
+
+  // Modificar cantidad en comanda en borrador
   const handleUpdateStagedQuantity = (index: number, delta: number) => {
     setStagedItems((prev) => {
       const copy = [...prev];
       const newQty = copy[index].quantity + delta;
       if (newQty <= 0) {
-        copy.splice(index, 1);
+        const removed = copy.splice(index, 1);
+        if (removed.length > 0) {
+          toast.info(`Se quitó ${removed[0].dishName} del pedido`);
+        }
       } else {
         copy[index].quantity = newQty;
       }
@@ -371,6 +407,19 @@ export default function WaiterApp() {
     });
   };
 
+  // Quitar plato del carrito de pedido por completo
+  const handleRemoveStagedItem = (index: number) => {
+    setStagedItems((prev) => {
+      const copy = [...prev];
+      const removed = copy.splice(index, 1);
+      if (removed.length > 0) {
+        toast.info(`Se quitó ${removed[0].dishName} del pedido`);
+      }
+      return copy;
+    });
+  };
+
+  // Actualizar nota de cocina para un ítem
   const handleUpdateStagedNotes = (index: number, notes: string) => {
     setStagedItems((prev) => {
       const copy = [...prev];
@@ -379,6 +428,7 @@ export default function WaiterApp() {
     });
   };
 
+  // Confirmar Pedido: Se marcha a cocina y YA NO se puede quitar por el mesero
   const handleSaveStagedOrder = async () => {
     if (!selectedTable || stagedItems.length === 0) return;
     setActionLoading(true);
@@ -397,13 +447,13 @@ export default function WaiterApp() {
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.message);
 
-      toast.success("¡Pedido añadido y marchado a cocina exitosamente!");
+      toast.success("¡Pedido confirmado y marchado a cocina! Los productos han quedado fijados en la cuenta.");
       setStagedItems([]);
       setShowAddDishModal(false);
       setIsStagingExpanded(false);
       await fetchTables(true);
     } catch (err: any) {
-      toast.error(err.message || "Error al guardar comanda");
+      toast.error(err.message || "Error al confirmar pedido");
     } finally {
       setActionLoading(false);
     }
@@ -443,6 +493,17 @@ export default function WaiterApp() {
   const stagedCount = useMemo(() => {
     return stagedItems.reduce((acc, it) => acc + it.quantity, 0);
   }, [stagedItems]);
+
+  // Mesas filtradas según la pestaña de navegación activa
+  const visibleTables = useMemo(() => {
+    if (activeBottomNav === "pending") {
+      return tablesData.filter((t) => t.status === "PENDING_CONFIRMATION");
+    }
+    if (activeBottomNav === "active") {
+      return tablesData.filter((t) => t.status === "OPEN" || t.status === "BILL_REQUESTED");
+    }
+    return tablesData;
+  }, [tablesData, activeBottomNav]);
 
   // Si no ha iniciado sesión, mostrar pantalla de PIN gourmet institucional
   if (!waiter) {
@@ -524,9 +585,9 @@ export default function WaiterApp() {
     );
   }
 
-  // Vista principal del mesero (Salón de Mesas)
+  // Vista principal del mesero
   return (
-    <div className="min-h-screen bg-[#0b0c0e] text-white flex flex-col pb-12">
+    <div className="min-h-screen bg-[#0b0c0e] text-white flex flex-col pb-24">
       {/* Barra superior de estado */}
       <header className="sticky top-0 z-30 bg-[#14161a]/95 backdrop-blur-md border-b border-gray-800 px-4 py-3 shadow-md">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -549,7 +610,7 @@ export default function WaiterApp() {
                 <UserCheck className="w-3 h-3 text-emerald-400" />
                 <span className="text-white font-bold">{waiter.name}</span>
                 <span className="text-[10px] text-gray-500 ml-1">
-                  • Actualizado: {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  • {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>
             </div>
@@ -578,172 +639,438 @@ export default function WaiterApp() {
 
         {/* Contadores rápidos en semáforo */}
         <div className="max-w-6xl mx-auto mt-3 grid grid-cols-4 gap-2 text-center text-xs">
-          <div className="p-2.5 bg-emerald-950/20 border border-emerald-800/40 rounded-2xl">
+          <button
+            type="button"
+            onClick={() => setActiveBottomNav("all")}
+            className={`p-2 rounded-2xl border transition-all ${
+              activeBottomNav === "all"
+                ? "bg-emerald-950/40 border-emerald-500 ring-1 ring-emerald-500/50"
+                : "bg-emerald-950/20 border-emerald-800/40"
+            }`}
+          >
             <span className="block text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
               Libres
             </span>
             <span className="text-lg font-black text-emerald-300">{counts?.free || 0}</span>
-          </div>
-          <div className="p-2.5 bg-blue-950/20 border border-blue-800/40 rounded-2xl">
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveBottomNav("active")}
+            className={`p-2 rounded-2xl border transition-all ${
+              activeBottomNav === "active"
+                ? "bg-blue-950/50 border-blue-500 ring-1 ring-blue-500/50"
+                : "bg-blue-950/20 border-blue-800/40"
+            }`}
+          >
             <span className="block text-[10px] text-blue-400 font-bold uppercase tracking-wider">
               Ocupadas
             </span>
             <span className="text-lg font-black text-blue-300">{counts?.open || 0}</span>
-          </div>
-          <div
-            className={`p-2.5 rounded-2xl transition-all ${
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveBottomNav("pending")}
+            className={`p-2 rounded-2xl border transition-all ${
               (counts?.pending || 0) > 0
-                ? "bg-amber-950/60 border-2 border-amber-500 animate-pulse text-amber-300 shadow-md shadow-amber-500/20"
-                : "bg-amber-950/20 border border-amber-800/30 text-amber-400"
+                ? "bg-amber-950/70 border-2 border-amber-500 animate-pulse text-amber-300 shadow-md shadow-amber-500/20"
+                : activeBottomNav === "pending"
+                ? "bg-amber-950/50 border-amber-500"
+                : "bg-amber-950/20 border-amber-800/30 text-amber-400"
             }`}
           >
             <span className="block text-[10px] font-bold uppercase tracking-wider">
               Por Confirmar
             </span>
             <span className="text-lg font-black">{counts?.pending || 0}</span>
-          </div>
-          <div className="p-2.5 bg-purple-950/20 border border-purple-800/40 rounded-2xl">
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveBottomNav("active")}
+            className={`p-2 rounded-2xl border transition-all ${
+              activeBottomNav === "active"
+                ? "bg-purple-950/50 border-purple-500 ring-1 ring-purple-500/50"
+                : "bg-purple-950/20 border-purple-800/40"
+            }`}
+          >
             <span className="block text-[10px] text-purple-400 font-bold uppercase tracking-wider">
               Pidieron Cuenta
             </span>
             <span className="text-lg font-black text-purple-300">
               {counts?.billRequested || 0}
             </span>
-          </div>
+          </button>
         </div>
       </header>
 
-      {/* Cuadrícula de Mesas */}
-      <main className="max-w-6xl mx-auto p-4 w-full">
-        {(counts?.pending || 0) > 0 && (
-          <div className="mb-4 p-3 bg-amber-500/20 border-2 border-amber-500 rounded-2xl flex items-center justify-between text-amber-300 text-xs font-bold animate-pulse">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-              <span>
-                Hay {counts?.pending || 0} pedido(s) QR esperando tu confirmación para pasar a cocina
+      {/* Contenido Principal según Pestaña Inferior */}
+      <main className="max-w-6xl mx-auto p-4 w-full flex-1">
+        {/* VISTA 1, 2 Y 3: SALÓN DE MESAS (Todas, Por Confirmar u Ocupadas) */}
+        {(activeBottomNav === "all" ||
+          activeBottomNav === "pending" ||
+          activeBottomNav === "active") && (
+          <div className="space-y-4">
+            {/* Aviso reactivo si hay pedidos QR esperando */}
+            {(counts?.pending || 0) > 0 && activeBottomNav !== "pending" && (
+              <div
+                onClick={() => setActiveBottomNav("pending")}
+                className="p-3 bg-amber-500/20 border-2 border-amber-500 rounded-2xl flex items-center justify-between text-amber-300 text-xs font-bold animate-pulse cursor-pointer shadow-lg shadow-amber-500/10"
+              >
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                  <span>
+                    ¡Atención! Hay {counts?.pending || 0} pedido(s) QR esperando confirmación.
+                  </span>
+                </div>
+                <span className="text-[10px] bg-amber-500 text-black px-2 py-1 rounded-lg font-black">
+                  Ver Pedidos &rarr;
+                </span>
+              </div>
+            )}
+
+            {/* Cabecera del filtro activo */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                <LayoutGrid className="w-3.5 h-3.5 text-amber-400" />
+                <span>
+                  {activeBottomNav === "all"
+                    ? "Todas las Mesas del Salón"
+                    : activeBottomNav === "pending"
+                    ? "Mesas con Pedidos QR por Confirmar"
+                    : "Mesas Ocupadas con Cuenta Activa"}
+                </span>
+              </h2>
+              <span className="text-xs text-gray-500 font-bold">
+                {visibleTables.length} mesas
               </span>
+            </div>
+
+            {visibleTables.length === 0 ? (
+              <div className="text-center py-12 bg-[#14161a] border border-gray-800 rounded-3xl p-6 space-y-2">
+                <Utensils className="w-10 h-10 text-gray-600 mx-auto" />
+                <p className="text-xs font-bold text-gray-300">
+                  {activeBottomNav === "pending"
+                    ? "No hay pedidos QR pendientes por confirmar en este momento."
+                    : "No hay mesas con cuentas activas en este momento."}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveBottomNav("all")}
+                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-xs text-amber-400 font-bold rounded-xl"
+                >
+                  Ver Todas las Mesas
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+                {visibleTables.map((table) => {
+                  const isFree = table.status === "FREE";
+                  const isPending = table.status === "PENDING_CONFIRMATION";
+                  const isOpen = table.status === "OPEN";
+                  const isBillReq = table.status === "BILL_REQUESTED";
+
+                  return (
+                    <button
+                      key={table.tableNumber}
+                      type="button"
+                      onClick={() => {
+                        setSelectedTable(table);
+                        if (isFree) {
+                          setStagedItems([]);
+                          setShowAddDishModal(true);
+                        }
+                      }}
+                      className={`relative p-4 rounded-3xl border text-left flex flex-col justify-between min-h-[145px] transition-all duration-300 ease-out active:scale-95 shadow-md ${
+                        isFree
+                          ? "bg-[#14161a] border-emerald-900/40 hover:border-emerald-500/60 text-gray-300"
+                          : isPending
+                          ? "bg-amber-950/40 border-2 border-amber-500 shadow-amber-500/20 animate-pulse text-amber-200"
+                          : isOpen
+                          ? "bg-[#14161a] border-blue-900/50 hover:border-blue-500/60 text-white"
+                          : "bg-purple-950/30 border-purple-800/50 hover:border-purple-500 text-purple-200"
+                      }`}
+                    >
+                      {/* Header de la tarjeta */}
+                      <div className="flex items-center justify-between w-full">
+                        <span className="text-sm font-black tracking-tight">
+                          MESA #{table.tableNumber}
+                        </span>
+                        <span
+                          className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                            isFree
+                              ? "bg-emerald-400 shadow-sm shadow-emerald-400/50"
+                              : isPending
+                              ? "bg-amber-400 animate-ping"
+                              : isOpen
+                              ? "bg-blue-400"
+                              : "bg-purple-400"
+                          }`}
+                        />
+                      </div>
+
+                      {/* Centro: Estado descriptivo */}
+                      <div className="my-2">
+                        {isFree && (
+                          <div className="text-center py-2">
+                            <span className="text-xs font-bold text-emerald-400 block">
+                              🟢 Libre
+                            </span>
+                            <span className="text-[10px] text-gray-500 block mt-0.5">
+                              Toca para abrir
+                            </span>
+                          </div>
+                        )}
+
+                        {isPending && (
+                          <div className="space-y-0.5">
+                            <span className="text-xs font-black text-amber-300 block">
+                              🟡 Pedido QR
+                            </span>
+                            <span className="text-[10px] text-amber-400/90 font-bold block">
+                              ¡Toca para confirmar!
+                            </span>
+                          </div>
+                        )}
+
+                        {isOpen && table.session && (
+                          <div className="space-y-0.5">
+                            <span className="text-base font-black text-amber-400 block">
+                              {formatPrice(table.session.total)}
+                            </span>
+                            <span className="text-[10px] text-gray-400 block truncate">
+                              {
+                                table.session.items.filter((it: any) => it.status !== "CANCELLED")
+                                  .length
+                              }{" "}
+                              productos
+                            </span>
+                          </div>
+                        )}
+
+                        {isBillReq && table.session && (
+                          <div className="space-y-0.5">
+                            <span className="text-xs font-black text-purple-300 block">
+                              🟣 Va a Caja
+                            </span>
+                            <span className="text-sm font-black text-amber-400 block">
+                              {formatPrice(table.session.total)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer: Tiempo / Mesero */}
+                      <div className="pt-2 border-t border-gray-800/80 flex items-center justify-between text-[10px] text-gray-500 w-full">
+                        {table.minutesOpen !== null ? (
+                          <span className="flex items-center gap-1 font-mono">
+                            <Clock className="w-2.5 h-2.5" />
+                            {table.minutesOpen}m
+                          </span>
+                        ) : (
+                          <span>Disponible</span>
+                        )}
+                        {table.session?.waiter && (
+                          <span className="truncate max-w-[70px] text-right font-semibold text-gray-400">
+                            {table.session.waiter.name}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* VISTA 4: CONSULTA DE CARTA DIGITAL (Menú Completo para el Mesero) */}
+        {activeBottomNav === "menu" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-black text-white flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-amber-400" />
+                  <span>Carta y Precios de Salón</span>
+                </h2>
+                <p className="text-xs text-gray-400">
+                  Consulta de platos, precios y porciones oficiales del asadero
+                </p>
+              </div>
+            </div>
+
+            {/* Listado de Categorías y Platos en modo consulta */}
+            <div className="space-y-6">
+              {categories.map((cat) => (
+                <div key={cat.id} className="space-y-2.5">
+                  <div className="flex items-center gap-2 border-b border-gray-800 pb-2">
+                    <IconRenderer name={cat.iconName} className="w-4 h-4 text-amber-400" />
+                    <h3 className="text-sm font-black text-white uppercase tracking-wider">
+                      {cat.name}
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {cat.dishes.map((dish) => (
+                      <div
+                        key={dish.id}
+                        className="bg-[#14161a] border border-gray-800 rounded-2xl p-3 flex gap-3 shadow-sm"
+                      >
+                        <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-900 flex-shrink-0">
+                          <img
+                            src={dish.imageUrl || "/logo-pio-pio.png"}
+                            alt={dish.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xs font-bold text-white truncate">{dish.name}</h4>
+                          <span className="text-xs font-black text-amber-400 block mt-0.5">
+                            {formatPrice(dish.basePrice)}
+                          </span>
+                          {dish.portions && dish.portions.length > 0 && (
+                            <span className="text-[10px] text-gray-400 block mt-1">
+                              {dish.portions.map((p) => `${p.label}: ${formatPrice(p.price)}`).join(" • ")}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
-          {tablesData.map((table) => {
-            const isFree = table.status === "FREE";
-            const isPending = table.status === "PENDING_CONFIRMATION";
-            const isOpen = table.status === "OPEN";
-            const isBillReq = table.status === "BILL_REQUESTED";
+        {/* VISTA 5: MI TURNO / PERFIL DEL MESERO */}
+        {activeBottomNav === "profile" && (
+          <div className="max-w-md mx-auto space-y-4 pt-4">
+            <div className="bg-[#14161a] border border-gray-800 rounded-3xl p-6 shadow-xl text-center space-y-4">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-amber-500 to-orange-600 p-1 mx-auto shadow-lg shadow-amber-500/25">
+                <div className="w-full h-full rounded-full bg-[#181b20] flex items-center justify-center text-amber-400 text-2xl font-black">
+                  {waiter.name.charAt(0)}
+                </div>
+              </div>
 
-            return (
+              <div>
+                <h3 className="text-lg font-black text-white">{waiter.name}</h3>
+                <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30 inline-block mt-1">
+                  Mesero de Salón Activo
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-left pt-2 border-t border-gray-800">
+                <div className="p-3 bg-[#181b20] rounded-2xl border border-gray-800">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                    Mesas Activas
+                  </span>
+                  <span className="text-base font-black text-white">
+                    {tablesData.filter((t) => t.session && t.session.waiterId === waiter.id).length} asignadas
+                  </span>
+                </div>
+                <div className="p-3 bg-[#181b20] rounded-2xl border border-gray-800">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase block">
+                    Hora Conexión
+                  </span>
+                  <span className="text-base font-black text-emerald-400">
+                    En Turno
+                  </span>
+                </div>
+              </div>
+
               <button
-                key={table.tableNumber}
                 type="button"
-                onClick={() => {
-                  setSelectedTable(table);
-                  if (isFree) {
-                    setStagedItems([]);
-                    setShowAddDishModal(true);
-                  }
-                }}
-                className={`relative p-4 rounded-3xl border text-left flex flex-col justify-between min-h-[145px] transition-all duration-300 ease-out active:scale-95 shadow-md ${
-                  isFree
-                    ? "bg-[#14161a] border-emerald-900/40 hover:border-emerald-500/60 text-gray-300"
-                    : isPending
-                    ? "bg-amber-950/40 border-2 border-amber-500 shadow-amber-500/20 animate-pulse text-amber-200"
-                    : isOpen
-                    ? "bg-[#14161a] border-blue-900/50 hover:border-blue-500/60 text-white"
-                    : "bg-purple-950/30 border-purple-800/50 hover:border-purple-500 text-purple-200"
-                }`}
+                onClick={handleLogout}
+                className="w-full py-3 bg-red-950/60 hover:bg-red-900 border border-red-800/60 text-red-300 font-bold text-xs rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md"
               >
-                {/* Header de la tarjeta */}
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-black tracking-tight">
-                      MESA #{table.tableNumber}
-                    </span>
-                  </div>
-                  <span
-                    className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                      isFree
-                        ? "bg-emerald-400 shadow-sm shadow-emerald-400/50"
-                        : isPending
-                        ? "bg-amber-400 animate-ping"
-                        : isOpen
-                        ? "bg-blue-400"
-                        : "bg-purple-400"
-                    }`}
-                  />
-                </div>
-
-                {/* Centro: Estado descriptivo */}
-                <div className="my-2">
-                  {isFree && (
-                    <div className="text-center py-2">
-                      <span className="text-xs font-bold text-emerald-400 block">
-                        🟢 Libre
-                      </span>
-                      <span className="text-[10px] text-gray-500 block mt-0.5">
-                        Toca para abrir
-                      </span>
-                    </div>
-                  )}
-
-                  {isPending && (
-                    <div className="space-y-0.5">
-                      <span className="text-xs font-black text-amber-300 block">
-                        🟡 Pedido QR
-                      </span>
-                      <span className="text-[10px] text-amber-400/80 font-bold block">
-                        ¡Toca para confirmar!
-                      </span>
-                    </div>
-                  )}
-
-                  {isOpen && table.session && (
-                    <div className="space-y-0.5">
-                      <span className="text-base font-black text-amber-400 block">
-                        {formatPrice(table.session.total)}
-                      </span>
-                      <span className="text-[10px] text-gray-400 block truncate">
-                        {table.session.items.filter((it: any) => it.status !== "CANCELLED").length} productos
-                      </span>
-                    </div>
-                  )}
-
-                  {isBillReq && table.session && (
-                    <div className="space-y-0.5">
-                      <span className="text-xs font-black text-purple-300 block">
-                        🟣 Va a Caja
-                      </span>
-                      <span className="text-sm font-black text-amber-400 block">
-                        {formatPrice(table.session.total)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Footer: Tiempo / Mesero */}
-                <div className="pt-2 border-t border-gray-800/80 flex items-center justify-between text-[10px] text-gray-500 w-full">
-                  {table.minutesOpen !== null ? (
-                    <span className="flex items-center gap-1 font-mono">
-                      <Clock className="w-2.5 h-2.5" />
-                      {table.minutesOpen}m
-                    </span>
-                  ) : (
-                    <span>Disponible</span>
-                  )}
-                  {table.session?.waiter && (
-                    <span className="truncate max-w-[70px] text-right font-semibold text-gray-400">
-                      {table.session.waiter.name}
-                    </span>
-                  )}
-                </div>
+                <LogOut className="w-4 h-4" />
+                <span>Cerrar Mi Turno</span>
               </button>
-            );
-          })}
-        </div>
+            </div>
+          </div>
+        )}
       </main>
 
-      {/* MODAL DETALLE DE MESA OCUPADA / EN CONSUMO */}
+      {/* ========================================================================= */}
+      {/* BARRA DE NAVEGACIÓN INFERIOR (BOTTOM NAVIGATION BAR ERGONÓMICA) */}
+      {/* ========================================================================= */}
+      <nav className="fixed bottom-0 inset-x-0 z-40 bg-[#14161a]/95 backdrop-blur-md border-t border-gray-800 py-1.5 px-3 flex justify-around items-center shadow-2xl">
+        <button
+          type="button"
+          onClick={() => setActiveBottomNav("all")}
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl transition-all ${
+            activeBottomNav === "all"
+              ? "text-amber-400 font-black scale-105"
+              : "text-gray-400 hover:text-gray-200"
+          }`}
+        >
+          <LayoutGrid className="w-5 h-5" />
+          <span className="text-[10px]">Salón</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveBottomNav("pending")}
+          className={`relative flex flex-col items-center gap-1 py-1 px-3 rounded-2xl transition-all ${
+            activeBottomNav === "pending"
+              ? "text-amber-400 font-black scale-105"
+              : "text-gray-400 hover:text-gray-200"
+          }`}
+        >
+          <AlertCircle className="w-5 h-5" />
+          <span className="text-[10px]">Por Confirmar</span>
+          {(counts?.pending || 0) > 0 && (
+            <span className="absolute top-0 right-3 w-4 h-4 rounded-full bg-amber-500 text-black text-[9px] font-black flex items-center justify-center animate-bounce shadow-md">
+              {counts.pending}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveBottomNav("active")}
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl transition-all ${
+            activeBottomNav === "active"
+              ? "text-blue-400 font-black scale-105"
+              : "text-gray-400 hover:text-gray-200"
+          }`}
+        >
+          <Utensils className="w-5 h-5" />
+          <span className="text-[10px]">Ocupadas</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveBottomNav("menu")}
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl transition-all ${
+            activeBottomNav === "menu"
+              ? "text-amber-400 font-black scale-105"
+              : "text-gray-400 hover:text-gray-200"
+          }`}
+        >
+          <BookOpen className="w-5 h-5" />
+          <span className="text-[10px]">Carta</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveBottomNav("profile")}
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl transition-all ${
+            activeBottomNav === "profile"
+              ? "text-amber-400 font-black scale-105"
+              : "text-gray-400 hover:text-gray-200"
+          }`}
+        >
+          <UserCheck className="w-5 h-5" />
+          <span className="text-[10px]">Mi Turno</span>
+        </button>
+      </nav>
+
+      {/* ========================================================================= */}
+      {/* MODAL DETALLE DE MESA OCUPADA / EN CONSUMO (CON REGLA: NO QUITAR PEDIDOS CONFIRMADOS) */}
+      {/* ========================================================================= */}
       {selectedTable && !showAddDishModal && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in"
@@ -823,7 +1150,7 @@ export default function WaiterApp() {
                         className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-md active:scale-95 transition-all flex items-center justify-center gap-1.5"
                       >
                         <CheckCircle2 className="w-4 h-4" />
-                        <span>Confirmar y Marchar</span>
+                        <span>Confirmar Pedido</span>
                       </button>
                       <button
                         onClick={() => handleConfirmOrder(selectedTable.session!.id, "REJECT")}
@@ -836,11 +1163,17 @@ export default function WaiterApp() {
                   </div>
                 )}
 
-                {/* Comanda organizada por Rondas */}
+                {/* Comanda organizada por Rondas con CANDADO DE SEGURIDAD (No se puede quitar productos confirmados) */}
                 <div className="space-y-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 block">
-                    Comanda Actual de la Mesa
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 block">
+                      Comanda Confirmada en Cocina
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                      <Lock className="w-3 h-3 text-emerald-400" />
+                      <span>Fijada en Caja</span>
+                    </span>
+                  </div>
 
                   <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                     {selectedTable.session.items
@@ -873,11 +1206,25 @@ export default function WaiterApp() {
                               Ronda {item.round} • {item.addedByName || item.addedBy}
                             </span>
                           </div>
-                          <span className="font-black text-amber-400 text-xs">
-                            {formatPrice(item.subtotal)}
-                          </span>
+
+                          <div className="text-right">
+                            <span className="font-black text-amber-400 text-xs block">
+                              {formatPrice(item.subtotal)}
+                            </span>
+                            <span className="text-[9px] text-emerald-400/90 font-bold">
+                              ✓ En marcha
+                            </span>
+                          </div>
                         </div>
                       ))}
+                  </div>
+
+                  {/* Advertencia de candado de anulación */}
+                  <div className="p-2.5 bg-gray-900/60 border border-gray-800 rounded-xl flex items-center gap-2 text-[10px] text-gray-400">
+                    <ShieldAlert className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                    <span>
+                      Los productos ya confirmados no pueden quitarse desde el salón. Para cualquier anulación acude a la Caja Central.
+                    </span>
                   </div>
                 </div>
 
@@ -901,7 +1248,7 @@ export default function WaiterApp() {
                     className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 active:scale-95 transition-all"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>+ Agregar Platos / Nuevas Rondas</span>
+                    <span>+ Agregar Más Platos (Nueva Ronda)</span>
                   </button>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -930,10 +1277,6 @@ export default function WaiterApp() {
                       </span>
                     </button>
                   </div>
-
-                  <p className="text-[10px] text-gray-500 text-center pt-1">
-                    🔒 Las anulaciones y el cobro final se realizan exclusivamente en la Caja.
-                  </p>
                 </div>
               </div>
             )}
@@ -942,7 +1285,7 @@ export default function WaiterApp() {
       )}
 
       {/* ========================================================================= */}
-      {/* PANTALLA GOURMET DE TOMA DE PEDIDOS (CATÁLOGO RESUMIDO CON FOTOS Y CHIPS) */}
+      {/* PANTALLA GOURMET DE TOMA DE PEDIDOS (CARRITO CON OPCIÓN DE QUITAR Y CONFIRMAR) */}
       {/* ========================================================================= */}
       {showAddDishModal && selectedTable && (
         <div className="fixed inset-0 z-50 bg-[#0b0c0e] text-white flex flex-col animate-in fade-in">
@@ -970,7 +1313,7 @@ export default function WaiterApp() {
                   </span>
                 </div>
                 <p className="text-[11px] text-gray-400">
-                  Toca los platos o porciones para sumarlos a la comanda
+                  Selecciona y quita platos a gusto antes de confirmar
                 </p>
               </div>
             </div>
@@ -1054,8 +1397,8 @@ export default function WaiterApp() {
             </div>
           </div>
 
-          {/* Listado de Platos Resumidos con Fotos de Alta Calidad */}
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 pb-28">
+          {/* Listado de Platos Resumidos con Fotos y Controles Directos de Agregar/Quitar */}
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 pb-32">
             {filteredDishes.length === 0 ? (
               <div className="text-center py-12 space-y-2">
                 <Utensils className="w-10 h-10 text-gray-600 mx-auto" />
@@ -1083,7 +1426,11 @@ export default function WaiterApp() {
                   return (
                     <div
                       key={dish.id}
-                      className="group bg-[#181b20] border border-gray-800/80 hover:border-amber-500/40 rounded-2xl p-3 flex gap-3 shadow-md transition-all duration-200"
+                      className={`group bg-[#181b20] border rounded-2xl p-3 flex gap-3 shadow-md transition-all duration-200 ${
+                        totalStagedForDish > 0
+                          ? "border-amber-500/50 shadow-amber-500/10 ring-1 ring-amber-500/30"
+                          : "border-gray-800/80 hover:border-gray-700"
+                      }`}
                     >
                       {/* Foto Gastronómica del Plato */}
                       <div className="relative w-22 h-22 sm:w-24 sm:h-24 flex-shrink-0 rounded-2xl overflow-hidden bg-gray-900 border border-gray-800 shadow-sm">
@@ -1103,7 +1450,7 @@ export default function WaiterApp() {
                         )}
                       </div>
 
-                      {/* Información y Controles de Adición */}
+                      {/* Información y Controles de Adición / Quitar */}
                       <div className="flex-1 flex flex-col justify-between min-w-0">
                         <div className="space-y-1">
                           {/* Badges del Plato */}
@@ -1147,7 +1494,7 @@ export default function WaiterApp() {
                           {dish.portions && dish.portions.length > 0 ? (
                             <div className="space-y-1">
                               <span className="text-[9px] text-gray-400 font-semibold block">
-                                Selecciona el tamaño / porción:
+                                Tamaño / Porción:
                               </span>
                               <div className="flex flex-wrap gap-1.5">
                                 {dish.portions.map((p) => {
@@ -1157,22 +1504,45 @@ export default function WaiterApp() {
                                     )?.quantity || 0;
 
                                   return (
-                                    <button
+                                    <div
                                       key={p.id}
-                                      type="button"
-                                      onClick={() => handleAddDishToStaging(dish, p)}
-                                      className={`px-2 py-1 rounded-xl text-[11px] font-bold transition-all border flex items-center gap-1 active:scale-95 ${
-                                        countForPortion > 0
-                                          ? "bg-amber-500/20 border-amber-500 text-amber-300 shadow-sm"
-                                          : "bg-[#14161a] border-gray-700/80 text-gray-200 hover:border-amber-500/50"
-                                      }`}
+                                      className="flex items-center rounded-xl overflow-hidden border border-gray-700/80 bg-[#14161a]"
                                     >
-                                      <span>{p.label}</span>
-                                      <span className="text-amber-400 font-black">
-                                        {formatPrice(p.price)}
-                                      </span>
-                                      <Plus className="w-3 h-3 text-amber-400 ml-0.5" />
-                                    </button>
+                                      {countForPortion > 0 && (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            handleSubtractDishFromStaging(dish.id, p.label)
+                                          }
+                                          className="p-1 px-1.5 bg-red-950/60 text-red-300 hover:bg-red-900 border-r border-gray-800 active:scale-90 transition-all"
+                                          title="Restar o quitar"
+                                        >
+                                          <Minus className="w-3 h-3" />
+                                        </button>
+                                      )}
+
+                                      <button
+                                        type="button"
+                                        onClick={() => handleAddDishToStaging(dish, p)}
+                                        className={`px-2 py-1 text-[11px] font-bold transition-all flex items-center gap-1 active:scale-95 ${
+                                          countForPortion > 0
+                                            ? "bg-amber-500/20 text-amber-300 font-black"
+                                            : "text-gray-200 hover:text-amber-400"
+                                        }`}
+                                      >
+                                        <span>{p.label}</span>
+                                        <span className="text-amber-400 font-black">
+                                          {formatPrice(p.price)}
+                                        </span>
+                                        {countForPortion > 0 ? (
+                                          <span className="bg-amber-500 text-black px-1 rounded text-[9px] font-black ml-0.5">
+                                            {countForPortion}
+                                          </span>
+                                        ) : (
+                                          <Plus className="w-3 h-3 text-amber-400 ml-0.5" />
+                                        )}
+                                      </button>
+                                    </div>
                                   );
                                 })}
                               </div>
@@ -1190,14 +1560,38 @@ export default function WaiterApp() {
                                 )}
                               </div>
 
-                              <button
-                                type="button"
-                                onClick={() => handleAddDishToStaging(dish)}
-                                className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white font-black text-xs rounded-xl shadow-md shadow-amber-500/20 active:scale-95 transition-all"
-                              >
-                                <Plus className="w-3.5 h-3.5" />
-                                <span>Agregar</span>
-                              </button>
+                              {totalStagedForDish > 0 ? (
+                                <div className="flex items-center gap-1.5 bg-[#14161a] border border-amber-500/50 rounded-xl p-0.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSubtractDishFromStaging(dish.id)}
+                                    className="w-7 h-7 rounded-lg bg-red-950/60 text-red-300 hover:bg-red-900 flex items-center justify-center active:scale-90 transition-all"
+                                    title="Quitar uno"
+                                  >
+                                    <Minus className="w-3.5 h-3.5" />
+                                  </button>
+                                  <span className="text-xs font-black text-white w-5 text-center">
+                                    {totalStagedForDish}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleAddDishToStaging(dish)}
+                                    className="w-7 h-7 rounded-lg bg-emerald-950/60 text-emerald-300 hover:bg-emerald-900 flex items-center justify-center active:scale-90 transition-all"
+                                    title="Agregar uno más"
+                                  >
+                                    <Plus className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddDishToStaging(dish)}
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white font-black text-xs rounded-xl shadow-md shadow-amber-500/20 active:scale-95 transition-all"
+                                >
+                                  <Plus className="w-3.5 h-3.5" />
+                                  <span>Agregar</span>
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>
@@ -1210,7 +1604,7 @@ export default function WaiterApp() {
           </div>
 
           {/* ========================================================================= */}
-          {/* BARRA INFERIOR / CAJÓN DE COMANDA EN BORRADOR (STAGING ORDER DRAWER) */}
+          {/* BARRA INFERIOR / CAJÓN DE COMANDA EN BORRADOR (CON OPCIÓN DE QUITAR Y CONFIRMAR) */}
           {/* ========================================================================= */}
           {stagedItems.length > 0 && (
             <div className="fixed bottom-0 inset-x-0 z-30 bg-[#14161a]/95 backdrop-blur-md border-t-2 border-amber-500/50 p-3 sm:p-4 shadow-2xl transition-all">
@@ -1227,7 +1621,7 @@ export default function WaiterApp() {
                     </div>
                     <div>
                       <div className="flex items-center gap-1 text-xs font-black text-white">
-                        <span>Comanda a marchar</span>
+                        <span>Carrito de Pedido</span>
                         {isStagingExpanded ? (
                           <ChevronDown className="w-3.5 h-3.5 text-amber-400" />
                         ) : (
@@ -1236,15 +1630,15 @@ export default function WaiterApp() {
                       </div>
                       <span className="text-[10px] text-gray-400 block">
                         {isStagingExpanded
-                          ? "Toca para ocultar notas y detalle"
-                          : "Toca para ver notas o cambiar cantidades"}
+                          ? "Toca para ocultar detalle"
+                          : "Toca para revisar, quitar platos o agregar notas"}
                       </span>
                     </div>
                   </button>
 
                   <div className="text-right">
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
-                      Total a Sumar
+                      Total a Confirmar
                     </span>
                     <span className="text-lg font-black text-amber-400">
                       {formatPrice(stagedTotal)}
@@ -1252,24 +1646,53 @@ export default function WaiterApp() {
                   </div>
                 </div>
 
-                {/* Vista Expandida de los ítems con Notas Rápidas de Cocina */}
+                {/* Vista Expandida de los ítems con botón para QUITAR PLATOS y Notas Rápidas */}
                 {isStagingExpanded && (
                   <div className="max-h-60 overflow-y-auto space-y-2 pr-1 border-t border-gray-800 pt-2 animate-in fade-in">
+                    <div className="flex items-center justify-between text-[11px] text-gray-400 pb-1">
+                      <span>Platos seleccionados en el carrito:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStagedItems([]);
+                          toast.info("Se vació el carrito de pedido");
+                        }}
+                        className="text-red-400 hover:text-red-300 font-bold flex items-center gap-1 text-[10px]"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        <span>Vaciar todo</span>
+                      </button>
+                    </div>
+
                     {stagedItems.map((item, idx) => (
                       <div
                         key={idx}
                         className="p-3 bg-[#181b20] border border-gray-800 rounded-2xl space-y-2 text-xs"
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-white text-xs">
-                            {item.dishName}{" "}
-                            {item.portionLabel ? `(${item.portionLabel})` : ""}
-                          </span>
-                          <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            {/* Botón explícito para QUITAR PLATO */}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveStagedItem(idx)}
+                              className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-950/40 rounded-lg active:scale-90 transition-all flex-shrink-0"
+                              title="Quitar este plato del pedido"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+
+                            <span className="font-bold text-white text-xs truncate">
+                              {item.dishName}{" "}
+                              {item.portionLabel ? `(${item.portionLabel})` : ""}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 flex-shrink-0">
                             <button
                               type="button"
                               onClick={() => handleUpdateStagedQuantity(idx, -1)}
                               className="text-gray-400 hover:text-red-400 p-0.5"
+                              title="Restar uno"
                             >
                               <MinusCircle className="w-4 h-4" />
                             </button>
@@ -1280,6 +1703,7 @@ export default function WaiterApp() {
                               type="button"
                               onClick={() => handleUpdateStagedQuantity(idx, 1)}
                               className="text-gray-400 hover:text-green-400 p-0.5"
+                              title="Sumar uno"
                             >
                               <PlusCircle className="w-4 h-4" />
                             </button>
@@ -1326,20 +1750,24 @@ export default function WaiterApp() {
                   </div>
                 )}
 
-                {/* Botón Principal para Marchar Comanda a Cocina */}
+                {/* BOTÓN EXPLÍCITO: CONFIRMAR PEDIDO */}
                 <button
                   type="button"
                   onClick={handleSaveStagedOrder}
                   disabled={actionLoading}
-                  className="w-full py-3.5 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-600 hover:opacity-95 text-white font-black text-xs rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 active:scale-98 transition-all"
+                  className="w-full py-3.5 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-600 hover:opacity-95 text-white font-black text-sm rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-600/30 active:scale-98 transition-all"
                 >
-                  <Utensils className="w-4 h-4" />
+                  <CheckCircle2 className="w-5 h-5" />
                   <span>
                     {actionLoading
-                      ? "Marchando a cocina..."
-                      : `🔥 Marchar a Cocina • ${formatPrice(stagedTotal)}`}
+                      ? "Confirmando y marchando a cocina..."
+                      : `Confirmar Pedido • ${formatPrice(stagedTotal)}`}
                   </span>
                 </button>
+
+                <p className="text-[10px] text-gray-400 text-center font-semibold">
+                  ⚠️ Al pulsar "Confirmar Pedido" los platos se fijan en la comanda de la mesa y ya no podrán ser quitados por el mesero.
+                </p>
               </div>
             </div>
           )}

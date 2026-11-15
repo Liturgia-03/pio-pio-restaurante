@@ -674,6 +674,28 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores** de TypeScript.
   - Servidor local respondiendo en HTTP 200 en `/waiter` y `/admin/tables`.
 
+### Hito 41: Botón de Pedido en la Barra Inferior del Mesero y Pantalla Completa de Comanda
+- **Integración de Botón "Pedido" en Barra Inferior Móvil ([src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)):**
+  - Se añadió la pestaña **Pedido** (`ShoppingBag`) a la barra de navegación permanente `Bottom Navigation Bar`.
+  - **Comportamiento idéntico al carrito del menú:** A medida que el mesero va sumando platos en cualquier sección, el botón refleja en tiempo real un badge flotante dinámico parpadeante en degradado dorado/naranja (`bg-gradient-to-r from-amber-500 to-orange-500`) con el total de platos acumulados (`stagedCount`).
+  - **Botón Flotante Resumen en Catálogo:** Durante la toma de pedidos (`showAddDishModal`), se desplegó un botón flotante resumen tipo píldora (`[X] Ver Pedido Completo • $ Total COP`) idéntico a `CartFloatingButton` para un acceso táctil inmediato con el pulgar.
+- **Vista de Pantalla Completa de Todo el Pedido (`activeBottomNav === "order"`):**
+  - **Cabecera Institucional:** Nombre de la comanda con mesa asignada (`Mesa #X`), badge de total de platos, nombre del mesero y botón directo para seguir agregando platos.
+  - **Lista Amplia de Productos:**
+    - Miniatura fotográfica gastronómica real de cada plato.
+    - Nombre del plato y porción seleccionada (`1/4`, `1/2`, `Entero`).
+    - Controles táctiles de cantidad `[-] cant [+]`.
+    - Botón de basurero `Trash2` para quitar platos de forma instantánea.
+    - Chips de notas rápidas de cocina (`Sin ensalada`, `Bien dorado`, `Para llevar`, etc.) concatenables con 1 toque.
+    - Campo de texto libre para notas especiales de cocina.
+  - **Resumen Financiero y Confirmación Definitiva:**
+    - Subtotal, desglose de ítems y Total a Confirmar en pesos COP.
+    - Botón principal de alto impacto: **`✅ Confirmar Pedido • $ Total COP`**, que envía la comanda a cocina y la fija en la cuenta de la mesa.
+  - **Estado Vacío Amigable:** Si el mesero ingresa a la pestaña Pedido sin platos en borrador, se presenta un estado visual elegante que lo invita a seleccionar una mesa en el salón.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores** de TypeScript.
+  - Servidor local respondiendo en HTTP 200 OK en `/waiter`.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

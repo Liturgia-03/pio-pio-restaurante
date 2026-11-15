@@ -35,6 +35,7 @@ import {
   Trash2,
   Lock,
   ShieldAlert,
+  ShoppingBag,
 } from "lucide-react";
 import { IconRenderer } from "@/components/common/IconRenderer";
 import { toast } from "sonner";
@@ -86,7 +87,7 @@ export default function WaiterApp() {
 
   // Pestaña de navegación inferior (Bottom Navigation Bar Fija Permanente)
   const [activeBottomNav, setActiveBottomNav] = useState<
-    "all" | "pending" | "active" | "menu" | "profile"
+    "all" | "pending" | "order" | "active" | "menu" | "profile"
   >("all");
 
   // Datos de mesas y menú
@@ -203,12 +204,20 @@ export default function WaiterApp() {
   }, [selectedCategoryTab]);
 
   // Manejador centralizado para la barra inferior (siempre disponible para cambiar de vista)
-  const handleBottomNavClick = (tab: "all" | "pending" | "active" | "menu" | "profile") => {
+  const handleBottomNavClick = (tab: "all" | "pending" | "order" | "active" | "menu" | "profile") => {
     setActiveBottomNav(tab);
-    setSelectedTable(null);
-    setShowAddDishModal(false);
-    setIsStagingExpanded(false);
-    setShowTransferModal(false);
+    if (tab === "order") {
+      setShowAddDishModal(false);
+      setIsStagingExpanded(false);
+      setShowTransferModal(false);
+    } else {
+      if (stagedItems.length === 0) {
+        setSelectedTable(null);
+      }
+      setShowAddDishModal(false);
+      setIsStagingExpanded(false);
+      setShowTransferModal(false);
+    }
   };
 
   // Manejo del PIN táctil
@@ -989,80 +998,369 @@ export default function WaiterApp() {
             </div>
           </div>
         )}
+
+        {/* VISTA 6: PEDIDO EN PANTALLA COMPLETA (ESTILO CARRITO DEL MENÚ CON DETALLE TOTAL) */}
+        {activeBottomNav === "order" && (
+          <div className="max-w-2xl mx-auto space-y-4 pt-2">
+            {/* Header del Pedido */}
+            <div className="bg-[#14161a] border border-gray-800 rounded-3xl p-4 sm:p-5 shadow-xl flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center font-black text-xl shadow-md shadow-amber-500/10">
+                  <ShoppingBag className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base sm:text-lg font-black text-white">
+                      {selectedTable ? `Comanda • Mesa #${selectedTable.tableNumber}` : "Comanda de Pedido"}
+                    </h2>
+                    {stagedCount > 0 && (
+                      <span className="text-[10px] bg-amber-500 text-black font-black px-2 py-0.5 rounded-full">
+                        {stagedCount} plato(s)
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    Mesero: <span className="text-amber-400 font-semibold">{waiter.name}</span>
+                  </p>
+                </div>
+              </div>
+
+              {selectedTable && (
+                <button
+                  type="button"
+                  onClick={() => setShowAddDishModal(true)}
+                  className="px-3 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all active:scale-95"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Agregar platos</span>
+                </button>
+              )}
+            </div>
+
+            {/* Si no hay platos en el pedido */}
+            {stagedItems.length === 0 ? (
+              <div className="text-center py-16 bg-[#14161a] border border-gray-800 rounded-3xl p-6 space-y-4">
+                <div className="w-16 h-16 rounded-full bg-gray-800/80 flex items-center justify-center mx-auto text-gray-500">
+                  <ShoppingBag className="w-8 h-8" />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-base font-black text-white">Tu comanda de pedido está vacía</h3>
+                  <p className="text-xs text-gray-400 max-w-sm mx-auto">
+                    Selecciona una mesa en el salón y agrega los platos, porciones y notas que pidan los comensales.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleBottomNavClick("all")}
+                  className="px-5 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white font-black text-xs rounded-2xl shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
+                >
+                  Ir al Salón de Mesas &rarr;
+                </button>
+              </div>
+            ) : (
+              /* Si hay platos en el pedido: Pantalla Completa con todos los detalles */
+              <div className="space-y-3">
+                {/* Cabecera con selector o alerta de mesa */}
+                <div className="flex items-center justify-between px-2">
+                  <span className="text-xs text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                    <Utensils className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Platos en este pedido ({stagedItems.length}):</span>
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStagedItems([]);
+                      toast.info("Se vació el pedido");
+                    }}
+                    className="text-red-400 hover:text-red-300 font-bold text-xs flex items-center gap-1 active:scale-95"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Vaciar comanda</span>
+                  </button>
+                </div>
+
+                {/* Lista de Platos en Pantalla Completa */}
+                <div className="space-y-2.5">
+                  {stagedItems.map((item, idx) => {
+                    const dishObj = categories
+                      .flatMap((c) => c.dishes)
+                      .find((d) => d.id === item.dishId);
+
+                    return (
+                      <div
+                        key={idx}
+                        className="p-3.5 bg-[#14161a] border border-gray-800 rounded-2xl space-y-3 shadow-md hover:border-gray-700/80 transition-all"
+                      >
+                        {/* Fila del Plato: Foto, Nombre, Porción, Quitar y Cantidad */}
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            {/* Botón explícito para QUITAR PLATO */}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveStagedItem(idx)}
+                              className="p-2 text-red-400 hover:text-red-300 hover:bg-red-950/40 rounded-xl active:scale-90 transition-all flex-shrink-0"
+                              title="Quitar este plato"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+
+                            {/* Foto del plato */}
+                            {dishObj?.imageUrl ? (
+                              <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-900 flex-shrink-0 border border-gray-800">
+                                <img
+                                  src={dishObj.imageUrl}
+                                  alt={item.dishName}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-black flex-shrink-0 border border-amber-500/20 text-lg">
+                                🍗
+                              </div>
+                            )}
+
+                            {/* Nombre y Precio */}
+                            <div className="min-w-0 flex-1">
+                              <h4 className="text-xs sm:text-sm font-bold text-white truncate">
+                                {item.dishName}
+                              </h4>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                {item.portionLabel && (
+                                  <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-bold">
+                                    {item.portionLabel}
+                                  </span>
+                                )}
+                                <span className="text-[11px] text-gray-400 font-mono">
+                                  {formatPrice(item.unitPrice)} c/u
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Control ergonómico de cantidad [+] / [-] y Subtotal */}
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <div className="flex items-center bg-[#181b20] border border-gray-800 rounded-xl p-0.5">
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateStagedQuantity(idx, -1)}
+                                className="w-7 h-7 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-950/30 flex items-center justify-center active:scale-90 transition-all"
+                              >
+                                <Minus className="w-3.5 h-3.5" />
+                              </button>
+                              <span className="w-6 text-center text-xs font-black text-white">
+                                {item.quantity}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateStagedQuantity(idx, 1)}
+                                className="w-7 h-7 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-950/30 flex items-center justify-center active:scale-90 transition-all"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            <span className="text-xs sm:text-sm font-black text-amber-400 min-w-[70px] text-right">
+                              {formatPrice(item.unitPrice * item.quantity)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Chips de Notas Rápidas de Cocina */}
+                        <div className="space-y-1.5 pt-1 border-t border-gray-800/60">
+                          <span className="text-[10px] text-gray-400 font-semibold flex items-center gap-1">
+                            <MessageSquare className="w-3 h-3 text-amber-400" />
+                            <span>Instrucciones rápidas para cocina:</span>
+                          </span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {QUICK_KITCHEN_NOTES.map((chip) => (
+                              <button
+                                key={chip}
+                                type="button"
+                                onClick={() => {
+                                  const curr = item.notes
+                                    ? `${item.notes}, ${chip}`
+                                    : chip;
+                                  handleUpdateStagedNotes(idx, curr);
+                                }}
+                                className="px-2.5 py-1 bg-[#181b20] hover:bg-gray-800 active:scale-95 text-gray-300 hover:text-white rounded-lg text-[10px] font-semibold border border-gray-700/60 transition-colors"
+                              >
+                                + {chip}
+                              </button>
+                            ))}
+                          </div>
+
+                          <input
+                            type="text"
+                            placeholder="Nota especial (ej. pechuga dorada, sin hielo, salsa aparte)..."
+                            value={item.notes}
+                            onChange={(e) => handleUpdateStagedNotes(idx, e.target.value)}
+                            className="w-full bg-[#181b20] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-500"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Botón para Seguir Agregando Platos */}
+                {selectedTable && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddDishModal(true)}
+                    className="w-full py-3 bg-[#14161a] hover:bg-[#1a1d22] border border-gray-800 text-amber-400 font-bold text-xs rounded-2xl flex items-center justify-center gap-2 active:scale-98 transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>+ Agregar más platos al menú de esta mesa</span>
+                  </button>
+                )}
+
+                {/* Resumen Financiero y Confirmación Definitiva */}
+                <div className="bg-[#14161a] border border-gray-800 rounded-3xl p-5 space-y-4 shadow-2xl">
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between text-gray-400">
+                      <span>Cantidad total de platos:</span>
+                      <span className="font-bold text-white">{stagedCount} unidades</span>
+                    </div>
+                    <div className="flex justify-between text-gray-400">
+                      <span>Mesa asignada:</span>
+                      <span className="font-bold text-amber-400">
+                        {selectedTable ? `Mesa #${selectedTable.tableNumber}` : "Sin mesa asignada"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-base pt-2 border-t border-gray-800">
+                      <span className="font-bold text-white">Total a Confirmar:</span>
+                      <span className="text-xl font-black text-amber-400">
+                        {formatPrice(stagedTotal)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* BOTÓN EXPLÍCITO: CONFIRMAR PEDIDO */}
+                  <button
+                    type="button"
+                    onClick={handleSaveStagedOrder}
+                    disabled={actionLoading || !selectedTable}
+                    className="w-full py-4 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-600 hover:opacity-95 disabled:opacity-50 text-white font-black text-sm rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-600/30 active:scale-98 transition-all"
+                  >
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span>
+                      {actionLoading
+                        ? "Confirmando y marchando a cocina..."
+                        : `Confirmar Pedido • ${formatPrice(stagedTotal)}`}
+                    </span>
+                  </button>
+
+                  <p className="text-[10px] text-gray-400 text-center font-semibold">
+                    ⚠️ Al pulsar "Confirmar Pedido" los platos se marcharán a cocina y quedarán fijados en la comanda de la mesa.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </main>
 
       {/* ========================================================================= */}
       {/* BARRA DE NAVEGACIÓN INFERIOR (PERMANENTEMENTE VISIBLE CON Z-INDEX 50) */}
       {/* ========================================================================= */}
-      <nav className="fixed bottom-0 inset-x-0 z-50 h-16 bg-[#14161a]/98 backdrop-blur-md border-t border-gray-800 py-1.5 px-3 flex justify-around items-center shadow-2xl">
+      <nav className="fixed bottom-0 inset-x-0 z-50 h-16 bg-[#14161a]/98 backdrop-blur-md border-t border-gray-800 py-1 px-1.5 sm:px-3 flex justify-around items-center shadow-2xl">
+        {/* 1. Salón */}
         <button
           type="button"
           onClick={() => handleBottomNavClick("all")}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl transition-all ${
+          className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-2xl transition-all ${
             activeBottomNav === "all"
               ? "text-amber-400 font-black scale-105"
               : "text-gray-400 hover:text-gray-200"
           }`}
         >
           <LayoutGrid className="w-5 h-5" />
-          <span className="text-[10px]">Salón</span>
+          <span className="text-[9px] sm:text-[10px]">Salón</span>
         </button>
 
+        {/* 2. Por Confirmar */}
         <button
           type="button"
           onClick={() => handleBottomNavClick("pending")}
-          className={`relative flex flex-col items-center gap-1 py-1 px-3 rounded-2xl transition-all ${
+          className={`relative flex flex-col items-center gap-0.5 py-1 px-2 rounded-2xl transition-all ${
             activeBottomNav === "pending"
               ? "text-amber-400 font-black scale-105"
               : "text-gray-400 hover:text-gray-200"
           }`}
         >
           <AlertCircle className="w-5 h-5" />
-          <span className="text-[10px]">Por Confirmar</span>
+          <span className="text-[9px] sm:text-[10px]">Pendientes</span>
           {(counts?.pending || 0) > 0 && (
-            <span className="absolute top-0 right-3 w-4 h-4 rounded-full bg-amber-500 text-black text-[9px] font-black flex items-center justify-center animate-bounce shadow-md">
+            <span className="absolute -top-1 right-0.5 w-4 h-4 rounded-full bg-amber-500 text-black text-[9px] font-black flex items-center justify-center animate-bounce shadow-md">
               {counts.pending}
             </span>
           )}
         </button>
 
+        {/* 3. BOTÓN PEDIDO (CON COMPORTAMIENTO IDÉNTICO AL CARRITO DEL MENÚ) */}
+        <button
+          type="button"
+          onClick={() => handleBottomNavClick("order")}
+          className={`relative flex flex-col items-center gap-0.5 py-1 px-2.5 rounded-2xl transition-all ${
+            activeBottomNav === "order"
+              ? "text-amber-400 font-black scale-105"
+              : stagedCount > 0
+              ? "text-amber-300 font-bold"
+              : "text-gray-400 hover:text-gray-200"
+          }`}
+        >
+          <div className="relative">
+            <ShoppingBag className="w-5 h-5" />
+            {stagedCount > 0 && (
+              <span className="absolute -top-1.5 -right-2.5 w-4 h-4 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-black text-[9px] font-black flex items-center justify-center animate-bounce shadow-md shadow-amber-500/50">
+                {stagedCount}
+              </span>
+            )}
+          </div>
+          <span className="text-[9px] sm:text-[10px] font-bold">Pedido</span>
+        </button>
+
+        {/* 4. Ocupadas */}
         <button
           type="button"
           onClick={() => handleBottomNavClick("active")}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl transition-all ${
+          className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-2xl transition-all ${
             activeBottomNav === "active"
               ? "text-blue-400 font-black scale-105"
               : "text-gray-400 hover:text-gray-200"
           }`}
         >
           <Utensils className="w-5 h-5" />
-          <span className="text-[10px]">Ocupadas</span>
+          <span className="text-[9px] sm:text-[10px]">Ocupadas</span>
         </button>
 
+        {/* 5. Carta */}
         <button
           type="button"
           onClick={() => handleBottomNavClick("menu")}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl transition-all ${
+          className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-2xl transition-all ${
             activeBottomNav === "menu"
               ? "text-amber-400 font-black scale-105"
               : "text-gray-400 hover:text-gray-200"
           }`}
         >
           <BookOpen className="w-5 h-5" />
-          <span className="text-[10px]">Carta</span>
+          <span className="text-[9px] sm:text-[10px]">Carta</span>
         </button>
 
+        {/* 6. Mi Turno */}
         <button
           type="button"
           onClick={() => handleBottomNavClick("profile")}
-          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl transition-all ${
+          className={`flex flex-col items-center gap-0.5 py-1 px-2 rounded-2xl transition-all ${
             activeBottomNav === "profile"
               ? "text-amber-400 font-black scale-105"
               : "text-gray-400 hover:text-gray-200"
           }`}
         >
           <UserCheck className="w-5 h-5" />
-          <span className="text-[10px]">Mi Turno</span>
+          <span className="text-[9px] sm:text-[10px]">Turno</span>
         </button>
       </nav>
 
@@ -1601,171 +1899,34 @@ export default function WaiterApp() {
           </div>
 
           {/* ========================================================================= */}
-          {/* BARRA FLOTANTE DEL CARRITO (POSICIONADA JUSTO ENCIMA DE LA BARRA INFERIOR: BOTTOM-16) */}
+          {/* BOTÓN FLOTANTE RESUMEN (COMPORTAMIENTO IDÉNTICO AL CARRITO DEL MENÚ DIGITAL) */}
           {/* ========================================================================= */}
           {stagedItems.length > 0 && (
-            <div className="fixed bottom-16 inset-x-0 z-45 bg-[#14161a]/98 backdrop-blur-md border-t-2 border-amber-500/50 p-3 sm:p-4 shadow-2xl transition-all">
-              <div className="max-w-3xl mx-auto space-y-3">
-                {/* Cabecera de la barra de comanda */}
-                <div className="flex items-center justify-between">
-                  <button
-                    type="button"
-                    onClick={() => setIsStagingExpanded(!isStagingExpanded)}
-                    className="flex items-center gap-2 text-left active:scale-98 transition-all"
-                  >
-                    <div className="w-9 h-9 rounded-xl bg-amber-500 text-black flex items-center justify-center font-black shadow-md shadow-amber-500/30">
-                      {stagedCount}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1 text-xs font-black text-white">
-                        <span>Carrito de Pedido</span>
-                        {isStagingExpanded ? (
-                          <ChevronDown className="w-3.5 h-3.5 text-amber-400" />
-                        ) : (
-                          <ChevronUp className="w-3.5 h-3.5 text-amber-400" />
-                        )}
-                      </div>
-                      <span className="text-[10px] text-gray-400 block">
-                        {isStagingExpanded
-                          ? "Toca para ocultar detalle"
-                          : "Toca para revisar, quitar platos o agregar notas"}
-                      </span>
-                    </div>
-                  </button>
-
-                  <div className="text-right">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
-                      Total a Confirmar
-                    </span>
-                    <span className="text-lg font-black text-amber-400">
-                      {formatPrice(stagedTotal)}
-                    </span>
+            <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-45 w-full max-w-sm px-4 animate-in fade-in slide-in-from-bottom-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddDishModal(false);
+                  setActiveBottomNav("order");
+                }}
+                className="w-full py-3.5 px-5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 active:scale-98 text-white font-extrabold rounded-2xl shadow-2xl shadow-orange-500/40 flex items-center justify-between border border-amber-300/30 transition-all min-h-[52px]"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-black/30 flex items-center justify-center font-black text-xs text-amber-200">
+                    {stagedCount}
                   </div>
+                  <span className="text-xs uppercase tracking-wider font-black">
+                    Ver Pedido Completo
+                  </span>
                 </div>
 
-                {/* Vista Expandida de los ítems con botón para QUITAR PLATOS y Notas Rápidas */}
-                {isStagingExpanded && (
-                  <div className="max-h-52 overflow-y-auto space-y-2 pr-1 border-t border-gray-800 pt-2 animate-in fade-in">
-                    <div className="flex items-center justify-between text-[11px] text-gray-400 pb-1">
-                      <span>Platos seleccionados en el carrito:</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setStagedItems([]);
-                          toast.info("Se vació el carrito de pedido");
-                        }}
-                        className="text-red-400 hover:text-red-300 font-bold flex items-center gap-1 text-[10px]"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        <span>Vaciar todo</span>
-                      </button>
-                    </div>
-
-                    {stagedItems.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3 bg-[#181b20] border border-gray-800 rounded-2xl space-y-2 text-xs"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            {/* Botón explícito para QUITAR PLATO */}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveStagedItem(idx)}
-                              className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-950/40 rounded-lg active:scale-90 transition-all flex-shrink-0"
-                              title="Quitar este plato del pedido"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-
-                            <span className="font-bold text-white text-xs truncate">
-                              {item.dishName}{" "}
-                              {item.portionLabel ? `(${item.portionLabel})` : ""}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateStagedQuantity(idx, -1)}
-                              className="text-gray-400 hover:text-red-400 p-0.5"
-                              title="Restar uno"
-                            >
-                              <MinusCircle className="w-4 h-4" />
-                            </button>
-                            <span className="font-black text-white w-5 text-center text-xs">
-                              {item.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateStagedQuantity(idx, 1)}
-                              className="text-gray-400 hover:text-green-400 p-0.5"
-                              title="Sumar uno"
-                            >
-                              <PlusCircle className="w-4 h-4" />
-                            </button>
-                            <span className="font-bold text-amber-400 ml-2">
-                              {formatPrice(item.unitPrice * item.quantity)}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Chips de Notas Rápidas para Cocina */}
-                        <div className="space-y-1">
-                          <span className="text-[9px] text-gray-500 font-semibold flex items-center gap-1">
-                            <MessageSquare className="w-2.5 h-2.5 text-amber-400" />
-                            <span>Notas de cocina rápidas:</span>
-                          </span>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            {QUICK_KITCHEN_NOTES.map((chip) => (
-                              <button
-                                key={chip}
-                                type="button"
-                                onClick={() => {
-                                  const curr = item.notes
-                                    ? `${item.notes}, ${chip}`
-                                    : chip;
-                                  handleUpdateStagedNotes(idx, curr);
-                                }}
-                                className="px-2 py-0.5 bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 hover:text-white rounded-lg text-[10px] font-semibold border border-gray-700/60"
-                              >
-                                + {chip}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        <input
-                          type="text"
-                          placeholder="Otra nota especial (ej. sin cebolla, pechuga)..."
-                          value={item.notes}
-                          onChange={(e) => handleUpdateStagedNotes(idx, e.target.value)}
-                          className="w-full bg-[#14161a] border border-gray-800 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-500"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* BOTÓN EXPLÍCITO: CONFIRMAR PEDIDO */}
-                <button
-                  type="button"
-                  onClick={handleSaveStagedOrder}
-                  disabled={actionLoading}
-                  className="w-full py-3.5 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-600 hover:opacity-95 text-white font-black text-sm rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-600/30 active:scale-98 transition-all"
-                >
-                  <CheckCircle2 className="w-5 h-5" />
-                  <span>
-                    {actionLoading
-                      ? "Confirmando y marchando a cocina..."
-                      : `Confirmar Pedido • ${formatPrice(stagedTotal)}`}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-black text-white">
+                    {formatPrice(stagedTotal)}
                   </span>
-                </button>
-
-                <p className="text-[10px] text-gray-400 text-center font-semibold">
-                  ⚠️ Al pulsar "Confirmar Pedido" los platos se fijan en la comanda de la mesa y ya no podrán ser quitados por el mesero.
-                </p>
-              </div>
+                  <ShoppingBag className="w-4 h-4 text-amber-200" />
+                </div>
+              </button>
             </div>
           )}
         </div>

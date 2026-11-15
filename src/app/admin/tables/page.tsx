@@ -89,6 +89,9 @@ export default function AdminTablesCashierPage() {
   const [targetTableNumber, setTargetTableNumber] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<string>("Efectivo");
 
+  // Modal para asignar / transferir mesero responsable a la mesa
+  const [showAssignWaiterModal, setShowAssignWaiterModal] = useState<boolean>(false);
+
   // Estado de montaje en cliente para evitar hydration mismatch con extensiones
   const [isMounted, setIsMounted] = useState<boolean>(false);
 
@@ -315,6 +318,28 @@ export default function AdminTablesCashierPage() {
       await loadTables(true);
     } catch (err: any) {
       toast.error(err.message || "Error al transferir mesa");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Asignar o transferir pedido / mesa a cualquiera de los meseros
+  const handleAssignWaiter = async (sessionId: string, waiterId: string | null) => {
+    setIsActionLoading(true);
+    try {
+      const res = await fetch(`/api/tables/${sessionId}/assign-waiter`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ waiterId }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.message);
+
+      toast.success(json.message || "Mesero asignado exitosamente a la mesa");
+      setShowAssignWaiterModal(false);
+      await loadTables(true);
+    } catch (err: any) {
+      toast.error(err.message || "Error al asignar mesero a la mesa");
     } finally {
       setIsActionLoading(false);
     }
@@ -840,6 +865,22 @@ export default function AdminTablesCashierPage() {
                     El cliente envió este pedido por código QR desde la mesa y está a la espera de confirmación.
                   </span>
                 </div>
+
+                {/* Mesero Asignado / Selector Rápido */}
+                <div className="flex items-center justify-between text-xs bg-black/30 p-2.5 rounded-xl border border-amber-500/30">
+                  <span className="text-gray-300 text-[11px]">
+                    Mesero: <strong className="text-white">{selectedTable.session.waiter?.name ? `👤 ${selectedTable.session.waiter.name}` : "Sin asignar"}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowAssignWaiterModal(true)}
+                    className="text-amber-400 hover:text-amber-300 font-black text-[11px] flex items-center gap-1 transition-colors"
+                  >
+                    <span>{selectedTable.session.waiter ? "Transferir" : "Asignar Mesero"}</span>
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
+
                 <div className="flex gap-2">
                   <button
                     type="button"
@@ -864,18 +905,54 @@ export default function AdminTablesCashierPage() {
             {/* CASO 3: MESA CON COMANDA ACTIVA (OCUPADA / PIDIENDO CUENTA / POR CONFIRMAR) */}
             {selectedTable.session && (
               <div className="space-y-4">
+                {/* Indicador de Mesero a cargo con botón de transferencia directa */}
+                <div className="p-3 bg-[#181b20] border border-gray-800/80 rounded-2xl flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 flex-shrink-0">
+                      <UserCheck className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">
+                        Mesero Responsable
+                      </span>
+                      <span className="text-xs font-black text-white truncate block">
+                        {selectedTable.session.waiter?.name
+                          ? `👤 ${selectedTable.session.waiter.name}`
+                          : "⚠️ Sin mesero asignado (Atendido en Caja)"}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAssignWaiterModal(true)}
+                    className="px-3 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1 flex-shrink-0 active:scale-95"
+                  >
+                    <span>{selectedTable.session.waiter ? "Transferir" : "Asignar"}</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
                 {/* Botones de Operación de la Mesa */}
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => {
                       setStagedItems([]);
                       setShowAddProductModal(true);
                     }}
-                    className="flex-1 py-2.5 px-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                    className="flex-1 min-w-[120px] py-2.5 px-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-95"
                   >
                     <Plus className="w-3.5 h-3.5 text-amber-400" />
                     <span>+ Agregar Productos</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowAssignWaiterModal(true)}
+                    className="flex-1 min-w-[140px] py-2.5 px-3 bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-700/50 text-emerald-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                  >
+                    <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>{selectedTable.session.waiter ? "Transferir Mesero" : "Asignar Mesero"}</span>
                   </button>
 
                   <button
@@ -884,7 +961,7 @@ export default function AdminTablesCashierPage() {
                     className="py-2.5 px-3 bg-[#181b20] hover:bg-gray-800 border border-gray-700/60 text-gray-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-95"
                   >
                     <ArrowRightLeft className="w-3.5 h-3.5 text-blue-400" />
-                    <span>Cambiar de Mesa</span>
+                    <span>Cambiar Mesa</span>
                   </button>
                 </div>
 
@@ -1570,6 +1647,156 @@ export default function AdminTablesCashierPage() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* MODAL PARA ASIGNAR O TRANSFERIR MESERO A LA MESA (ADMIN) */}
+      {showAssignWaiterModal && selectedTable?.session && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in"
+          onClick={() => setShowAssignWaiterModal(false)}
+        >
+          <div
+            className="w-full max-w-md bg-[#14161a] border border-gray-800 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-black">
+                  <UserCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-white">
+                    Asignar / Transferir Mesero
+                  </h3>
+                  <span className="text-xs text-gray-400">
+                    Mesa #{selectedTable.tableNumber} • Comanda en curso
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAssignWaiterModal(false)}
+                className="w-7 h-7 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-gray-300">
+              Selecciona el mesero que se encargará de atender esta mesa. La mesa aparecerá inmediatamente en su pestaña <strong>"Mis Mesas"</strong> en su celular.
+            </p>
+
+            {/* Lista de Meseros Activos */}
+            <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+              {waiters.filter((w) => w.isActive).length === 0 ? (
+                <div className="text-center py-6 text-gray-400 text-xs">
+                  No hay meseros activos configurados en el sistema.
+                </div>
+              ) : (
+                waiters
+                  .filter((w) => w.isActive)
+                  .map((w) => {
+                    const isCurrent = selectedTable.session?.waiterId === w.id;
+                    const assignedTablesCount = tablesData.filter(
+                      (t) => t.session?.waiterId === w.id && t.status !== "CLOSED"
+                    ).length;
+
+                    return (
+                      <button
+                        key={w.id}
+                        type="button"
+                        onClick={() => handleAssignWaiter(selectedTable.session!.id, w.id)}
+                        disabled={isActionLoading}
+                        className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                          isCurrent
+                            ? "bg-amber-500/15 border-amber-500/60 ring-1 ring-amber-500/50"
+                            : "bg-[#181b20] border-gray-800 hover:border-gray-700 hover:bg-[#1f2329]"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm uppercase ${
+                              isCurrent
+                                ? "bg-amber-500 text-black shadow-md shadow-amber-500/20"
+                                : "bg-gray-800 text-gray-300 border border-gray-700"
+                            }`}
+                          >
+                            {w.name.slice(0, 2)}
+                          </div>
+                          <div>
+                            <span className="text-xs font-black text-white block">
+                              {w.name}
+                            </span>
+                            <span className="text-[10px] text-gray-400 block">
+                              {assignedTablesCount === 0
+                                ? "Sin mesas a cargo en este momento"
+                                : `${assignedTablesCount} mesa(s) a cargo`}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          {isCurrent ? (
+                            <span className="px-2.5 py-1 bg-amber-500/20 text-amber-300 text-[10px] font-black rounded-lg border border-amber-500/30 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3 text-amber-400" />
+                              <span>Asignado</span>
+                            </span>
+                          ) : (
+                            <span className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 text-[11px] font-bold rounded-xl border border-gray-700">
+                              Asignar
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })
+              )}
+
+              {/* Opción de Dejar Sin Mesero (Atendido en Caja) */}
+              <button
+                type="button"
+                onClick={() => handleAssignWaiter(selectedTable.session!.id, null)}
+                disabled={isActionLoading}
+                className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                  !selectedTable.session.waiterId
+                    ? "bg-blue-950/20 border-blue-500/50 ring-1 ring-blue-500/40"
+                    : "bg-[#14161a] border-dashed border-gray-800 hover:border-gray-700"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gray-800/80 text-gray-400 border border-gray-700 flex items-center justify-center font-bold text-xs">
+                    Caja
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-gray-300 block">
+                      Atención Directa en Caja
+                    </span>
+                    <span className="text-[10px] text-gray-500 block">
+                      Sin mesero asignado
+                    </span>
+                  </div>
+                </div>
+
+                {!selectedTable.session.waiterId && (
+                  <span className="px-2.5 py-1 bg-blue-500/20 text-blue-300 text-[10px] font-black rounded-lg border border-blue-500/30 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-blue-400" />
+                    <span>Actual</span>
+                  </span>
+                )}
+              </button>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setShowAssignWaiterModal(false)}
+                className="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs rounded-xl"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -330,17 +330,18 @@ function MenuContent({
     return list;
   }, [categories]);
 
-  // Platos filtrados por búsqueda global
+  // Platos filtrados por búsqueda global (estrictamente solo nombres de platos y nombres de categorías)
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const query = searchQuery.toLowerCase().trim();
 
     const allDishes: DishItem[] = [];
     categories.forEach((cat) => {
+      const categoryMatches = cat.name.toLowerCase().includes(query);
       cat.dishes.forEach((d) => {
         if (
           d.name.toLowerCase().includes(query) ||
-          d.description.toLowerCase().includes(query)
+          categoryMatches
         ) {
           allDishes.push(d);
         }

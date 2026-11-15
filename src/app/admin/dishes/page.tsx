@@ -240,12 +240,21 @@ export default function AdminDishesPage() {
 
   // Filtrado integral por texto, categoría y estado (Disponibles, Agotados, Promos)
   const filteredDishes = useMemo(() => {
+    const searchLower = search.toLowerCase().trim();
+
+    // Mapa rápido de nombres de categoría por ID
+    const categoryNameMap = new Map<string, string>();
+    categories.forEach((c: any) => {
+      if (c?.id && c?.name) categoryNameMap.set(c.id, c.name.toLowerCase());
+    });
+
     return dishes.filter((dish) => {
-      // 1. Filtro por texto
+      // 1. Filtro por texto: Estrictamente solo nombres de platos o nombres de categorías (sin descripciones)
+      const catName = categoryNameMap.get(dish.categoryId) || "";
       const matchesSearch =
-        !search.trim() ||
-        dish.name.toLowerCase().includes(search.toLowerCase()) ||
-        dish.description.toLowerCase().includes(search.toLowerCase());
+        !searchLower ||
+        dish.name.toLowerCase().includes(searchLower) ||
+        catName.includes(searchLower);
 
       // 2. Filtro por Categoría
       const matchesCategory =
@@ -268,7 +277,7 @@ export default function AdminDishesPage() {
 
       return matchesSearch && matchesCategory && matchesStatus;
     });
-  }, [dishes, search, selectedCategory, statusFilter]);
+  }, [dishes, search, selectedCategory, statusFilter, categories]);
 
   // Renderizar distintivos (Badges) de cada plato
   const renderDishBadges = (dish: DishItem) => {

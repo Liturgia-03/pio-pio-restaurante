@@ -90,6 +90,9 @@ export default function WaiterApp() {
     "all" | "pending" | "order" | "active" | "menu" | "profile"
   >("all");
 
+  // Filtro de alcance del salón: Salón Completo vs Mis Mesas Asignadas
+  const [tableScope, setTableScope] = useState<"all" | "mine">("all");
+
   // Datos de mesas y menú
   const [tablesData, setTablesData] = useState<TableCardData[]>([]);
   const [counts, setCounts] = useState({ open: 0, pending: 0, billRequested: 0, free: 0 });
@@ -301,6 +304,28 @@ export default function WaiterApp() {
     }
   };
 
+  // Asignarse / Tomar una mesa a cargo
+  const handleClaimTable = async (sessionId: string) => {
+    if (!waiter) return;
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/tables/${sessionId}/assign-waiter`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ waiterId: waiter.id }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.message);
+
+      toast.success("¡Mesa asignada a tu turno exitosamente!");
+      await fetchTables(true);
+    } catch (err: any) {
+      toast.error(err.message || "Error al asignarte la mesa");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   // Solicitar cuenta a caja
   const handleBillRequest = async (sessionId: string) => {
     setActionLoading(true);
@@ -502,12 +527,11 @@ export default function WaiterApp() {
     });
 
     if (searchDishQuery.trim()) {
-      const q = searchDishQuery.toLowerCase();
+      const q = searchDishQuery.toLowerCase().trim();
       list = list.filter(
         (it) =>
           it.dish.name.toLowerCase().includes(q) ||
-          it.categoryName.toLowerCase().includes(q) ||
-          (it.dish.description && it.dish.description.toLowerCase().includes(q))
+          it.categoryName.toLowerCase().includes(q)
       );
     }
 
@@ -523,16 +547,31 @@ export default function WaiterApp() {
     return stagedItems.reduce((acc, it) => acc + it.quantity, 0);
   }, [stagedItems]);
 
-  // Mesas filtradas según la pestaña de navegación activa
+  // Cantidad de mesas asignadas actualmente a este mesero
+  const myAssignedTablesCount = useMemo(() => {
+    if (!waiter) return 0;
+    return tablesData.filter(
+      (t) => t.session && t.session.waiterId === waiter.id && t.status !== "CLOSED"
+    ).length;
+  }, [tablesData, waiter]);
+
+  // Mesas filtradas según la pestaña de navegación activa y el alcance (Todas vs Mis Mesas)
   const visibleTables = useMemo(() => {
+    let list = tablesData;
+
+    // Si el mesero tiene activado el filtro de ver exclusivamente "Mis Mesas"
+    if (tableScope === "mine") {
+      list = list.filter((t) => t.session && t.session.waiterId === waiter?.id);
+    }
+
     if (activeBottomNav === "pending") {
-      return tablesData.filter((t) => t.status === "PENDING_CONFIRMATION");
+      return list.filter((t) => t.status === "PENDING_CONFIRMATION");
     }
     if (activeBottomNav === "active") {
-      return tablesData.filter((t) => t.status === "OPEN" || t.status === "BILL_REQUESTED");
+      return list.filter((t) => t.status === "OPEN" || t.status === "BILL_REQUESTED");
     }
-    return tablesData;
-  }, [tablesData, activeBottomNav]);
+    return list;
+  }, [tablesData, activeBottomNav, tableScope, waiter]);
 
   // Esperar a que monte en el cliente para evitar discrepancias de SSR y atributos inyectados por extensiones
   if (!isMounted) {
@@ -770,37 +809,93 @@ export default function WaiterApp() {
               </div>
             )}
 
+            {/* Selector de Alcance del Salón: Salón Completo vs Mis Mesas Asignadas */}
+            <div className="flex items-center gap-2 p-1.5 bg-[#14161a] border border-gray-800 rounded-2xl shadow-sm">
+              <button
+                type="button"
+                onClick={() => setTableScope("all")}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  tableScope === "all"
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-black font-black shadow-md shadow-amber-500/20"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span>Salón Completo ({tablesData.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTableScope("mine")}
+                className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  tableScope === "mine"
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-black font-black shadow-md shadow-amber-500/20"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Mis Mesas ({myAssignedTablesCount})</span>
+              </button>
+            </div>
+
             {/* Cabecera del filtro activo */}
             <div className="flex items-center justify-between px-1">
               <h2 className="text-xs font-black uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
-                <LayoutGrid className="w-3.5 h-3.5 text-amber-400" />
-                <span>
-                  {activeBottomNav === "all"
-                    ? "Salón Completo (Todas las Mesas)"
-                    : activeBottomNav === "pending"
-                    ? "Mesas con Pedidos QR por Confirmar"
-                    : "Mesas Ocupadas con Cuenta Activa"}
-                </span>
+                {tableScope === "mine" ? (
+                  <>
+                    <UserCheck className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Mis Mesas Asignadas ({myAssignedTablesCount})</span>
+                  </>
+                ) : (
+                  <>
+                    <LayoutGrid className="w-3.5 h-3.5 text-amber-400" />
+                    <span>
+                      {activeBottomNav === "all"
+                        ? "Salón Completo (Todas las Mesas)"
+                        : activeBottomNav === "pending"
+                        ? "Mesas con Pedidos QR por Confirmar"
+                        : "Mesas Ocupadas con Cuenta Activa"}
+                    </span>
+                  </>
+                )}
               </h2>
               <span className="text-[11px] text-gray-500 font-bold">
-                {visibleTables.length} mesas
+                {visibleTables.length} mesas visibles
               </span>
             </div>
 
             {visibleTables.length === 0 ? (
-              <div className="text-center py-12 bg-[#14161a] border border-gray-800 rounded-3xl p-6 space-y-2">
-                <Utensils className="w-10 h-10 text-gray-600 mx-auto" />
-                <p className="text-xs font-bold text-gray-300">
-                  {activeBottomNav === "pending"
-                    ? "No hay pedidos QR pendientes por confirmar en este momento."
-                    : "No hay mesas con cuentas activas en este momento."}
-                </p>
+              <div className="text-center py-12 bg-[#14161a] border border-gray-800 rounded-3xl p-6 space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto text-xl">
+                  {tableScope === "mine" ? (
+                    <UserCheck className="w-6 h-6" />
+                  ) : (
+                    <Utensils className="w-6 h-6" />
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-gray-200">
+                    {tableScope === "mine"
+                      ? "No tienes mesas asignadas en este momento."
+                      : activeBottomNav === "pending"
+                      ? "No hay pedidos QR pendientes por confirmar en este momento."
+                      : "No hay mesas con cuentas activas en este momento."}
+                  </p>
+                  {tableScope === "mine" && (
+                    <p className="text-[11px] text-gray-400 max-w-xs mx-auto">
+                      Abre una mesa libre o confirma pedidos QR para asignártelos a tu turno.
+                    </p>
+                  )}
+                </div>
                 <button
                   type="button"
-                  onClick={() => handleBottomNavClick("all")}
-                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-xs text-amber-400 font-bold rounded-xl"
+                  onClick={() => {
+                    setTableScope("all");
+                    handleBottomNavClick("all");
+                  }}
+                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-xs text-amber-400 font-bold rounded-xl transition-all"
                 >
-                  Ver Todas las Mesas
+                  Ver Salón Completo
                 </button>
               </div>
             ) : (
@@ -839,12 +934,25 @@ export default function WaiterApp() {
                           : "bg-purple-950/35 border-2 border-purple-500/70 hover:border-purple-400 text-purple-200 animate-pulse shadow-md shadow-purple-950/30"
                       }`}
                     >
-                      {/* Fila Superior: Número de Mesa + Tiempo / Pulso Semafórico */}
+                      {/* Fila Superior: Número de Mesa + Indicador Mesero + Tiempo / Pulso Semafórico */}
                       <div className="flex items-center justify-between w-full">
-                        <span className="text-xs sm:text-sm font-bold tracking-tight text-white">
-                          MESA #{table.tableNumber}
-                        </span>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="text-xs sm:text-sm font-bold tracking-tight text-white flex-shrink-0">
+                            MESA #{table.tableNumber}
+                          </span>
+                          {table.session && (
+                            table.session.waiterId === waiter?.id ? (
+                              <span className="text-[8px] sm:text-[9px] font-black px-1.5 py-0.5 bg-emerald-500/25 text-emerald-300 rounded-md border border-emerald-500/40 flex-shrink-0">
+                                Tu Mesa
+                              </span>
+                            ) : table.session.waiter?.name ? (
+                              <span className="text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 bg-gray-800 text-gray-300 rounded-md border border-gray-700 truncate max-w-[55px] sm:max-w-[70px] block">
+                                {table.session.waiter.name}
+                              </span>
+                            ) : null
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-shrink-0">
                           {table.minutesOpen !== null && (
                             <span className="text-[10px] text-gray-400 font-mono flex items-center gap-0.5">
                               <Clock className="w-2.5 h-2.5" />
@@ -1477,15 +1585,28 @@ export default function WaiterApp() {
                   <h3 className="text-base font-black text-white">
                     Mesa #{selectedTable.tableNumber}
                   </h3>
-                  <span className="text-xs text-gray-400 font-semibold">
-                    {selectedTable.status === "FREE"
-                      ? "Mesa Libre"
-                      : selectedTable.status === "PENDING_CONFIRMATION"
-                      ? "🟡 Pedido QR por confirmar"
-                      : selectedTable.status === "BILL_REQUESTED"
-                      ? "🟣 Cliente pasando a pagar a Caja"
-                      : "🔵 Ocupada / Consumiendo"}
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="text-xs text-gray-400 font-semibold">
+                      {selectedTable.status === "FREE"
+                        ? "Mesa Libre"
+                        : selectedTable.status === "PENDING_CONFIRMATION"
+                        ? "🟡 Pedido QR por confirmar"
+                        : selectedTable.status === "BILL_REQUESTED"
+                        ? "🟣 Cliente pasando a pagar a Caja"
+                        : "🔵 Ocupada / Consumiendo"}
+                    </span>
+                    {selectedTable.session && (
+                      <span className="text-[11px]">
+                        • {selectedTable.session.waiterId === waiter?.id ? (
+                          <strong className="text-emerald-400 font-black">👤 Asignada a ti</strong>
+                        ) : selectedTable.session.waiter?.name ? (
+                          <span className="text-gray-300">👤 {selectedTable.session.waiter.name}</span>
+                        ) : (
+                          <span className="text-amber-400 font-bold">⚠️ Sin mesero asignado</span>
+                        )}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -1525,6 +1646,25 @@ export default function WaiterApp() {
             {/* Si tiene sesión activa */}
             {selectedTable.session && (
               <div className="space-y-4">
+                {/* Opción de autoasignarse la mesa si está huérfana (abierta desde caja o enviada por QR) */}
+                {!selectedTable.session.waiterId && (
+                  <div className="p-3 bg-amber-500/15 border border-amber-500/40 rounded-2xl flex items-center justify-between gap-3 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <UserCheck className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                      <span className="text-xs text-amber-200 font-bold">
+                        Esta mesa no tiene un mesero asignado.
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleClaimTable(selectedTable.session!.id)}
+                      disabled={actionLoading}
+                      className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-black text-xs rounded-xl shadow-md transition-all active:scale-95 flex-shrink-0"
+                    >
+                      Asignármela
+                    </button>
+                  </div>
+                )}
                 {/* Alerta si es PENDING_CONFIRMATION */}
                 {selectedTable.status === "PENDING_CONFIRMATION" && (
                   <div className="p-3.5 bg-amber-500/20 border border-amber-500/60 rounded-2xl space-y-2">

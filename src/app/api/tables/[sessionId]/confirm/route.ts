@@ -47,12 +47,17 @@ export async function PATCH(
 
       const total = validItems.reduce((acc, it) => acc + Number(it.subtotal), 0);
 
+      const updateData: any = {
+        status: "OPEN",
+        total,
+      };
+      if (body.waiterId) {
+        updateData.waiterId = body.waiterId;
+      }
+
       await prisma.tableSession.update({
         where: { id: sessionId },
-        data: {
-          status: "OPEN",
-          total,
-        },
+        data: updateData,
       });
 
       return NextResponse.json({

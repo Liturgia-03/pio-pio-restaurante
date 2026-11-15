@@ -752,26 +752,26 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores**.
   - Petición HTTP a `/waiter`: Código 200 OK en 42ms.
 
-### Hito 45: Flujo Integral en Tiempo Real de Pedidos QR para Clientes (Estados Pendiente, Aprobado en Cocina, Llamar Mesero, Pedir Cuenta y Mesa Liberada)
-- **Nuevos Endpoints Públicos:**
-  - `GET /api/public/table-status`: Consulta en tiempo real del estado de la mesa (`PENDING_CONFIRMATION`, `OPEN`, `BILL_REQUESTED`, `CLOSED`, `FREE`) con desglose de ítems, rondas, total y mesero asignado.
-  - `POST /api/public/call-waiter`: Notificación directa de llamado de mesero en mesa, registrando alerta en la comanda visible en `/waiter` y `/admin/tables`.
-- **Sincronización Reactiva en `CartContext` ([src/context/CartContext.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/context/CartContext.tsx)):**
-  - Polling suave automático cada 3.5s sobre el estado de la mesa escaneada.
-  - Notificaciones toast institucionales cuando el mesero aprueba la comanda (`¡Tu pedido ha sido aprobado por el mesero y está marchando a cocina!`) y cuando el admin cobra y libera la mesa (`¡Cuenta pagada y cerrada en caja!`).
-- **Estados Dinámicos en la Ventana de Pedido ([src/components/public/CartSheet.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/CartSheet.tsx)):**
-  1. **Estado 1 (Pendiente por Aprobar):** Banner y tarjeta ámbar pulsante informando que el pedido fue enviado y espera confirmación del personal, lista de platos solicitados, indicador en vivo y botones de llamada a mesero o seguir viendo el menú.
-  2. **Estado 2 (Aprobado y en Marcha en Cocina):** Checkmark animado verde, aviso de preparación en cocina, mesero a cargo, desglose de rondas acumuladas con subtotales, y botones directos:
-     - `➕ Agregar Otros Productos (Pedir algo más)` (abre la carta para rondas de adición a la misma mesa).
-     - `🔔 Llamar al Mesero`.
-     - `💳 Pedir la Cuenta a Caja`.
-  3. **Estado 3 (Cuenta Solicitada a Caja):** Aviso morado confirmando la notificación a Caja Central y monto a cancelar.
-  4. **Estado 4 (Cuenta Pagada y Mesa Liberada):** Mensaje de agradecimiento institucional y reseteo de la sesión al liberar la mesa en caja.
-- **Acceso Persistente al Cerrar y Reabrir:**
-  - Píldora flotante adaptativa ([src/components/public/CartFloatingButton.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/CartFloatingButton.tsx)) y barra inferior fija ([src/components/public/PublicBottomBar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/PublicBottomBar.tsx)) que permanecen visibles con el estado activo de la mesa para reabrir la comanda con 1 toque en cualquier momento.
+### Hito 46: Filtro de "Mis Mesas" para Meseros, Asignación/Transferencia de Mesero por Admin y Filtro Estricto de Búsqueda sin Descripciones
+- **Filtro Estricto de Búsqueda de Platos (Sin Descripciones):**
+  - **Menú Público ([src/components/public/PublicMenuClient.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/PublicMenuClient.tsx)):** En `searchResults`, se suprimió la coincidencia por `d.description`. Ahora busca estrictamente en `d.name` y `category.name`.
+  - **Plataforma de Mesero ([src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)):** En `filteredDishes`, se suprimió la coincidencia por `it.dish.description`. La búsqueda opera exclusivamente por nombre de plato o nombre de categoría.
+  - **Administrador de Platos ([src/app/admin/dishes/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/dishes/page.tsx)):** Se eliminó la búsqueda sobre `dish.description`, buscando únicamente por `dish.name` o coincidencia en la categoría asociada.
+- **Backend de Asignación y Persistencia de Mesero:**
+  - **Confirmación de Pedidos QR ([src/app/api/tables/[sessionId]/confirm/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/tables/[sessionId]/confirm/route.ts)):** Ahora persiste `waiterId` en `prisma.tableSession.update` cuando el mesero confirma el pedido QR desde su móvil.
+  - **Nuevo Endpoint PATCH ([src/app/api/tables/[sessionId]/assign-waiter/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/tables/[sessionId]/assign-waiter/route.ts)):** Permite asignar o transferir cualquier mesa/pedido activo a cualquiera de los meseros activos de la base de datos o marcarla como atención directa en caja.
+- **Plataforma de Mesero - Vista de "Mis Mesas" ([src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)):**
+  - Nuevo selector ergonómico en la vista del Salón: pastillas duales `[ 🏢 Salón Completo (15) ]` vs `[ 👤 Mis Mesas (X) ]`.
+  - Al pulsar "Mis Mesas", la cuadrícula se filtra automáticamente para mostrar exclusivamente las mesas donde `t.session?.waiterId === waiter.id`.
+  - En las tarjetas del salón se muestra la insignia distintiva `Tu Mesa` o el nombre del mesero que la atiende.
+  - En el modal de detalle de mesa se incorporó la indicación del mesero asignado y el botón `Tomar esta Mesa / Asignármela` si la comanda fue originada por QR o abierta desde caja sin mesero asignado.
+- **Plataforma de Admin - Transferencia y Asignación de Mesero ([src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+  - En el modal de detalle de mesa (`selectedTable`), se incorporó el bloque del Mesero Responsable y el botón de acción rápida `👤 Asignar / Transferir Mesero`.
+  - Modal interactivo institucional con avatar de cada mesero, nombre y contador de mesas a su cargo en tiempo real.
+  - Permite con 1 clic reasignar el pedido de cualquier mesa a cualquier mesero activo o devolverlo a atención en caja.
 - **Certificación Técnica:**
   - `npx tsc --noEmit`: **0 errores**.
-  - Simulación completa de ciclo de vida (Pedido QR -> Aprobación de Mesero -> Solicitud de Cuenta -> Cobro y Liberación en Caja) verificada al 100%.
+  - Servidor de desarrollo corriendo de forma estable en puerto 3000.
 
 ---
 

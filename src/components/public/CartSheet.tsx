@@ -16,6 +16,7 @@ import {
   UtensilsCrossed,
   Utensils,
   RefreshCw,
+  CheckCircle,
   CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -79,7 +80,7 @@ export function CartSheet({
           setTableNumber(stored);
           setOrderType("mesa");
         }
-      } catch {}
+      } catch { }
     }
   }, [initialMesa]);
 
@@ -171,6 +172,7 @@ export function CartSheet({
   };
 
   const handleSubmitTableOrder = async () => {
+    if (isSubmittingTableOrder) return;
     if (items.length === 0) {
       toast.error("El carrito está vacío");
       return;
@@ -242,17 +244,15 @@ export function CartSheet({
     <div
       role="dialog"
       aria-modal="true"
-      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md transition-all duration-300 ease-out ${
-        isClosing ? "opacity-0 pointer-events-none" : "opacity-100 animate-in fade-in"
-      }`}
+      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md transition-all duration-300 ease-out ${isClosing ? "opacity-0 pointer-events-none" : "opacity-100 animate-in fade-in"
+        }`}
       onClick={handleSmoothClose}
     >
       <div
-        className={`relative w-full max-w-lg max-h-[92vh] overflow-y-auto no-scrollbar bg-[#181b20] border-t sm:border border-gray-800 rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col transform transition-all duration-300 ease-out ${
-          isClosing
+        className={`relative w-full max-w-lg max-h-[92vh] overflow-y-auto no-scrollbar bg-[#181b20] border-t sm:border border-gray-800 rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col transform transition-all duration-300 ease-out ${isClosing
             ? "translate-y-full sm:translate-y-6 sm:scale-95 opacity-0"
             : "translate-y-0 sm:scale-100 opacity-100 animate-[fadeInUpSoft_0.32s_cubic-bezier(0.16,1,0.3,1)_both]"
-        }`}
+          }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header del Carrito */}
@@ -296,7 +296,7 @@ export function CartSheet({
             submittedSession ? (
               <div className="py-8 px-4 text-center space-y-4 bg-[#14161a] border border-amber-500/30 rounded-3xl">
                 <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto animate-pulse">
-                  <CheckCircle2 className="w-8 h-8" />
+                  <CheckCircle className="w-8 h-8" />
                 </div>
                 <div className="space-y-1">
                   <span className="inline-block px-3 py-1 bg-amber-500/20 text-amber-400 text-xs font-black rounded-full uppercase tracking-wider">
@@ -325,19 +325,18 @@ export function CartSheet({
                   <button
                     onClick={handleRequestBill}
                     disabled={isRequestingBill || billRequested}
-                    className={`w-full py-3 px-4 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all ${
-                      billRequested
+                    className={`w-full py-3 px-4 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all ${billRequested
                         ? "bg-purple-900/40 border border-purple-500/50 text-purple-300 cursor-default"
                         : "bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/30 active:scale-95"
-                    }`}
+                      }`}
                   >
                     <Table className="w-4 h-4" />
                     <span>
                       {billRequested
                         ? "✓ Solicitud de Cuenta Notificada"
                         : isRequestingBill
-                        ? "Notificando a caja..."
-                        : "🙋 Solicitar Cuenta a Caja"}
+                          ? "Notificando a caja..."
+                          : "🙋 Solicitar Cuenta a Caja"}
                     </span>
                   </button>
 
@@ -428,11 +427,10 @@ export function CartSheet({
                   <button
                     type="button"
                     onClick={() => setOrderType("mesa")}
-                    className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold border transition-all ${
-                      orderType === "mesa"
+                    className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold border transition-all ${orderType === "mesa"
                         ? "bg-amber-500/20 border-amber-500 text-amber-400 ring-1 ring-amber-500"
                         : "bg-[#14161a] border-gray-800 text-gray-400"
-                    }`}
+                      }`}
                   >
                     <Table className="w-4 h-4" />
                     <span>En Mesa</span>
@@ -441,11 +439,10 @@ export function CartSheet({
                   <button
                     type="button"
                     onClick={() => setOrderType("domicilio")}
-                    className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold border transition-all ${
-                      orderType === "domicilio"
+                    className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold border transition-all ${orderType === "domicilio"
                         ? "bg-amber-500/20 border-amber-500 text-amber-400 ring-1 ring-amber-500"
                         : "bg-[#14161a] border-gray-800 text-gray-400"
-                    }`}
+                      }`}
                   >
                     <Bike className="w-4 h-4" />
                     <span>Domicilio</span>

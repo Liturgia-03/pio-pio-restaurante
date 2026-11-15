@@ -29,11 +29,19 @@ export async function GET() {
       },
     });
 
-    // Crear mapa de sesiones activas por número de mesa
-    const sessionByTable = new Map<string, typeof activeSessions[0]>();
-    activeSessions.forEach((s) => {
-      sessionByTable.set(s.tableNumber, s);
-    });
+    // Crear mapa de sesiones activas por número de mesa con consolidación automática de seguridad
+    const sessionByTable = new Map<string, any>();
+    for (const s of activeSessions) {
+      if (!sessionByTable.has(s.tableNumber)) {
+        sessionByTable.set(s.tableNumber, s);
+      } else {
+        const existing = sessionByTable.get(s.tableNumber)!;
+        existing.items = [...existing.items, ...s.items];
+        existing.total = existing.items
+          .filter((i: any) => i.status !== "CANCELLED")
+          .reduce((acc: number, it: any) => acc + Number(it.subtotal), 0);
+      }
+    }
 
     // 3. Generar la cuadrícula de mesas de la 1 a totalTablesCount
     const tables = [];
@@ -52,7 +60,7 @@ export async function GET() {
           ? {
               ...session,
               total: Number(session.total),
-              items: session.items.map((item) => ({
+              items: session.items.map((item: any) => ({
                 ...item,
                 unitPrice: Number(item.unitPrice),
                 subtotal: Number(item.subtotal),
@@ -87,10 +95,10 @@ export async function GET() {
       take: 50,
     });
 
-    const closedSessionsToday = closedSessionsRaw.map((s) => ({
+    const closedSessionsToday = closedSessionsRaw.map((s: any) => ({
       ...s,
       total: Number(s.total),
-      items: s.items.map((item) => ({
+      items: s.items.map((item: any) => ({
         ...item,
         unitPrice: Number(item.unitPrice),
         subtotal: Number(item.subtotal),
@@ -99,10 +107,10 @@ export async function GET() {
 
     // Métricas rápidas
     const pendingQRSessionsCount = activeSessions.filter(
-      (s) => s.status === "PENDING_CONFIRMATION"
+      (s: any) => s.status === "PENDING_CONFIRMATION"
     ).length;
     const billRequestedCount = activeSessions.filter(
-      (s) => s.status === "BILL_REQUESTED"
+      (s: any) => s.status === "BILL_REQUESTED"
     ).length;
     const activeSessionsCount = activeSessions.length;
 

@@ -21,30 +21,33 @@ export default async function PublicMenuPage() {
   };
 
   try {
-    const rawCategories = await prisma.category.findMany({
-      where: { isActive: true },
-      orderBy: { sortOrder: "asc" },
-      include: {
-        dishes: {
-          orderBy: { sortOrder: "asc" },
-          include: {
-            portions: true,
+    const [rawCategories, rawPromo, rawSettings] = await Promise.all([
+      prisma.category.findMany({
+        where: { isActive: true },
+        orderBy: { sortOrder: "asc" },
+        include: {
+          dishes: {
+            orderBy: { sortOrder: "asc" },
+            include: {
+              portions: true,
+            },
           },
         },
-      },
-    });
+      }),
+      prisma.promotionalModal.findFirst({
+        where: { isActive: true },
+      }),
+      prisma.restaurantSettings.findUnique({
+        where: { id: "default" },
+      }),
+    ]);
+
     categories = JSON.parse(JSON.stringify(rawCategories));
 
-    const rawPromo = await prisma.promotionalModal.findFirst({
-      where: { isActive: true },
-    });
     if (rawPromo) {
       promo = JSON.parse(JSON.stringify(rawPromo));
     }
 
-    const rawSettings = await prisma.restaurantSettings.findUnique({
-      where: { id: "default" },
-    });
     if (rawSettings) {
       settings = {
         restaurantName: rawSettings.name,

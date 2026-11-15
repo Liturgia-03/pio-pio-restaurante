@@ -792,61 +792,61 @@ export default function WaiterApp() {
                           setShowAddDishModal(true);
                         }
                       }}
-                      className={`relative p-3 rounded-2xl border text-left flex flex-col justify-between min-h-[82px] sm:min-h-[88px] transition-all duration-200 active:scale-95 shadow-md ${
+                      className={`relative p-3 rounded-2xl border text-left flex flex-col justify-between min-h-[82px] sm:min-h-[88px] transition-all duration-200 active:scale-95 shadow-sm ${
                         isFree
-                          ? "bg-gradient-to-br from-emerald-800 via-emerald-900 to-emerald-950 border-2 border-emerald-400/80 hover:border-emerald-300 text-emerald-50 shadow-emerald-950/50"
+                          ? "bg-emerald-950/25 border-emerald-500/30 hover:border-emerald-500/60 hover:bg-emerald-950/35 text-gray-200"
                           : isPending
-                          ? "bg-gradient-to-br from-amber-600 via-amber-700 to-amber-900 border-2 border-amber-300 text-amber-50 shadow-amber-500/30 animate-pulse"
+                          ? "bg-amber-950/40 border-2 border-amber-500/80 text-amber-200 animate-pulse shadow-md shadow-amber-500/10"
                           : isOpen
-                          ? "bg-gradient-to-br from-blue-700 via-blue-800 to-blue-950 border-2 border-blue-400/80 hover:border-blue-300 text-blue-50 shadow-blue-950/60"
-                          : "bg-gradient-to-br from-purple-700 via-purple-800 to-purple-950 border-2 border-purple-400 hover:border-purple-300 text-purple-50 shadow-purple-950/60 animate-pulse"
+                          ? "bg-blue-950/30 border-blue-500/40 hover:border-blue-500/70 hover:bg-blue-950/40 text-gray-200"
+                          : "bg-purple-950/35 border-2 border-purple-500/70 hover:border-purple-400 text-purple-200 animate-pulse shadow-md shadow-purple-950/30"
                       }`}
                     >
                       {/* Fila Superior: Número de Mesa + Tiempo / Pulso Semafórico */}
                       <div className="flex items-center justify-between w-full">
-                        <span className="text-xs sm:text-sm font-black tracking-tight text-white drop-shadow-sm">
+                        <span className="text-xs sm:text-sm font-bold tracking-tight text-white">
                           MESA #{table.tableNumber}
                         </span>
                         <div className="flex items-center gap-1.5">
                           {table.minutesOpen !== null && (
-                            <span className="text-[10px] text-white/90 font-mono flex items-center gap-0.5">
+                            <span className="text-[10px] text-gray-400 font-mono flex items-center gap-0.5">
                               <Clock className="w-2.5 h-2.5" />
                               {table.minutesOpen}m
                             </span>
                           )}
                           <span
-                            className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                            className={`w-2 h-2 rounded-full flex-shrink-0 ${
                               isFree
-                                ? "bg-emerald-300 ring-2 ring-emerald-200/50"
+                                ? "bg-emerald-400 shadow-sm shadow-emerald-400/50"
                                 : isPending
-                                ? "bg-yellow-300 ring-2 ring-yellow-200 animate-ping"
+                                ? "bg-amber-400 animate-ping"
                                 : isOpen
-                                ? "bg-cyan-300 ring-2 ring-cyan-200/50"
-                                : "bg-purple-300 ring-2 ring-purple-200 animate-ping"
+                                ? "bg-blue-400 shadow-sm shadow-blue-400/50"
+                                : "bg-purple-400 animate-ping"
                             }`}
                           />
                         </div>
                       </div>
 
                       {/* Fila Inferior: Estado / Total acumulado en formato apaisado rectangular */}
-                      <div className="flex items-center justify-between w-full mt-1.5 pt-1.5 border-t border-white/20">
+                      <div className="flex items-center justify-between w-full mt-1.5 pt-1.5 border-t border-gray-800/80">
                         {isFree && (
                           <>
-                            <span className="text-xs font-black text-emerald-200">
+                            <span className="text-xs font-semibold text-emerald-400">
                               🟢 Libre
                             </span>
-                            <span className="text-[10px] text-emerald-100 font-bold bg-emerald-950/60 px-2 py-0.5 rounded-lg border border-emerald-400/40">
-                              Abrir +
+                            <span className="text-[10px] text-gray-400 font-medium">
+                              Abrir &rarr;
                             </span>
                           </>
                         )}
 
                         {isPending && (
                           <>
-                            <span className="text-xs font-black text-amber-100 animate-pulse">
+                            <span className="text-xs font-black text-amber-300 animate-pulse">
                               🟡 Pedido QR
                             </span>
-                            <span className="text-[10px] text-black font-black bg-amber-300 px-2 py-0.5 rounded-lg shadow-sm">
+                            <span className="text-[10px] text-amber-400 font-black">
                               Confirmar &rarr;
                             </span>
                           </>
@@ -854,10 +854,10 @@ export default function WaiterApp() {
 
                         {isOpen && table.session && (
                           <>
-                            <span className="text-xs sm:text-sm font-black text-white">
+                            <span className="text-xs sm:text-sm font-black text-amber-400">
                               {formatPrice(table.session.total)}
                             </span>
-                            <span className="text-[10px] text-blue-100 font-bold bg-blue-950/60 px-2 py-0.5 rounded-lg border border-blue-400/40">
+                            <span className="text-[10px] text-gray-400 font-medium">
                               {
                                 table.session.items.filter((it: any) => it.status !== "CANCELLED")
                                   .length
@@ -869,10 +869,10 @@ export default function WaiterApp() {
 
                         {isBillReq && table.session && (
                           <>
-                            <span className="text-[11px] font-black text-purple-200">
+                            <span className="text-[11px] font-black text-purple-300">
                               🟣 Por Pagar
                             </span>
-                            <span className="text-xs font-black text-amber-300">
+                            <span className="text-xs font-black text-amber-400">
                               {formatPrice(table.session.total)}
                             </span>
                           </>

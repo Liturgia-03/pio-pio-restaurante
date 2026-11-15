@@ -638,6 +638,23 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: 0 errores.
   - Servidor de desarrollo respondiendo en HTTP 200 OK.
 
+### Hito 39: Tarjetas de Mesas Rectangulares Compactas y Barra de Navegación Inferior Permanente
+- **Diseño de Tarjetas de Mesas Rectangulares y Apaisadas ([src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)):**
+  - **Reducción de Altura y Proporción 2:1:** Se redujo la altura de `min-h-[145px]` a `min-h-[82px] sm:min-h-[88px]`, eliminando el aspecto cuadrado y otorgándoles un formato rectangular apaisado mucho más compacto y ergonómico.
+  - **Estructura Interna Horizontal:**
+    - Fila superior: Número de mesa en negrita (`MESA #05`), tiempo transcurrido en minutos (`12m`) y punto semafórico pulsante de estado.
+    - Fila inferior con división sutil: estado (`🟢 Libre`, `🟡 Pedido QR`, total en pesos COP `$ 48.000` con contador de productos, o `🟣 Por Pagar`).
+    - En pantallas móviles entran más del doble de mesas a la vista sin requerir desplazamientos largos.
+- **Barra de Navegación Inferior Siempre Visible en Todas las Vistas:**
+  - La barra de navegación inferior se elevó a capa prioritaria `z-50` fija permanente (`fixed bottom-0 inset-x-0 h-16`).
+  - Todas las vistas modales (Catálogo de toma de pedidos `showAddDishModal`, Detalle de Mesa `selectedTable`, y Cambio de Mesa `showTransferModal`) respetan la cota inferior mediante `bottom-16 z-40`, permitiendo que la barra inferior nunca quede cubierta ni bloqueada.
+  - La barra flotante del carrito de pedidos se ancló a `bottom-16 z-45` posicionándose armónicamente justo encima de la barra de navegación.
+  - El mesero puede pulsar cualquier pestaña de la barra inferior en cualquier momento para alternar vistas al instante sin quedarse atrapado.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: 0 errores de TypeScript.
+  - Verificado con `Invoke-WebRequest` en HTTP 200 OK.
+  - Cambios confirmados a nivel local en Git.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

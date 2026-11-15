@@ -28,7 +28,11 @@ import { TableCardData, TableSessionData, WaiterItem } from "@/types";
 interface MenuItem {
   id: string;
   name: string;
+  description?: string;
+  imageUrl?: string;
   basePrice: number;
+  discountPrice?: number | null;
+  badge?: string | null;
   isAvailable: boolean;
   categoryId: string;
   portions?: { id: string; label: string; price: number }[];
@@ -979,14 +983,26 @@ export default function AdminTablesCashierPage() {
               {filteredDishes.map(({ dish }) => (
                 <div
                   key={dish.id}
-                  className="p-2.5 bg-[#181b20] border border-gray-800 rounded-xl flex items-center justify-between gap-2"
+                  className="p-2.5 bg-[#181b20] border border-gray-800 rounded-2xl flex items-center gap-3 shadow-sm"
                 >
+                  <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 rounded-xl overflow-hidden bg-gray-900 border border-gray-800">
+                    <img
+                      src={
+                        dish.imageUrl ||
+                        "https://images.unsplash.com/photo-1598103442097-8b74394b95c6?q=80&w=300&auto=format&fit=crop"
+                      }
+                      alt={dish.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
                   <div className="flex-1 min-w-0">
                     <span className="text-xs font-extrabold text-white block truncate">
                       {dish.name}
                     </span>
-                    <span className="text-xs font-black text-amber-400">
-                      {formatPrice(dish.basePrice)}
+                    <span className="text-xs font-black text-amber-400 block mt-0.5">
+                      {formatPrice(dish.discountPrice && dish.discountPrice > 0 ? dish.discountPrice : dish.basePrice)}
                     </span>
                   </div>
 
@@ -1008,8 +1024,9 @@ export default function AdminTablesCashierPage() {
                                 notes: "",
                               },
                             ]);
+                            toast.success(`+1 ${dish.name} (${p.label})`);
                           }}
-                          className="px-2 py-1 bg-[#14161a] hover:bg-amber-500/20 border border-gray-700 rounded-lg text-[10px] font-bold text-gray-300 hover:text-amber-400 transition-all flex items-center gap-1"
+                          className="px-2 py-1 bg-[#14161a] hover:bg-amber-500/20 border border-gray-700 rounded-lg text-[10px] font-bold text-gray-300 hover:text-amber-400 transition-all flex items-center gap-1 active:scale-95"
                         >
                           <span>{p.label}</span>
                           <span className="text-amber-400 font-extrabold">{formatPrice(p.price)}</span>
@@ -1026,13 +1043,14 @@ export default function AdminTablesCashierPage() {
                           {
                             dishId: dish.id,
                             dishName: dish.name,
-                            unitPrice: dish.basePrice,
+                            unitPrice: dish.discountPrice && dish.discountPrice > 0 ? dish.discountPrice : dish.basePrice,
                             quantity: 1,
                             notes: "",
                           },
                         ]);
+                        toast.success(`+1 ${dish.name}`);
                       }}
-                      className="p-1.5 bg-amber-500 hover:bg-amber-600 text-black rounded-lg font-bold text-xs flex items-center gap-1 px-3"
+                      className="p-1.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white rounded-xl font-bold text-xs flex items-center gap-1 px-3 shadow-md shadow-amber-500/20 active:scale-95 transition-all"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Agregar</span>

@@ -594,6 +594,27 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npm run build`: **23/23 rutas** compiladas exitosamente con Turbopack sin fallos.
   - `npm run test:stress`: Suite de 4 pruebas de estrés superada al 100% (50/50 clientes en catálogo, 0 cuentas duplicadas en concurrencia en la misma mesa, 15/15 mesas completadas y base de datos limpia).
 
+### Hito 37: Rediseño Gourmet de la Plataforma de Meseros y Catálogo Táctil con Imágenes y Navegación Dinámica
+- **Identidad Visual Oficial en la Plataforma del Mesero ([src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)):**
+  - **Pantalla de PIN Táctil:** Logotipo oficial de Pío Pío ampliado con resplandor dorado, tipografía gourmet ("Pío Pío Asadero & Restaurante"), badge institucional "Comandero Salón", círculos de PIN con brillo ámbar y teclado numérico ergonómico tipo POS.
+  - **Barra Superior de Salón:** Logotipo oficial, nombre del mesero en turno con icono de verificación verde, indicador de hora de sincronización y botones de refresco y salida estilizados.
+  - **Semáforo y Cuadrícula de Mesas:** Tarjetas de mesa táctiles de 145px con estados cromáticos definidos (verde libre, amarillo pulsante por confirmar, azul ocupada con total y minutos, púrpura pidiendo cuenta).
+- **Catálogo Gourmet Resumido de Platos para Toma de Pedidos:**
+  - **Imágenes Gastronómicas Reales:** Cada producto se muestra con su foto gastronómica de alta definición (`dish.imageUrl`), esquinas redondeadas y contador de unidades añadidas superpuesto (`x1`, `x2`, `x3`).
+  - **Badges y Etiquetas Oficiales:** Distintivos `🔥 Más Vendido`, `⭐ Recomendado`, `✨ Nuevo` y etiquetas de categoría.
+  - **Carrusel Horizontal de Categorías:** Barra de chips con auto-scroll centrado suave idéntica a `CategoryChips.tsx`, icono temático (`IconRenderer`), contador de platos disponibles y estado activo con degradado naranja-ámbar.
+  - **Buscador Instantáneo:** Lupa integrada, placeholder descriptivo y botón de limpieza inmediata `X`.
+  - **Selectores de Porción de 1 Toque:** Chips interactivos para platos con porciones (1/4, 1/2, Entero) con precio visible en COP y adición directa con feedback táctil.
+- **Barra Flotante y Cajón de Comanda en Preparación (Staging Drawer):**
+  - Barra flotante adherida en la parte inferior con contador de ítems y total en pesos COP.
+  - Vista desplegable para ajustar cantidades (`+` / `-`), eliminar ítems y agregar **chips de notas de cocina rápidas** con 1 toque (`"Sin ensalada"`, `"Bien dorado"`, `"Papas doradas"`, `"Para llevar"`, `"Sin sal"`, `"Salsa aparte"`, `"Gaseosa fría"`, `"Sopa caliente"`).
+  - Botón principal de alto contraste: **`🔥 Marchar a Cocina • $ Total COP`**.
+- **Coherencia en Caja Central ([src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+  - Modal de adición de productos desde caja actualizado con imágenes gastronómicas en miniatura y badges.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit` completado con **0 errores**.
+  - Cambios confirmados a nivel local.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

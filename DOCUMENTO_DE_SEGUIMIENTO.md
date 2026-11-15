@@ -696,6 +696,27 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores** de TypeScript.
   - Servidor local respondiendo en HTTP 200 OK en `/waiter`.
 
+### Hito 42: Navegación Focalizada por Mesas en Admin y Operaciones Dentro de Cada Mesa
+- **Eliminación de Datos de Cobro en Fondo de Página ([src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+  - Se eliminó el bloque de detalle de cobro que aparecía desarticulado debajo de las tarjetas de mesas en la página principal, dejando la vista del salón limpia, espaciosa y sin scroll forzado.
+  - Las tarjetas de mesa en la cuadrícula ahora muestran solo la información esencial de reconocimiento (`Mesa #X`, pulso semafórico de estado y llamada de entrada: `🟢 Libre • Abrir →`, `🟡 QR x Confirmar • Revisar →`, `🔵 Ocupada • Entrar →`, `🟣 Pidió Cuenta • Cobrar →`).
+- **Entrada Focalizada a Cada Mesa (Modal Superpuesto Centrado `z-50`):**
+  - Al hacer clic o tap sobre cualquier mesa, el administrador entra inmediatamente a ella en un modal enfocado idéntico al de la plataforma del mesero.
+  - **Operaciones completas dentro de la mesa:**
+    - **Si la mesa está Libre:** Opción de abrir la mesa y cargar comanda directa desde caja (`+ Abrir Mesa y Tomar Comanda`).
+    - **Si tiene Pedido QR por confirmar:** Botones directos `Confirmar y Marchar a Cocina` o `Rechazar`.
+    - **Si tiene comanda activa (Ocupada o Pidiendo Cuenta):**
+      - Desglose exhaustivo de productos ordenados por rondas de servicio con fotos, porciones, notas y origen (`Mesero`, `QR`, `Caja`).
+      - Botón de anulación de plato con motivo obligatorio de auditoría (`Trash2`).
+      - Botón **`+ Agregar Productos`** (catálogo con fotos reales para sumar platos desde caja).
+      - Botón **`🔄 Cambiar de Mesa`** (modal con selector de mesas libres para trasladar cuentas en 1 toque).
+      - Resumen financiero de la cuenta.
+      - **Selector de método de pago del cliente:** `💵 Efectivo`, `📱 Nequi / Bancolombia`, `💳 Tarjeta / Datáfono`.
+      - Botón principal de cobro: **`✅ Cobrar $XX.XXX y Liberar Mesa #X`**, que finaliza la cuenta, libera la mesa al salón y registra la transacción en el historial del día.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores** de TypeScript.
+  - Rutas `/admin/tables` y `/waiter` operando con HTTP 200 OK.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

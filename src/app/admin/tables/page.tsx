@@ -84,6 +84,17 @@ export default function AdminTablesCashierPage() {
   const [newWaiterName, setNewWaiterName] = useState<string>("");
   const [newWaiterPin, setNewWaiterPin] = useState<string>("");
 
+  // Filtro de mesas en caja
+  const [tableFilter, setTableFilter] = useState<"all" | "free" | "pending" | "open" | "billRequested">("all");
+
+  const filteredTables = useMemo(() => {
+    if (tableFilter === "free") return tablesData.filter((t) => t.status === "FREE");
+    if (tableFilter === "pending") return tablesData.filter((t) => t.status === "PENDING_CONFIRMATION");
+    if (tableFilter === "open") return tablesData.filter((t) => t.status === "OPEN");
+    if (tableFilter === "billRequested") return tablesData.filter((t) => t.status === "BILL_REQUESTED");
+    return tablesData;
+  }, [tablesData, tableFilter]);
+
   // Formato COP
   const formatPrice = (val: number) => {
     return new Intl.NumberFormat("es-CO", {
@@ -414,9 +425,17 @@ export default function AdminTablesCashierPage() {
       {/* PESTAÑA 1: MESAS ACTIVAS Y CAJA */}
       {activeTab === "tables" && (
         <div className="space-y-6">
-          {/* Tarjetas métricas superiores */}
+          {/* Tarjetas métricas superiores interactivas */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="p-4 bg-[#14161a] border border-blue-900/40 rounded-2xl space-y-1">
+            <button
+              type="button"
+              onClick={() => setTableFilter((prev) => (prev === "open" ? "all" : "open"))}
+              className={`p-4 rounded-2xl space-y-1 text-left border transition-all ${
+                tableFilter === "open"
+                  ? "bg-blue-900/60 border-2 border-blue-400 ring-2 ring-blue-500/40"
+                  : "bg-[#14161a] border-blue-900/40 hover:border-blue-700/60"
+              }`}
+            >
               <span className="text-[10px] uppercase font-bold text-blue-400 block">
                 Total por Cobrar en Mesas
               </span>
@@ -426,9 +445,17 @@ export default function AdminTablesCashierPage() {
               <span className="text-[11px] text-gray-400 block">
                 {(counts?.open || 0) + (counts?.billRequested || 0)} mesa(s) con cuenta abierta
               </span>
-            </div>
+            </button>
 
-            <div className="p-4 bg-[#14161a] border border-purple-900/40 rounded-2xl space-y-1">
+            <button
+              type="button"
+              onClick={() => setTableFilter((prev) => (prev === "billRequested" ? "all" : "billRequested"))}
+              className={`p-4 rounded-2xl space-y-1 text-left border transition-all ${
+                tableFilter === "billRequested"
+                  ? "bg-purple-900/60 border-2 border-purple-400 ring-2 ring-purple-500/40"
+                  : "bg-[#14161a] border-purple-900/40 hover:border-purple-700/60"
+              }`}
+            >
               <span className="text-[10px] uppercase font-bold text-purple-400 block">
                 Pidiendo Cuenta a Caja
               </span>
@@ -438,12 +465,18 @@ export default function AdminTablesCashierPage() {
               <span className="text-[11px] text-gray-400 block">
                 Clientes listos para pagar
               </span>
-            </div>
+            </button>
 
-            <div
-              className={`p-4 rounded-2xl space-y-1 border transition-all ${
+            <button
+              type="button"
+              onClick={() => setTableFilter((prev) => (prev === "pending" ? "all" : "pending"))}
+              className={`p-4 rounded-2xl space-y-1 text-left border transition-all ${
                 (counts?.pending || 0) > 0
-                  ? "bg-amber-950/40 border-amber-500 animate-pulse text-amber-300"
+                  ? tableFilter === "pending"
+                    ? "bg-amber-600 border-2 border-white ring-2 ring-amber-400 text-white"
+                    : "bg-amber-950/60 border-amber-500 animate-pulse text-amber-200"
+                  : tableFilter === "pending"
+                  ? "bg-amber-900/40 border-2 border-amber-400 text-amber-300"
                   : "bg-[#14161a] border-amber-900/30 text-gray-400"
               }`}
             >
@@ -456,9 +489,17 @@ export default function AdminTablesCashierPage() {
               <span className="text-[11px] block">
                 Esperando confirmación
               </span>
-            </div>
+            </button>
 
-            <div className="p-4 bg-[#14161a] border border-emerald-900/40 rounded-2xl space-y-1">
+            <button
+              type="button"
+              onClick={() => setTableFilter((prev) => (prev === "free" ? "all" : "free"))}
+              className={`p-4 rounded-2xl space-y-1 text-left border transition-all ${
+                tableFilter === "free"
+                  ? "bg-emerald-900/60 border-2 border-emerald-400 ring-2 ring-emerald-500/40"
+                  : "bg-[#14161a] border-emerald-900/40 hover:border-emerald-700/60"
+              }`}
+            >
               <span className="text-[10px] uppercase font-bold text-emerald-400 block">
                 Mesas Libres
               </span>
@@ -468,102 +509,213 @@ export default function AdminTablesCashierPage() {
               <span className="text-[11px] text-gray-400 block">
                 Disponibles para comensales
               </span>
-            </div>
+            </button>
           </div>
 
-          {/* Cuadrícula de Mesas */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {tablesData.map((table) => {
-              const isFree = table.status === "FREE";
-              const isPending = table.status === "PENDING_CONFIRMATION";
-              const isOpen = table.status === "OPEN";
-              const isBillReq = table.status === "BILL_REQUESTED";
-              const isSelected = selectedTable?.tableNumber === table.tableNumber;
+          {/* Filtros rápidos por estado y contador */}
+          <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+              <button
+                type="button"
+                onClick={() => setTableFilter("all")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  tableFilter === "all"
+                    ? "bg-white text-black font-black shadow"
+                    : "bg-gray-800/80 text-gray-400 hover:text-white border border-gray-700/50"
+                }`}
+              >
+                Todas ({tablesData.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setTableFilter("free")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  tableFilter === "free"
+                    ? "bg-emerald-500 text-black font-black shadow"
+                    : "bg-emerald-950/40 text-emerald-400 hover:bg-emerald-900/40 border border-emerald-800/50"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                Libres ({counts?.free || 0})
+              </button>
+              <button
+                type="button"
+                onClick={() => setTableFilter("pending")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  tableFilter === "pending"
+                    ? "bg-amber-400 text-black font-black shadow"
+                    : "bg-amber-950/40 text-amber-400 hover:bg-amber-900/40 border border-amber-800/50"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                QR x Confirmar ({counts?.pending || 0})
+              </button>
+              <button
+                type="button"
+                onClick={() => setTableFilter("open")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  tableFilter === "open"
+                    ? "bg-blue-500 text-white font-black shadow"
+                    : "bg-blue-950/40 text-blue-400 hover:bg-blue-900/40 border border-blue-800/50"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-blue-400" />
+                Ocupadas ({counts?.open || 0})
+              </button>
+              <button
+                type="button"
+                onClick={() => setTableFilter("billRequested")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  tableFilter === "billRequested"
+                    ? "bg-purple-500 text-white font-black shadow"
+                    : "bg-purple-950/40 text-purple-400 hover:bg-purple-900/40 border border-purple-800/50"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping" />
+                Pidiendo Cuenta ({counts?.billRequested || 0})
+              </button>
+            </div>
 
-              return (
-                <button
-                  key={table.tableNumber}
-                  type="button"
-                  onClick={() => setSelectedTable(table)}
-                  className={`relative flex flex-col justify-between p-4 rounded-2xl border text-left transition-all active:scale-98 min-h-[140px] shadow-lg ${
-                    isSelected
-                      ? "ring-2 ring-amber-400 border-amber-400"
-                      : isPending
-                      ? "bg-[#251e10] border-amber-500 animate-pulse"
-                      : isBillReq
-                      ? "bg-[#241334] border-purple-500"
-                      : isOpen
-                      ? "bg-[#101b2a] border-blue-500/60 hover:border-blue-400"
-                      : "bg-[#14161a] border-gray-800 hover:border-emerald-700/50"
-                  }`}
-                >
-                  <div className="flex items-center justify-between w-full">
-                    <span className="text-lg font-black text-white">
-                      Mesa #{table.tableNumber}
-                    </span>
-                    <span
-                      className={`w-3 h-3 rounded-full ${
-                        isPending
-                          ? "bg-amber-400 animate-ping"
-                          : isBillReq
-                          ? "bg-purple-400"
-                          : isOpen
-                          ? "bg-blue-400"
-                          : "bg-emerald-500"
-                      }`}
-                    />
-                  </div>
+            <span className="text-xs text-gray-400 font-bold">
+              {filteredTables.length} mesas visibles
+            </span>
+          </div>
 
-                  <div className="my-2 space-y-0.5">
-                    {isFree && (
-                      <span className="text-xs font-bold text-emerald-400 block">
-                        🟢 Libre
+          {/* Cuadrícula de Mesas Rectangulares Compactas a Color Completo */}
+          {filteredTables.length === 0 ? (
+            <div className="text-center py-10 bg-[#14161a] border border-gray-800 rounded-3xl p-6 space-y-2">
+              <Utensils className="w-10 h-10 text-gray-600 mx-auto" />
+              <p className="text-xs font-bold text-gray-300">
+                No hay mesas en esta categoría actualmente.
+              </p>
+              <button
+                type="button"
+                onClick={() => setTableFilter("all")}
+                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-xs text-amber-400 font-bold rounded-xl"
+              >
+                Ver Todas las Mesas
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
+              {filteredTables.map((table) => {
+                const isFree = table.status === "FREE";
+                const isPending = table.status === "PENDING_CONFIRMATION";
+                const isOpen = table.status === "OPEN";
+                const isBillReq = table.status === "BILL_REQUESTED";
+                const isSelected = selectedTable?.tableNumber === table.tableNumber;
+
+                return (
+                  <button
+                    key={table.tableNumber}
+                    type="button"
+                    onClick={() => setSelectedTable(table)}
+                    className={`relative flex flex-col justify-between p-3 rounded-2xl border text-left transition-all active:scale-95 min-h-[82px] sm:min-h-[88px] shadow-md ${
+                      isSelected
+                        ? "ring-4 ring-white shadow-2xl scale-[1.02] z-10"
+                        : ""
+                    } ${
+                      isFree
+                        ? "bg-gradient-to-br from-emerald-800 via-emerald-900 to-emerald-950 border-2 border-emerald-400/80 hover:border-emerald-300 text-emerald-50 shadow-emerald-950/50"
+                        : isPending
+                        ? "bg-gradient-to-br from-amber-600 via-amber-700 to-amber-900 border-2 border-amber-300 text-amber-50 shadow-amber-500/30 animate-pulse"
+                        : isBillReq
+                        ? "bg-gradient-to-br from-purple-700 via-purple-800 to-purple-950 border-2 border-purple-400 hover:border-purple-300 text-purple-50 shadow-purple-950/60 animate-pulse"
+                        : "bg-gradient-to-br from-blue-700 via-blue-800 to-blue-950 border-2 border-blue-400/80 hover:border-blue-300 text-blue-50 shadow-blue-950/60"
+                    }`}
+                  >
+                    {/* Fila Superior: Número de Mesa + Tiempo / Pulso Semafórico */}
+                    <div className="flex items-center justify-between w-full">
+                      <span className="text-xs sm:text-sm font-black tracking-tight text-white drop-shadow-sm">
+                        Mesa #{table.tableNumber}
                       </span>
-                    )}
-                    {isPending && (
-                      <span className="text-xs font-black text-amber-300 block">
-                        🟡 QR x Confirmar
-                      </span>
-                    )}
-                    {isOpen && (
-                      <div>
-                        <span className="text-xs font-bold text-blue-300 block">
-                          🔵 Ocupada
-                        </span>
+                      <div className="flex items-center gap-1.5">
                         {table.minutesOpen !== null && (
-                          <span className="text-[10px] text-gray-400 flex items-center gap-1">
-                            <Clock className="w-2.5 h-2.5" /> Hace {table.minutesOpen} min
+                          <span className="text-[10px] text-white/90 font-mono flex items-center gap-0.5">
+                            <Clock className="w-2.5 h-2.5" />
+                            {table.minutesOpen}m
                           </span>
                         )}
+                        <span
+                          className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                            isFree
+                              ? "bg-emerald-300 ring-2 ring-emerald-200/50"
+                              : isPending
+                              ? "bg-yellow-300 ring-2 ring-yellow-200 animate-ping"
+                              : isOpen
+                              ? "bg-cyan-300 ring-2 ring-cyan-200/50"
+                              : "bg-purple-300 ring-2 ring-purple-200 animate-ping"
+                          }`}
+                        />
                       </div>
-                    )}
-                    {isBillReq && (
-                      <span className="text-xs font-black text-purple-300 block">
-                        🟣 Pidiendo Cuenta
-                      </span>
-                    )}
-                  </div>
+                    </div>
 
-                  <div className="w-full pt-2 border-t border-gray-800/80 flex items-center justify-between">
-                    {table.session ? (
-                      <>
-                        <span className="text-[10px] text-gray-400 font-semibold">
-                          {table.session.items.filter((i) => i.status !== "CANCELLED").length} ítems
-                        </span>
-                        <span className="text-xs font-black text-amber-400">
-                          {formatPrice(table.session.total)}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-[10px] text-gray-500 font-medium">
-                        Sin comanda
-                      </span>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                    {/* Fila Inferior: Estado / Total acumulado en formato apaisado rectangular */}
+                    <div className="flex items-center justify-between w-full mt-1.5 pt-1.5 border-t border-white/20">
+                      {isFree && (
+                        <>
+                          <span className="text-xs font-black text-emerald-200">
+                            🟢 Libre
+                          </span>
+                          <span className="text-[10px] text-emerald-100 font-bold bg-emerald-950/60 px-2 py-0.5 rounded-lg border border-emerald-400/40">
+                            Disponible
+                          </span>
+                        </>
+                      )}
+
+                      {isPending && (
+                        <>
+                          <span className="text-xs font-black text-amber-100 animate-pulse">
+                            🟡 QR x Confirmar
+                          </span>
+                          <span className="text-[10px] text-black font-black bg-amber-300 px-2 py-0.5 rounded-lg shadow-sm">
+                            Revisar &rarr;
+                          </span>
+                        </>
+                      )}
+
+                      {isOpen && table.session && (
+                        <>
+                          <span className="text-xs sm:text-sm font-black text-white">
+                            {formatPrice(table.session.total)}
+                          </span>
+                          <span className="text-[10px] text-blue-100 font-bold bg-blue-950/60 px-2 py-0.5 rounded-lg border border-blue-400/40">
+                            {
+                              table.session.items.filter((it: any) => it.status !== "CANCELLED")
+                                .length
+                            }{" "}
+                            ítems
+                          </span>
+                        </>
+                      )}
+
+                      {isOpen && !table.session && (
+                        <>
+                          <span className="text-xs font-black text-blue-200">
+                            🔵 Ocupada
+                          </span>
+                          <span className="text-[10px] text-blue-100 font-medium">
+                            Sin comanda
+                          </span>
+                        </>
+                      )}
+
+                      {isBillReq && table.session && (
+                        <>
+                          <span className="text-[11px] font-black text-purple-200">
+                            🟣 Pidió Cuenta
+                          </span>
+                          <span className="text-xs font-black text-amber-300">
+                            {formatPrice(table.session.total)}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* DETALLE Y LIQUIDACIÓN DE LA MESA SELECCIONADA */}
           {selectedTable && (

@@ -655,6 +655,25 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - Verificado con `Invoke-WebRequest` en HTTP 200 OK.
   - Cambios confirmados a nivel local en Git.
 
+### Hito 40: Color Cromático Completo en Tarjetas de Mesas y Filtros Rápidos en Admin y Mesero
+- **Semáforo Cromático de Fondo Completo en Toda la Tarjeta ([src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx) y [src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+  - **Reemplazo de Fondos Oscuros:** Se sustituyeron los fondos oscuros genéricos por degradados vivos de alta densidad cromática que cubren el 100% de la superficie de cada tarjeta, visibles instantáneamente desde cualquier distancia en el salón o en la caja:
+    - 🟢 **Mesa Libre:** Gradiente verde esmeralda vibrante (`from-emerald-800 via-emerald-900 to-emerald-950`), borde reforzado `border-2 border-emerald-400/80` y badge `🟢 Libre` + `Disponible / Abrir +`.
+    - 🟡 **Pedido QR por Confirmar:** Gradiente ámbar-dorado cálido de alto impacto (`from-amber-600 via-amber-700 to-amber-900`), borde `border-2 border-amber-300`, pulso continuo `animate-pulse` y botón `🟡 QR x Confirmar / Revisar →`.
+    - 🔵 **Mesa Ocupada:** Gradiente azul cobalto profesional (`from-blue-700 via-blue-800 to-blue-950`), borde `border-2 border-blue-400/80`, tiempo transcurrido en minutos y total acumulado en tipografía blanca de máxima legibilidad.
+    - 🟣 **Pidiendo Cuenta / Por Pagar:** Gradiente púrpura intenso (`from-purple-700 via-purple-800 to-purple-950`), borde `border-2 border-purple-400`, pulso de atención y total a cobrar.
+  - **Mesa Seleccionada en Caja Central:** Anillo exterior nítido `ring-4 ring-white shadow-2xl scale-[1.02] z-10` que resalta la mesa en detalle sin opacar su color cromático de estado.
+- **Tarjetas Rectangulares Apaisadas Compactas en Ambos Paneles:**
+  - Ambas pantallas (Admin y Mesero) estandarizadas a proporciones rectangulares 2:1 (`min-h-[82px] sm:min-h-[88px] p-3 rounded-2xl`), optimizando el uso de pantalla para visualizar hasta 20 mesas simultáneamente sin scroll excesivo.
+- **Métricas Interactivas y Filtro Rápido por Chips en Caja Central:**
+  - Las 4 tarjetas de métricas superiores (`Total por Cobrar`, `Pidiendo Cuenta`, `Pedidos QR`, `Mesas Libres`) ahora son botones interactivos que alternan el filtrado en 1 clic.
+  - Se incorporó una barra horizontal de botones con chips de filtro rápido: `Todas (X)`, `🟢 Libres (X)`, `🟡 QR x Confirmar (X)`, `🔵 Ocupadas (X)` y `🟣 Pidiendo Cuenta (X)`.
+- **Garantía de Menú Inferior Fijo y Scroll Seguro:**
+  - En la plataforma del mesero, el contenedor principal cuenta con `pb-24` para que el final de la lista nunca choque con la barra de navegación fija de `h-16 z-50`.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores** de TypeScript.
+  - Servidor de desarrollo respondiendo en HTTP 200 en `/waiter` y `/admin/tables`.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

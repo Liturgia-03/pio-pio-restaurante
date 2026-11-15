@@ -99,14 +99,16 @@ export default function WaiterApp() {
       const res = await fetch("/api/tables");
       const json = await res.json();
       if (json.success && json.data) {
-        setTablesData(json.data.tables);
-        setCounts(json.data.counts);
+        setTablesData(json.data.tables || []);
+        if (json.data.counts) {
+          setCounts(json.data.counts);
+        }
         setLastUpdated(new Date());
 
         // Actualizar la mesa seleccionada si sigue abierta
         setSelectedTable((prev) => {
           if (!prev) return null;
-          const updated = json.data.tables.find((t: TableCardData) => t.tableNumber === prev.tableNumber);
+          const updated = (json.data.tables || []).find((t: TableCardData) => t.tableNumber === prev.tableNumber);
           return updated || null;
         });
       }
@@ -485,36 +487,36 @@ export default function WaiterApp() {
         <div className="max-w-6xl mx-auto mt-3 grid grid-cols-4 gap-2 text-center text-xs">
           <div className="p-2 bg-emerald-950/30 border border-emerald-800/40 rounded-xl">
             <span className="block text-[10px] text-emerald-400 font-bold uppercase">Libres</span>
-            <span className="text-base font-black text-emerald-300">{counts.free}</span>
+            <span className="text-base font-black text-emerald-300">{counts?.free || 0}</span>
           </div>
           <div className="p-2 bg-blue-950/30 border border-blue-800/40 rounded-xl">
             <span className="block text-[10px] text-blue-400 font-bold uppercase">Ocupadas</span>
-            <span className="text-base font-black text-blue-300">{counts.open}</span>
+            <span className="text-base font-black text-blue-300">{counts?.open || 0}</span>
           </div>
           <div
             className={`p-2 rounded-xl transition-all ${
-              counts.pending > 0
+              (counts?.pending || 0) > 0
                 ? "bg-amber-950/60 border-2 border-amber-500 animate-pulse text-amber-300"
                 : "bg-amber-950/20 border border-amber-800/30 text-amber-400"
             }`}
           >
             <span className="block text-[10px] font-bold uppercase">Por Confirmar</span>
-            <span className="text-base font-black">{counts.pending}</span>
+            <span className="text-base font-black">{counts?.pending || 0}</span>
           </div>
           <div className="p-2 bg-purple-950/30 border border-purple-800/40 rounded-xl">
             <span className="block text-[10px] text-purple-400 font-bold uppercase">Pidieron Cuenta</span>
-            <span className="text-base font-black text-purple-300">{counts.billRequested}</span>
+            <span className="text-base font-black text-purple-300">{counts?.billRequested || 0}</span>
           </div>
         </div>
       </header>
 
       {/* Cuadrícula de Mesas */}
       <main className="max-w-6xl mx-auto p-4 w-full">
-        {counts.pending > 0 && (
+        {(counts?.pending || 0) > 0 && (
           <div className="mb-4 p-3 bg-amber-500/20 border border-amber-500 rounded-2xl flex items-center justify-between text-amber-300 text-xs font-bold animate-pulse">
             <div className="flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
-              <span>Hay {counts.pending} pedido(s) QR esperando confirmación para pasar a cocina</span>
+              <span>Hay {counts?.pending || 0} pedido(s) QR esperando confirmación para pasar a cocina</span>
             </div>
           </div>
         )}

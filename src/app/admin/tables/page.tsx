@@ -96,13 +96,15 @@ export default function AdminTablesCashierPage() {
       const res = await fetch("/api/tables");
       const json = await res.json();
       if (json.success && json.data) {
-        setTablesData(json.data.tables);
-        setCounts(json.data.counts);
-        setTodaySessions(json.data.todaySessions || []);
+        setTablesData(json.data.tables || []);
+        if (json.data.counts) {
+          setCounts(json.data.counts);
+        }
+        setTodaySessions(json.data.todaySessions || json.data.closedSessionsToday || []);
 
         setSelectedTable((prev) => {
           if (!prev) return null;
-          const up = json.data.tables.find((t: TableCardData) => t.tableNumber === prev.tableNumber);
+          const up = (json.data.tables || []).find((t: TableCardData) => t.tableNumber === prev.tableNumber);
           return up || null;
         });
       }
@@ -418,7 +420,7 @@ export default function AdminTablesCashierPage() {
                 {formatPrice(totalInTables)}
               </span>
               <span className="text-[11px] text-gray-400 block">
-                {counts.open + counts.billRequested} mesa(s) con cuenta abierta
+                {(counts?.open || 0) + (counts?.billRequested || 0)} mesa(s) con cuenta abierta
               </span>
             </div>
 
@@ -427,7 +429,7 @@ export default function AdminTablesCashierPage() {
                 Pidiendo Cuenta a Caja
               </span>
               <span className="text-xl font-black text-purple-300">
-                {counts.billRequested}
+                {counts?.billRequested || 0}
               </span>
               <span className="text-[11px] text-gray-400 block">
                 Clientes listos para pagar
@@ -436,7 +438,7 @@ export default function AdminTablesCashierPage() {
 
             <div
               className={`p-4 rounded-2xl space-y-1 border transition-all ${
-                counts.pending > 0
+                (counts?.pending || 0) > 0
                   ? "bg-amber-950/40 border-amber-500 animate-pulse text-amber-300"
                   : "bg-[#14161a] border-amber-900/30 text-gray-400"
               }`}
@@ -445,7 +447,7 @@ export default function AdminTablesCashierPage() {
                 Pedidos QR Pendientes
               </span>
               <span className="text-xl font-black text-amber-400">
-                {counts.pending}
+                {counts?.pending || 0}
               </span>
               <span className="text-[11px] block">
                 Esperando confirmación
@@ -457,7 +459,7 @@ export default function AdminTablesCashierPage() {
                 Mesas Libres
               </span>
               <span className="text-xl font-black text-emerald-400">
-                {counts.free}
+                {counts?.free || 0}
               </span>
               <span className="text-[11px] text-gray-400 block">
                 Disponibles para comensales

@@ -105,13 +105,16 @@ export async function GET() {
       })),
     }));
 
-    // Métricas rápidas
-    const pendingQRSessionsCount = activeSessions.filter(
-      (s: any) => s.status === "PENDING_CONFIRMATION"
-    ).length;
-    const billRequestedCount = activeSessions.filter(
-      (s: any) => s.status === "BILL_REQUESTED"
-    ).length;
+    // Métricas rápidas y contadores para semáforo de mesas
+    const counts = {
+      open: tables.filter((t: any) => t.status === "OPEN").length,
+      pending: tables.filter((t: any) => t.status === "PENDING_CONFIRMATION").length,
+      billRequested: tables.filter((t: any) => t.status === "BILL_REQUESTED").length,
+      free: tables.filter((t: any) => t.status === "FREE").length,
+    };
+
+    const pendingQRSessionsCount = counts.pending;
+    const billRequestedCount = counts.billRequested;
     const activeSessionsCount = activeSessions.length;
 
     return NextResponse.json({
@@ -119,9 +122,11 @@ export async function GET() {
       data: {
         totalTables: totalTablesCount,
         tables,
+        counts,
         activeSessionsCount,
         pendingQRSessionsCount,
         billRequestedCount,
+        todaySessions: closedSessionsToday,
         closedSessionsToday,
       },
     });

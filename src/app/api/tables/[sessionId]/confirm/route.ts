@@ -10,7 +10,8 @@ export async function PATCH(
   try {
     const { sessionId } = await params;
     const body = await request.json().catch(() => ({}));
-    const action = body.action || "confirm"; // "confirm" | "reject"
+    const rawAction = String(body.action || "confirm").trim().toLowerCase();
+    const isConfirm = rawAction === "confirm";
 
     const session = await prisma.tableSession.findUnique({
       where: { id: sessionId },
@@ -24,7 +25,7 @@ export async function PATCH(
       );
     }
 
-    if (action === "confirm") {
+    if (isConfirm) {
       // Pasar todos los ítems pendientes a CONFIRMED
       await prisma.orderItem.updateMany({
         where: {

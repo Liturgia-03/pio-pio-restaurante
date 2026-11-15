@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import {
   UtensilsCrossed,
+  Utensils,
   AlertTriangle,
   FolderTree,
   Sparkles,
@@ -15,6 +16,7 @@ import {
   CheckCircle2,
   XCircle,
   Copy,
+  Clock,
 } from "lucide-react";
 import { formatPrice } from "@/lib/formatters";
 import { DishItem, PromoModalData } from "@/types";
@@ -55,6 +57,16 @@ export default function AdminDashboardPage() {
       const json = await res.json();
       return json.data || null;
     },
+  });
+
+  const { data: tablesData } = useQuery({
+    queryKey: ["admin-tables-dashboard"],
+    queryFn: async () => {
+      const res = await fetch("/api/tables");
+      const json = await res.json();
+      return json.data || null;
+    },
+    refetchInterval: 5000,
   });
 
   // Mutación para toggle rápido de disponibilidad optimista
@@ -114,6 +126,13 @@ export default function AdminDashboardPage() {
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Link
+            href="/admin/tables"
+            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-2.5 px-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white text-xs font-black rounded-xl active:scale-[0.98] transition-all duration-300 ease-out min-h-[40px] shadow-md shadow-amber-500/20"
+          >
+            <Utensils className="w-4 h-4" />
+            <span>Mesas & Caja</span>
+          </Link>
+          <Link
             href="/admin/dishes/new"
             className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 py-2.5 px-4 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-xl active:scale-[0.98] transition-all duration-300 ease-out min-h-[40px]"
           >
@@ -130,6 +149,24 @@ export default function AdminDashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* Alerta si hay pedidos QR por confirmar */}
+      {tablesData && tablesData.pendingQRSessionsCount > 0 && (
+        <div className="p-3.5 bg-amber-500/20 border-2 border-amber-500 rounded-2xl flex items-center justify-between text-amber-300 text-xs font-bold animate-pulse">
+          <div className="flex items-center gap-2.5">
+            <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+            <span>
+              ¡Atención! Hay {tablesData.pendingQRSessionsCount} pedido(s) QR esperando confirmación en el salón.
+            </span>
+          </div>
+          <Link
+            href="/admin/tables"
+            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-black font-black text-xs rounded-xl transition-all"
+          >
+            Ver en Mesas &rarr;
+          </Link>
+        </div>
+      )}
 
       {/* Barra Destacada: Enlace Público de la Carta Digital */}
       <div className="bg-gradient-to-r from-amber-500/10 via-[#181b20] to-orange-500/10 border border-amber-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
@@ -171,8 +208,24 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Métricas KPI Rápidas (Mobile-First 2x2 Grid) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* Métricas KPI Rápidas (Mobile-First Grid) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        <Link
+          href="/admin/tables"
+          className="bg-[#181b20] border border-blue-900/40 hover:border-blue-600 rounded-2xl p-4 space-y-1 transition-all duration-300 ease-out hover:shadow-lg group col-span-2 sm:col-span-1"
+        >
+          <div className="flex items-center justify-between text-blue-400">
+            <span className="text-xs font-bold">Mesas Activas</span>
+            <Utensils className="w-4 h-4" />
+          </div>
+          <p className="text-2xl font-black text-blue-300">
+            {tablesData?.activeSessionsCount ?? "--"}
+          </p>
+          <span className="text-[10px] text-gray-500 block group-hover:text-amber-400 transition-colors">
+            Ir a Control de Mesas &rarr;
+          </span>
+        </Link>
+
         <div className="bg-[#181b20] border border-gray-800 hover:border-gray-700/80 rounded-2xl p-4 space-y-1 transition-all duration-300 ease-out hover:shadow-lg">
           <div className="flex items-center justify-between text-emerald-400">
             <span className="text-xs font-semibold">Disponibles</span>

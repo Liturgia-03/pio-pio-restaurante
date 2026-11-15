@@ -71,13 +71,17 @@ export function CartSheet({
   // Sincronizar mesa desde parámetro URL o almacenamiento de sesión
   useEffect(() => {
     if (initialMesa) {
-      setTableNumber(initialMesa);
+      const parsed = parseInt(initialMesa.replace(/\D/g, "") || "0", 10);
+      const cleanTable = parsed > 0 ? String(parsed) : initialMesa;
+      setTableNumber(cleanTable);
       setOrderType("mesa");
     } else {
       try {
         const stored = sessionStorage.getItem("piopio_mesa");
         if (stored) {
-          setTableNumber(stored);
+          const parsed = parseInt(stored.replace(/\D/g, "") || "0", 10);
+          const cleanTable = parsed > 0 ? String(parsed) : stored;
+          setTableNumber(cleanTable);
           setOrderType("mesa");
         }
       } catch { }

@@ -9,29 +9,45 @@ export async function POST(request: Request) {
     const waiterId = String(body.waiterId || "").trim();
     const pin = String(body.pin || "").trim();
 
-    if (!waiterId || !pin) {
+    if (!pin) {
       return NextResponse.json(
-        { success: false, message: "Debes seleccionar tu nombre e ingresar tu PIN" },
+        { success: false, message: "Debes ingresar tu PIN de 4 dígitos" },
         { status: 400 }
       );
     }
 
-    const waiter = await prisma.waiter.findUnique({
-      where: { id: waiterId },
-    });
+    let waiter = null;
+    if (waiterId) {
+      waiter = await prisma.waiter.findUnique({
+        where: { id: waiterId },
+      });
+      if (!waiter || !waiter.isActive) {
+        return NextResponse.json(
+          { success: false, message: "Mesero no encontrado o inactivo" },
+          { status: 404 }
+        );
+      }
+      if (waiter.pin !== pin) {
+        return NextResponse.json(
+          { success: false, message: "PIN incorrecto. Intenta de nuevo" },
+          { status: 401 }
+        );
+      }
+    } else {
+      // Búsqueda directa por PIN táctil en el teclado de salón
+      waiter = await prisma.waiter.findFirst({
+        where: {
+          pin,
+          isActive: true,
+        },
+      });
 
-    if (!waiter || !waiter.isActive) {
-      return NextResponse.json(
-        { success: false, message: "Mesero no encontrado o inactivo" },
-        { status: 404 }
-      );
-    }
-
-    if (waiter.pin !== pin) {
-      return NextResponse.json(
-        { success: false, message: "PIN incorrecto. Intenta de nuevo" },
-        { status: 401 }
-      );
+      if (!waiter) {
+        return NextResponse.json(
+          { success: false, message: "PIN no reconocido o mesero inactivo" },
+          { status: 401 }
+        );
+      }
     }
 
     return NextResponse.json({

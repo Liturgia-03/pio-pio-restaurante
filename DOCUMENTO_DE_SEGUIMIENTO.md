@@ -575,6 +575,25 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit` completó con **0 errores** de TypeScript (panel de Problemas en 0).
   - `npm run build` en Turbopack completado con código `0` en 23 rutas.
 
+### Hito 36: Auditoría Quirúrgica Integral, Corrección de Autenticación de Meseros y Blindaje de Acciones de Mesa
+- **Auditoría de Código y Flujos Operativos:**
+  - Se realizó una revisión exhaustiva de todos los módulos del aplicativo: frontend de clientes (`/` y `/menu`), plataforma táctil de meseros (`/waiter`), panel de administración y caja central (`/admin/tables`, `/admin/dashboard`, `/admin/dishes`, `/admin/categories`, `/admin/promo-modal`, `/admin/qr`, `/admin/settings`), y los 14 endpoints de API.
+- **Hallazgos Críticos Identificados y Resueltos:**
+  1. **Autenticación Directa por PIN Táctil en `/api/waiter/auth` ([src/app/api/waiter/auth/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/waiter/auth/route.ts)):**
+     - *Problema detectado:* La interfaz `/waiter` utiliza un teclado numérico táctil POS de 4 dígitos donde el mesero solo digita su PIN. Sin embargo, el endpoint exigía obligatoriamente `{ waiterId, pin }`, provocando que el ingreso por teclado numérico fallara con error 400 ("Debes seleccionar tu nombre e ingresar tu PIN").
+     - *Solución:* Se actualizó el endpoint para soportar búsqueda directa por PIN activo (`prisma.waiter.findFirst({ where: { pin, isActive: true } })`) cuando no se proporciona `waiterId`, manteniendo compatibilidad con autenticaciones donde se envíe ambos parámetros.
+  2. **Normalización de Acción en `/api/tables/[sessionId]/confirm` ([src/app/api/tables/[sessionId]/confirm/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/tables/[sessionId]/confirm/route.ts)):**
+     - *Problema detectado:* Los componentes de mesero y caja enviaban la acción en mayúsculas (`action: "CONFIRM"`), mientras que el endpoint comparaba de forma estricta contra minúsculas (`action === "confirm"`), lo que provocaba que la confirmación cayera en la rama de rechazo/cancelación.
+     - *Solución:* Se implementó normalización insensible a mayúsculas/minúsculas (`String(body.action || "confirm").trim().toLowerCase() === "confirm"`), blindando la confirmación de pedidos de salón.
+  3. **Normalización y Sanitización de Números de Mesa en Carrito ([src/components/public/CartSheet.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/CartSheet.tsx)):**
+     - Se aseguró la sanitización de cadenas de mesa procedentes de URL (`?mesa=05` o `"Mesa 5"`) convirtiéndolas limpiamente a entero base 10 (`"5"`), evitando discrepancias de llaves primarias en la base de datos.
+  4. **Panel de Control con KPIs en Vivo ([src/app/admin/dashboard/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/dashboard/page.tsx)):**
+     - Integración de acceso rápido a *Mesas & Caja*, tarjeta KPI interactiva con el número de mesas activas en tiempo real, y alerta pulsante automática si existen pedidos QR a la espera de confirmación en salón.
+- **Certificación Técnica Final:**
+  - `npx tsc --noEmit`: **0 errores** (panel de Problemas en 0).
+  - `npm run build`: **23/23 rutas** compiladas exitosamente con Turbopack sin fallos.
+  - `npm run test:stress`: Suite de 4 pruebas de estrés superada al 100% (50/50 clientes en catálogo, 0 cuentas duplicadas en concurrencia en la misma mesa, 15/15 mesas completadas y base de datos limpia).
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

@@ -17,7 +17,7 @@ export function PublicBottomBar({
   onResetCategory,
   onOpenCart,
 }: PublicBottomBarProps) {
-  const { totalItems, totalPrice, setIsCartOpen } = useCart();
+  const { totalItems, totalPrice, setIsCartOpen, customerSession } = useCart();
 
   const handleMenuClick = () => {
     onTabChange("menu");
@@ -103,19 +103,43 @@ export function PublicBottomBar({
           className={`relative flex flex-col items-center justify-center py-1.5 px-2 rounded-2xl min-h-[50px] transition-all duration-300 ease-out active:scale-95 border ${
             totalItems > 0
               ? "bg-gradient-to-b from-amber-500/25 via-orange-500/15 to-transparent border-amber-500/40 text-amber-300 shadow-lg shadow-amber-500/20 font-bold"
+              : customerSession?.hasActiveSession
+              ? customerSession.status === "PENDING_CONFIRMATION"
+                ? "bg-amber-500/15 border-amber-500/40 text-amber-300 font-bold"
+                : customerSession.status === "BILL_REQUESTED"
+                ? "bg-purple-500/15 border-purple-500/40 text-purple-300 font-bold"
+                : "bg-emerald-500/15 border-emerald-500/40 text-emerald-300 font-bold"
               : "text-gray-400 hover:text-gray-200 border-transparent"
           }`}
         >
           <div className="relative w-6 h-6 rounded-lg flex items-center justify-center">
-            <ShoppingBag className={`w-4 h-4 ${totalItems > 0 ? "text-amber-400" : ""}`} />
-            {totalItems > 0 && (
+            <ShoppingBag
+              className={`w-4 h-4 ${
+                totalItems > 0 || customerSession?.hasActiveSession ? "text-amber-400" : ""
+              }`}
+            />
+            {totalItems > 0 ? (
               <span className="absolute -top-1.5 -right-2 bg-gradient-to-r from-red-600 to-orange-500 text-white text-[9px] font-black min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center shadow-md animate-pulse">
                 {totalItems}
               </span>
-            )}
+            ) : customerSession?.hasActiveSession ? (
+              <span
+                className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ${
+                  customerSession.status === "PENDING_CONFIRMATION"
+                    ? "bg-amber-400 animate-ping"
+                    : customerSession.status === "BILL_REQUESTED"
+                    ? "bg-purple-400 animate-pulse"
+                    : "bg-emerald-400 shadow-sm shadow-emerald-400/50"
+                }`}
+              />
+            ) : null}
           </div>
           <span className="text-[10px] font-black tracking-wide uppercase mt-0.5 truncate max-w-[80px]">
-            {totalItems > 0 ? formatPrice(totalPrice) : "Pedido"}
+            {totalItems > 0
+              ? formatPrice(totalPrice)
+              : customerSession?.hasActiveSession
+              ? `Mesa #${customerSession.tableNumber}`
+              : "Pedido"}
           </span>
         </button>
 

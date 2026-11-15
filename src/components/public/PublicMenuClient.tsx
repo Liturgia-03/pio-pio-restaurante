@@ -66,22 +66,28 @@ function MenuContent({
   const urlMesa = searchParams?.get("mesa") || null;
   const [mesaNumber, setMesaNumber] = useState<string | null>(urlMesa);
 
-  // Carrito de compras
-  const { isCartOpen, setIsCartOpen } = useCart();
+  // Carrito de compras y sesión de mesa
+  const { isCartOpen, setIsCartOpen, setActiveTableNumber } = useCart();
 
   useEffect(() => {
     if (urlMesa) {
       try {
         sessionStorage.setItem("piopio_mesa", urlMesa);
+        localStorage.setItem("piopio_mesa", urlMesa);
       } catch {}
       setMesaNumber(urlMesa);
+      setActiveTableNumber(urlMesa);
     } else {
       try {
-        const savedMesa = sessionStorage.getItem("piopio_mesa");
-        if (savedMesa) setMesaNumber(savedMesa);
+        const savedMesa =
+          sessionStorage.getItem("piopio_mesa") || localStorage.getItem("piopio_mesa");
+        if (savedMesa) {
+          setMesaNumber(savedMesa);
+          setActiveTableNumber(savedMesa);
+        }
       } catch {}
     }
-  }, [urlMesa]);
+  }, [urlMesa, setActiveTableNumber]);
 
   // Pestaña activa (menu | promos | info)
   const [activeTab, setActiveTab] = useState<"menu" | "promos" | "info">("menu");

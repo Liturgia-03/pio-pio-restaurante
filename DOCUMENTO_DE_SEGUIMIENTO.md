@@ -752,6 +752,27 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores**.
   - Petición HTTP a `/waiter`: Código 200 OK en 42ms.
 
+### Hito 45: Flujo Integral en Tiempo Real de Pedidos QR para Clientes (Estados Pendiente, Aprobado en Cocina, Llamar Mesero, Pedir Cuenta y Mesa Liberada)
+- **Nuevos Endpoints Públicos:**
+  - `GET /api/public/table-status`: Consulta en tiempo real del estado de la mesa (`PENDING_CONFIRMATION`, `OPEN`, `BILL_REQUESTED`, `CLOSED`, `FREE`) con desglose de ítems, rondas, total y mesero asignado.
+  - `POST /api/public/call-waiter`: Notificación directa de llamado de mesero en mesa, registrando alerta en la comanda visible en `/waiter` y `/admin/tables`.
+- **Sincronización Reactiva en `CartContext` ([src/context/CartContext.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/context/CartContext.tsx)):**
+  - Polling suave automático cada 3.5s sobre el estado de la mesa escaneada.
+  - Notificaciones toast institucionales cuando el mesero aprueba la comanda (`¡Tu pedido ha sido aprobado por el mesero y está marchando a cocina!`) y cuando el admin cobra y libera la mesa (`¡Cuenta pagada y cerrada en caja!`).
+- **Estados Dinámicos en la Ventana de Pedido ([src/components/public/CartSheet.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/CartSheet.tsx)):**
+  1. **Estado 1 (Pendiente por Aprobar):** Banner y tarjeta ámbar pulsante informando que el pedido fue enviado y espera confirmación del personal, lista de platos solicitados, indicador en vivo y botones de llamada a mesero o seguir viendo el menú.
+  2. **Estado 2 (Aprobado y en Marcha en Cocina):** Checkmark animado verde, aviso de preparación en cocina, mesero a cargo, desglose de rondas acumuladas con subtotales, y botones directos:
+     - `➕ Agregar Otros Productos (Pedir algo más)` (abre la carta para rondas de adición a la misma mesa).
+     - `🔔 Llamar al Mesero`.
+     - `💳 Pedir la Cuenta a Caja`.
+  3. **Estado 3 (Cuenta Solicitada a Caja):** Aviso morado confirmando la notificación a Caja Central y monto a cancelar.
+  4. **Estado 4 (Cuenta Pagada y Mesa Liberada):** Mensaje de agradecimiento institucional y reseteo de la sesión al liberar la mesa en caja.
+- **Acceso Persistente al Cerrar y Reabrir:**
+  - Píldora flotante adaptativa ([src/components/public/CartFloatingButton.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/CartFloatingButton.tsx)) y barra inferior fija ([src/components/public/PublicBottomBar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/PublicBottomBar.tsx)) que permanecen visibles con el estado activo de la mesa para reabrir la comanda con 1 toque en cualquier momento.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores**.
+  - Simulación completa de ciclo de vida (Pedido QR -> Aprobación de Mesero -> Solicitud de Cuenta -> Cobro y Liberación en Caja) verificada al 100%.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

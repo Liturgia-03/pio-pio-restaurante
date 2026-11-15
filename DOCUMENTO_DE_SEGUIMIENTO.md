@@ -506,6 +506,109 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - Compilación exitosa en Turbopack (`npm run build`), 21/21 rutas verificadas sin errores.
 
+### Hito 34: Plataforma Móvil para Meseros, Control de Mesas Centralizado y Caja de 1 Clic
+- **Objetivo Cumplido:**
+  Implementación completa del nuevo rol y flujo operativo de Salón y Caja para Pío Pío: sin pantallas en cocina (los meseros cantan los pedidos directo a los fogones), unificación de pedidos en una sola cuenta activa por mesa con rondas, y cobro centralizado exclusivo en Caja con liberación inmediata de 1 solo clic para garantizar cero errores y cero pérdidas.
+- **Base de Datos y Modelado en Neon PostgreSQL (`prisma/schema.prisma`):**
+  - Modelo `Waiter`: `id`, `name`, `pin` (4 dígitos), `isActive`, `createdAt`.
+  - Modelo `TableSession`: `id`, `tableNumber`, `status` (`OPEN`, `PENDING_CONFIRMATION`, `BILL_REQUESTED`, `CLOSED`), `waiterId`, `total` (Float), `closedAt`, `closedBy`, con índices optimizados en `status`, `[tableNumber, status]` y `closedAt`.
+  - Modelo `OrderItem`: `id`, `tableSessionId`, `dishId`, `dishName` (congelado), `portionLabel`, `unitPrice` (congelado), `quantity`, `subtotal`, `notes`, `addedBy` (`CUSTOMER_QR`, `WAITER`, `ADMIN_CASHIER`), `addedByName`, `round` (contador de rondas), `status` (`PENDING_CONFIRMATION`, `CONFIRMED`, `CANCELLED`), `cancelledReason`, `createdAt`.
+  - Modelo `RestaurantSettings`: extendido con `totalTables Int @default(15)` para dibujo dinámico de cuadrícula de mesas.
+  - Sincronización completa con Neon PostgreSQL mediante `npx prisma db push` y clientes Prisma regenerados.
+- **Arquitectura de APIs RESTful:**
+  - `GET /api/tables`: Devuelve cuadrícula de mesas 1..totalTables, sesiones activas, minutos de apertura, contadores rápidos en semáforo e historial de transacciones cerradas hoy.
+  - `POST /api/tables/order`: Normaliza el número de mesa (`String(parseInt)`), verifica sesión abierta (si ya existe comanda, añade a ella incrementando el contador de ronda `round = maxRound + 1`), calcula subtotales y actualiza el total acumulado. Si viene de `CUSTOMER_QR` entra en `PENDING_CONFIRMATION`.
+  - `PATCH /api/tables/[sessionId]/confirm`: Confirma o rechaza pedidos enviados por clientes vía QR.
+  - `PATCH /api/tables/items/[itemId]/cancel`: Anulación de ítem con motivo auditado obligatorio (`cancelledReason`), recálculo automático del total de la comanda (exclusivo de Admin/Caja).
+  - `PATCH /api/tables/[sessionId]/transfer`: Traslado de comanda activa a otra mesa física libre.
+  - `POST /api/tables/[sessionId]/checkout`: Liquidación de 1 solo clic: pasa el estado a `CLOSED`, registra `closedAt` y `closedBy`, y libera la mesa inmediatamente a `🟢 Libre`.
+  - `POST /api/tables/[sessionId]/bill-request`: Notifica a la caja marcando la mesa en `BILL_REQUESTED` (🟣 Morado).
+  - `GET / POST /api/admin/waiters` y `PATCH / DELETE /api/admin/waiters/[id]`: Administración completa de meseros.
+  - `POST /api/waiter/auth`: Validación rápida de PIN de 4 dígitos para inicio de turno del mesero.
+- **Plataforma Móvil para Meseros ([src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)):**
+  - Acceso rápido por PIN táctil en pantalla (sin contraseñas largas).
+  - Cuadrícula de mesas tipo semáforo con actualización automática cada 5 segundos:
+    - 🟢 Libre: opción rápida para abrir mesa y tomar pedido.
+    - 🟡 Por Confirmar: alerta visual pulsante de pedido QR recibido por el cliente; permite verificar y confirmar o rechazar.
+    - 🔵 Ocupada / Consumiendo: desglose de comanda por rondas con hora y autor, total en pesos COP.
+    - 🟣 Pidieron Cuenta: aviso de comensal pasando a caja.
+  - Panel de Adición de Platos: buscador instantáneo, selector de porciones y chips de notas rápidas (`"Sin ensalada"`, `"Bien dorado"`, `"Para llevar"`, `"Papas doradas"`).
+  - Botón "Cambiar de Mesa" y botón "Cliente va a pagar a caja".
+  - **Candados de Seguridad:** Sin botones para anular ítems confirmados ni para cobrar/liberar la mesa.
+- **Módulo de Control de Mesas y Caja Central ([src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+  - **Pestaña 1 (Mesas Activas y Caja):** Métricas en vivo (total acumulado por cobrar en mesas, mesas libres, alertas QR), vista detallada de comanda con trazabilidad de rondas, adición de productos de último minuto directamente en caja, anulación auditada de ítems con motivo, y botón principal **"✅ Cobrar y Liberar Mesa"** de 1 clic sin formularios innecesarios.
+  - **Pestaña 2 (Historial de Transacciones):** Cuentas cobradas en el día con total recaudado en caja, hora de cobro, mesa, responsable y desglose de platos.
+  - **Pestaña 3 (Gestión de Meseros):** Creación y administración de meseros con su respectivo PIN de 4 dígitos.
+- **Navegación del Admin Integrada:**
+  - Enlace directo a *"Mesas & Caja"* (`/admin/tables`) añadido en `AdminNavSidebar.tsx`, `AdminMobileDrawer.tsx` y en la barra inferior táctil `AdminBottomBar.tsx`.
+- **Integración con Carta Digital ([src/components/public/CartSheet.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/CartSheet.tsx)):**
+  - Al seleccionar "En Mesa", el carrito muestra el botón de envío directo a la mesa `🍽️ Enviar Pedido a Mesa #X`.
+  - Muestra tarjeta de estado de la mesa (pedido enviado a cocina) y botón para solicitar la cuenta a caja `🙋 Solicitar Cuenta a Caja`.
+- **Configuración Dinámica de Mesas ([src/app/admin/settings/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/settings/page.tsx)):**
+  - Campo editable para definir el número total de mesas del restaurante (`totalTables`).
+- **Certificación Técnica:**
+  - Verificado con `npm run build` en Turbopack: 23 rutas compiladas con código de salida `0`.
+  - Flujo integral verificado con script de prueba de base de datos de extremo a extremo.
+- **Requerimiento:**
+  En el panel administrativo (`/admin/dishes`):
+  1. Agregar el mismo efecto de desplazamiento/scroll y swipe táctil de derecha a izquierda implementado en el menú público para navegar entre categorías.
+  2. Mostrar visiblemente la etiqueta de distintivo (*badge*: Más Vendido, Recomendado, Nuevo, Oferta Especial) en cada plato si la tiene asignada.
+  3. Implementar filtros de estado: *Todos*, *Disponibles*, *Agotados* y *Promos* (en el filtro de promos deben aparecer los platos con descuento activo y los que tienen distintivo asignado).
+- **Solución Implementada:**
+  - En `src/app/admin/dishes/page.tsx`:
+    - **Filtros de Estado Rápido:** Se añadió una barra superior con las opciones *Todos*, *Disponibles* (`isAvailable: true`), *Agotados* (`isAvailable: false`) y *Promos & Distintivos* (`(discountPrice > 0) || (badge && badge !== 'NONE')`), con contadores dinámicos para cada grupo.
+    - **Visualización de Distintivos:** En la ficha de cada plato se incluyeron badges oficiales con iconos y estilos acordes: `🔥 Más Vendido`, `⭐ Recomendado`, `✨ Nuevo`, `🏷️ Oferta Especial` y `🏷️ En Descuento` con precio tachado.
+    - **Efecto de Desplazamiento y Swipe Horizontal:**
+      - Se implementó el soporte táctil con `onTouchStart`, `onTouchMove` y `onTouchEnd` con seguimiento elástico (`dragOffset`) y animaciones de entrada (`slide-in-from-right-8` y `slide-in-from-left-8`).
+      - Se integró el carrusel horizontal de chips con centrado automático suave (`container.scrollTo({ left, behavior: 'smooth' })`).
+      - Se incorporó la barra de navegación con botones *Anterior* y *Siguiente* para alternar entre categorías con un toque.
+- **Certificación Técnica:**
+  - Compilación exitosa en Turbopack (`npm run build`), 21/21 rutas verificadas sin errores.
+
+### Hito 34: Plataforma Móvil para Meseros, Control de Mesas Centralizado y Caja de 1 Clic
+- **Objetivo Cumplido:**
+  Implementación completa del nuevo rol y flujo operativo de Salón y Caja para Pío Pío: sin pantallas en cocina (los meseros cantan los pedidos directo a los fogones), unificación de pedidos en una sola cuenta activa por mesa con rondas, y cobro centralizado exclusivo en Caja con liberación inmediata de 1 solo clic para garantizar cero errores y cero pérdidas.
+- **Base de Datos y Modelado en Neon PostgreSQL (`prisma/schema.prisma`):**
+  - Modelo `Waiter`: `id`, `name`, `pin` (4 dígitos), `isActive`, `createdAt`.
+  - Modelo `TableSession`: `id`, `tableNumber`, `status` (`OPEN`, `PENDING_CONFIRMATION`, `BILL_REQUESTED`, `CLOSED`), `waiterId`, `total` (Float), `closedAt`, `closedBy`, con índices optimizados en `status`, `[tableNumber, status]` y `closedAt`.
+  - Modelo `OrderItem`: `id`, `tableSessionId`, `dishId`, `dishName` (congelado), `portionLabel`, `unitPrice` (congelado), `quantity`, `subtotal`, `notes`, `addedBy` (`CUSTOMER_QR`, `WAITER`, `ADMIN_CASHIER`), `addedByName`, `round` (contador de rondas), `status` (`PENDING_CONFIRMATION`, `CONFIRMED`, `CANCELLED`), `cancelledReason`, `createdAt`.
+  - Modelo `RestaurantSettings`: extendido con `totalTables Int @default(15)` para dibujo dinámico de cuadrícula de mesas.
+  - Sincronización completa con Neon PostgreSQL mediante `npx prisma db push` y clientes Prisma regenerados.
+- **Arquitectura de APIs RESTful:**
+  - `GET /api/tables`: Devuelve cuadrícula de mesas 1..totalTables, sesiones activas, minutos de apertura, contadores rápidos en semáforo e historial de transacciones cerradas hoy.
+  - `POST /api/tables/order`: Normaliza el número de mesa (`String(parseInt)`), verifica sesión abierta (si ya existe comanda, añade a ella incrementando el contador de ronda `round = maxRound + 1`), calcula subtotales y actualiza el total acumulado. Si viene de `CUSTOMER_QR` entra en `PENDING_CONFIRMATION`.
+  - `PATCH /api/tables/[sessionId]/confirm`: Confirma o rechaza pedidos enviados por clientes vía QR.
+  - `PATCH /api/tables/items/[itemId]/cancel`: Anulación de ítem con motivo auditado obligatorio (`cancelledReason`), recálculo automático del total de la comanda (exclusivo de Admin/Caja).
+  - `PATCH /api/tables/[sessionId]/transfer`: Traslado de comanda activa a otra mesa física libre.
+  - `POST /api/tables/[sessionId]/checkout`: Liquidación de 1 solo clic: pasa el estado a `CLOSED`, registra `closedAt` y `closedBy`, y libera la mesa inmediatamente a `🟢 Libre`.
+  - `POST /api/tables/[sessionId]/bill-request`: Notifica a la caja marcando la mesa en `BILL_REQUESTED` (🟣 Morado).
+  - `GET / POST /api/admin/waiters` y `PATCH / DELETE /api/admin/waiters/[id]`: Administración completa de meseros.
+  - `POST /api/waiter/auth`: Validación rápida de PIN de 4 dígitos para inicio de turno del mesero.
+- **Plataforma Móvil para Meseros ([src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)):**
+  - Acceso rápido por PIN táctil en pantalla (sin contraseñas largas).
+  - Cuadrícula de mesas tipo semáforo con actualización automática cada 5 segundos:
+    - 🟢 Libre: opción rápida para abrir mesa y tomar pedido.
+    - 🟡 Por Confirmar: alerta visual pulsante de pedido QR recibido por el cliente; permite verificar y confirmar o rechazar.
+    - 🔵 Ocupada / Consumiendo: desglose de comanda por rondas con hora y autor, total en pesos COP.
+    - 🟣 Pidieron Cuenta: aviso de comensal pasando a caja.
+  - Panel de Adición de Platos: buscador instantáneo, selector de porciones y chips de notas rápidas (`"Sin ensalada"`, `"Bien dorado"`, `"Para llevar"`, `"Papas doradas"`).
+  - Botón "Cambiar de Mesa" y botón "Cliente va a pagar a caja".
+  - **Candados de Seguridad:** Sin botones para anular ítems confirmados ni para cobrar/liberar la mesa.
+- **Módulo de Control de Mesas y Caja Central ([src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+  - **Pestaña 1 (Mesas Activas y Caja):** Métricas en vivo (total acumulado por cobrar en mesas, mesas libres, alertas QR), vista detallada de comanda con trazabilidad de rondas, adición de productos de último minuto directamente en caja, anulación auditada de ítems con motivo, y botón principal **"✅ Cobrar y Liberar Mesa"** de 1 clic sin formularios innecesarios.
+  - **Pestaña 2 (Historial de Transacciones):** Cuentas cobradas en el día con total recaudado en caja, hora de cobro, mesa, responsable y desglose de platos.
+  - **Pestaña 3 (Gestión de Meseros):** Creación y administración de meseros con su respectivo PIN de 4 dígitos.
+- **Navegación del Admin Integrada:**
+  - Enlace directo a *"Mesas & Caja"* (`/admin/tables`) añadido en `AdminNavSidebar.tsx`, `AdminMobileDrawer.tsx` y en la barra inferior táctil `AdminBottomBar.tsx`.
+- **Integración con Carta Digital ([src/components/public/CartSheet.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/CartSheet.tsx)):**
+  - Al seleccionar "En Mesa", el carrito muestra el botón de envío directo a la mesa `🍽️ Enviar Pedido a Mesa #X`.
+  - Muestra tarjeta de estado de la mesa (pedido enviado a cocina) y botón para solicitar la cuenta a caja `🙋 Solicitar Cuenta a Caja`.
+- **Configuración Dinámica de Mesas ([src/app/admin/settings/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/settings/page.tsx)):**
+  - Campo editable para definir el número total de mesas del restaurante (`totalTables`).
+- **Certificación Técnica:**
+  - Verificado con `npm run build` en Turbopack: 23 rutas compiladas con código de salida `0`.
+  - Flujo integral verificado con script de prueba de base de datos de extremo a extremo.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

@@ -124,9 +124,91 @@ model RestaurantSettings {
   facebookUrl       String?  @default("")
   instagramUrl      String?  @default("")
   websiteUrl        String?  @default("")
+  totalTables       Int      @default(15)
   updatedAt         DateTime @updatedAt
 
   @@map("restaurant_settings")
 }
+
+model Waiter {
+  id        String         @id @default(cuid())
+  name      String         // Ej: "Carlos", "Sandra"
+  pin       String         // PIN de 4 dígitos para acceso rápido
+  isActive  Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  sessions  TableSession[]
+
+  @@map("waiters")
+}
+
+model TableSession {
+  id          String      @id @default(cuid())
+  tableNumber String      // Normalizado sin ceros a la izquierda: "1", "2", "5"
+  status      TableStatus @default(OPEN)
+
+  waiterId    String?
+  waiter      Waiter?     @relation(fields: [waiterId], references: [id])
+
+  total       Float       @default(0)
+
+  closedAt    DateTime?
+  closedBy    String?
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  items       OrderItem[]
+
+  @@index([status])
+  @@index([tableNumber, status])
+  @@index([closedAt])
+  @@map("table_sessions")
+}
+
+model OrderItem {
+  id              String       @id @default(cuid())
+  tableSessionId  String
+  tableSession    TableSession @relation(fields: [tableSessionId], references: [id], onDelete: Cascade)
+
+  dishId          String?
+  dishName        String       // Nombre congelado al momento de pedir
+  portionLabel    String?      // Ej: "1/2 Pollo", "Completo"
+  unitPrice       Float
+  quantity        Int          @default(1)
+  subtotal        Float
+  notes           String?      // Ej: "Sin ensalada", "Para llevar"
+
+  addedBy         ItemSource   // CUSTOMER_QR, WAITER, ADMIN_CASHIER
+  addedByName     String?      // Ej: "Cliente QR", "Carlos", "Caja"
+  round           Int          @default(1) // Ronda 1 (inicio), Ronda 2 (adición)...
+
+  status          ItemStatus   @default(CONFIRMED) // PENDING_CONFIRMATION, CONFIRMED, CANCELLED
+  cancelledReason String?      // Motivo si el Admin elimina/anula el ítem
+
+  createdAt       DateTime     @default(now())
+
+  @@index([tableSessionId])
+  @@map("order_items")
+}
+
+enum TableStatus {
+  OPEN
+  PENDING_CONFIRMATION
+  BILL_REQUESTED
+  CLOSED
+}
+
+enum ItemSource {
+  CUSTOMER_QR
+  WAITER
+  ADMIN_CASHIER
+}
+
+enum ItemStatus {
+  PENDING_CONFIRMATION
+  CONFIRMED
+  CANCELLED
+}
+
 
 

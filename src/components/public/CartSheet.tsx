@@ -13,6 +13,10 @@ import {
   Send,
   MessageSquare,
   ShoppingBag,
+  UtensilsCrossed,
+  Utensils,
+  RefreshCw,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -44,6 +48,13 @@ export function CartSheet({
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [notes, setNotes] = useState("");
   const [isClosing, setIsClosing] = useState(false);
+  const [isSubmittingTableOrder, setIsSubmittingTableOrder] = useState(false);
+  const [submittedSession, setSubmittedSession] = useState<{
+    tableNumber: string;
+    sessionId: string;
+  } | null>(null);
+  const [isRequestingBill, setIsRequestingBill] = useState(false);
+  const [billRequested, setBillRequested] = useState(false);
 
   useEffect(() => {
     if (isCartOpen && !isClosing) {
@@ -159,6 +170,74 @@ export function CartSheet({
     toast.success("¡Abriendo WhatsApp para confirmar tu pedido!");
   };
 
+  const handleSubmitTableOrder = async () => {
+    if (items.length === 0) {
+      toast.error("El carrito está vacío");
+      return;
+    }
+
+    if (!tableNumber.trim()) {
+      toast.error("Por favor ingresa o confirma el número de mesa");
+      return;
+    }
+
+    setIsSubmittingTableOrder(true);
+    try {
+      const res = await fetch("/api/tables/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tableNumber: tableNumber.trim(),
+          addedBy: "CUSTOMER_QR",
+          addedByName: "Cliente QR",
+          items: items.map((item) => ({
+            dishId: item.dishId,
+            dishName: item.name,
+            portionLabel: item.portionLabel || null,
+            unitPrice: item.price,
+            quantity: item.quantity,
+            notes: notes.trim() || undefined,
+          })),
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "Error al enviar el pedido a la mesa");
+      }
+
+      setSubmittedSession({
+        tableNumber: json.data?.tableNumber || tableNumber.trim(),
+        sessionId: json.data?.sessionId,
+      });
+
+      clearCart();
+      toast.success("¡Pedido enviado a la mesa con éxito!");
+    } catch (err: any) {
+      toast.error(err.message || "No se pudo enviar el pedido");
+    } finally {
+      setIsSubmittingTableOrder(false);
+    }
+  };
+
+  const handleRequestBill = async () => {
+    if (!submittedSession?.sessionId) return;
+    setIsRequestingBill(true);
+    try {
+      const res = await fetch(`/api/tables/${submittedSession.sessionId}/bill-request`, {
+        method: "POST",
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.message);
+      setBillRequested(true);
+      toast.success("¡Solicitud enviada! En breve te atenderán para el pago en caja.");
+    } catch (err: any) {
+      toast.error(err.message || "No se pudo solicitar la cuenta");
+    } finally {
+      setIsRequestingBill(false);
+    }
+  };
+
   return (
     <div
       role="dialog"
@@ -214,17 +293,75 @@ export function CartSheet({
         {/* Lista de Ítems */}
         <div className="p-4 space-y-3 flex-1 overflow-y-auto">
           {items.length === 0 ? (
-            <div className="py-12 text-center space-y-3">
-              <div className="w-16 h-16 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center mx-auto text-gray-600">
-                <ShoppingBag className="w-8 h-8" />
+            submittedSession ? (
+              <div className="py-8 px-4 text-center space-y-4 bg-[#14161a] border border-amber-500/30 rounded-3xl">
+                <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto animate-pulse">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+                <div className="space-y-1">
+                  <span className="inline-block px-3 py-1 bg-amber-500/20 text-amber-400 text-xs font-black rounded-full uppercase tracking-wider">
+                    Mesa #{submittedSession.tableNumber}
+                  </span>
+                  <h4 className="text-base font-extrabold text-white">
+                    ¡Pedido Recibido!
+                  </h4>
+                  <p className="text-xs text-gray-400 max-w-xs mx-auto">
+                    El mesero verificará tu pedido y lo marchará de inmediato a la cocina.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-black/40 border border-gray-800 rounded-2xl text-left space-y-1 text-xs">
+                  <div className="flex justify-between text-gray-400">
+                    <span>Estado:</span>
+                    <span className="font-bold text-amber-400">En marcha a cocina</span>
+                  </div>
+                  <div className="flex justify-between text-gray-400">
+                    <span>Pago:</span>
+                    <span className="font-semibold text-white">Directamente en Caja</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  <button
+                    onClick={handleRequestBill}
+                    disabled={isRequestingBill || billRequested}
+                    className={`w-full py-3 px-4 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 transition-all ${
+                      billRequested
+                        ? "bg-purple-900/40 border border-purple-500/50 text-purple-300 cursor-default"
+                        : "bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-600/30 active:scale-95"
+                    }`}
+                  >
+                    <Table className="w-4 h-4" />
+                    <span>
+                      {billRequested
+                        ? "✓ Solicitud de Cuenta Notificada"
+                        : isRequestingBill
+                        ? "Notificando a caja..."
+                        : "🙋 Solicitar Cuenta a Caja"}
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => setSubmittedSession(null)}
+                    className="w-full py-2.5 px-4 bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white rounded-xl text-xs font-bold transition-all"
+                  >
+                    + Pedir Algo Más (Nueva Adición)
+                  </button>
+                </div>
               </div>
-              <p className="text-sm font-bold text-gray-300">
-                Tu carrito está vacío
-              </p>
-              <p className="text-xs text-gray-500 max-w-xs mx-auto">
-                Explora el menú y agrega los deliciosos pollos asados, combos o asados a la brasa.
-              </p>
-            </div>
+            ) : (
+              <div className="py-12 text-center space-y-3">
+                <div className="w-16 h-16 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center mx-auto text-gray-600">
+                  <ShoppingBag className="w-8 h-8" />
+                </div>
+                <p className="text-sm font-bold text-gray-300">
+                  Tu carrito está vacío
+                </p>
+                <p className="text-xs text-gray-500 max-w-xs mx-auto">
+                  Explora el menú y agrega los deliciosos pollos asados, combos o asados a la brasa.
+                </p>
+              </div>
+            )
           ) : (
             items.map((item) => (
               <div
@@ -377,7 +514,7 @@ export function CartSheet({
           )}
         </div>
 
-        {/* Footer con Total y Botón WhatsApp */}
+        {/* Footer con Total y Botones de Acción */}
         {items.length > 0 && (
           <div className="p-4 bg-[#14161a] border-t border-gray-800 space-y-3">
             <div className="flex items-center justify-between">
@@ -389,13 +526,39 @@ export function CartSheet({
               </span>
             </div>
 
-            <button
-              onClick={handleSendWhatsapp}
-              className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 active:scale-[0.98] text-white font-extrabold rounded-2xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 text-xs transition-all min-h-[48px]"
-            >
-              <Send className="w-4 h-4" />
-              <span>Enviar Pedido por WhatsApp</span>
-            </button>
+            {orderType === "mesa" ? (
+              <div className="space-y-2">
+                <button
+                  onClick={handleSubmitTableOrder}
+                  disabled={isSubmittingTableOrder}
+                  className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 active:scale-[0.98] text-white font-extrabold rounded-2xl shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 text-xs transition-all min-h-[48px] disabled:opacity-50"
+                >
+                  <Utensils className="w-4 h-4" />
+                  <span>
+                    {isSubmittingTableOrder
+                      ? "Enviando pedido a cocina..."
+                      : `🍽️ Enviar Pedido a ${tableNumber ? `Mesa #${tableNumber}` : "Mesa"}`}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSendWhatsapp}
+                  className="w-full py-2 text-[11px] font-semibold text-gray-400 hover:text-emerald-400 flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <Send className="w-3 h-3" />
+                  <span>O enviar copia por WhatsApp</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleSendWhatsapp}
+                className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 active:scale-[0.98] text-white font-extrabold rounded-2xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 text-xs transition-all min-h-[48px]"
+              >
+                <Send className="w-4 h-4" />
+                <span>Enviar Pedido por WhatsApp</span>
+              </button>
+            )}
           </div>
         )}
       </div>

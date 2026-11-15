@@ -32,6 +32,7 @@ export function AdminNavSidebar() {
 
   const navItems = [
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+    { label: "Mesas & Caja", href: "/admin/tables", icon: UtensilsCrossed },
     { label: "Platos & Disponibilidad", href: "/admin/dishes", icon: UtensilsCrossed },
     { label: "Crear Nuevo Plato", href: "/admin/dishes/new", icon: PlusCircle },
     { label: "Categorías", href: "/admin/categories", icon: FolderTree },

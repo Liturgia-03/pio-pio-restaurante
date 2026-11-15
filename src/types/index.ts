@@ -79,3 +79,55 @@ export interface ApiResponse<T = any> {
   error?: string | null;
 }
 
+export type TableStatus = "OPEN" | "PENDING_CONFIRMATION" | "BILL_REQUESTED" | "CLOSED";
+export type ItemSource = "CUSTOMER_QR" | "WAITER" | "ADMIN_CASHIER";
+export type ItemStatus = "PENDING_CONFIRMATION" | "CONFIRMED" | "CANCELLED";
+
+export interface WaiterItem {
+  id: string;
+  name: string;
+  pin: string;
+  isActive: boolean;
+  createdAt?: string;
+}
+
+export interface OrderItemData {
+  id: string;
+  tableSessionId: string;
+  dishId: string;
+  dishName: string;
+  portionLabel?: string | null;
+  unitPrice: number;
+  quantity: number;
+  subtotal: number;
+  notes?: string | null;
+  addedBy: ItemSource;
+  addedByName?: string | null;
+  round: number;
+  status: ItemStatus;
+  cancelledReason?: string | null;
+  createdAt: string;
+}
+
+export interface TableSessionData {
+  id: string;
+  tableNumber: string;
+  status: TableStatus;
+  waiterId?: string | null;
+  waiter?: WaiterItem | null;
+  total: number;
+  closedAt?: string | null;
+  closedBy?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items: OrderItemData[];
+}
+
+export interface TableCardData {
+  tableNumber: string;
+  session: TableSessionData | null;
+  status: "FREE" | TableStatus;
+  minutesOpen?: number | null;
+}
+
+

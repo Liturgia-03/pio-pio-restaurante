@@ -59,6 +59,7 @@ export async function GET() {
         facebookUrl: settings.facebookUrl || "",
         instagramUrl: settings.instagramUrl || "",
         websiteUrl: settings.websiteUrl || "",
+        totalTables: settings.totalTables || 15,
         headerImages: images,
         headerTagline: settings.headerTagline || "Asadero & Restaurante Tradicional",
         headerDescription: settings.headerDescription || "El auténtico sabor a la brasa, broaster y platos típicos",

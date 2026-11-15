@@ -920,7 +920,17 @@ async function main() {
       schedule: "Lunes a Domingo: 10:00 AM a 9:00 PM",
       wifiSsid: "PioPio-Clientes",
       wifiPassword: "Parrilla2026*",
+      totalTables: 15,
     },
+  });
+
+  // 6. Meseros Iniciales de Pío Pío
+  await prisma.waiter.createMany({
+    data: [
+      { name: "Carlos", pin: "1234", isActive: true },
+      { name: "Sandra", pin: "5678", isActive: true },
+    ],
+    skipDuplicates: true,
   });
 
   console.log("¡Reestructuración completada exitosamente con el menú real de Asadero y Restaurante Pío Pío!");

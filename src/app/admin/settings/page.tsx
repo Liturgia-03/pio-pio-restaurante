@@ -19,6 +19,7 @@ import {
   Sparkles,
   Globe,
   Share2,
+  Utensils,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,6 +28,7 @@ export default function AdminSettingsPage() {
 
   const [restaurantName, setRestaurantName] = useState("");
   const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [totalTables, setTotalTables] = useState<number>(15);
   const [address, setAddress] = useState("");
   const [openingHours, setOpeningHours] = useState("");
   const [wifiSsid, setWifiSsid] = useState("");
@@ -67,6 +69,7 @@ export default function AdminSettingsPage() {
     if (settings) {
       setRestaurantName(settings.restaurantName || "Pío Pío - Asadero y Restaurante");
       setWhatsappNumber(settings.whatsappNumber || "573001234567");
+      if (settings.totalTables) setTotalTables(Number(settings.totalTables));
       setAddress(settings.address || "");
       setOpeningHours(settings.openingHours || "");
       setWifiSsid(settings.wifiSsid || "");
@@ -125,6 +128,7 @@ export default function AdminSettingsPage() {
     updateMutation.mutate({
       restaurantName,
       whatsappNumber,
+      totalTables: Number(totalTables) || 15,
       address,
       openingHours,
       wifiSsid,
@@ -185,6 +189,28 @@ export default function AdminSettingsPage() {
             onChange={(e) => setWhatsappNumber(e.target.value.replace(/[^0-9]/g, ""))}
             placeholder="573001234567"
             className="w-full bg-[#14161a] border border-gray-800 rounded-xl px-3.5 py-2.5 text-xs text-emerald-300 font-mono font-bold focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+
+        {/* Capacidad del Salón / Número de Mesas */}
+        <div className="space-y-2 border-b border-gray-800/80 pb-4">
+          <div className="flex items-center gap-2 text-amber-400">
+            <Utensils className="w-4 h-4" />
+            <label className="text-xs font-bold text-white uppercase tracking-wider">
+              Capacidad del Salón (Número Total de Mesas)
+            </label>
+          </div>
+          <p className="text-[11px] text-gray-400">
+            Define cuántas mesas físicas tiene el restaurante. Este número dibujará automáticamente la cuadrícula de mesas en la plataforma de los meseros y en el panel de Caja.
+          </p>
+          <input
+            type="number"
+            min={1}
+            max={100}
+            required
+            value={totalTables}
+            onChange={(e) => setTotalTables(Math.max(1, parseInt(e.target.value, 10) || 1))}
+            className="w-full sm:w-48 bg-[#14161a] border border-gray-800 rounded-xl px-3.5 py-2.5 text-xs text-amber-400 font-bold focus:outline-none focus:border-amber-500"
           />
         </div>
 

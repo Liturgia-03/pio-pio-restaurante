@@ -97,8 +97,10 @@ export default function WaiterApp() {
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
-  // Estado del modal de mesa seleccionada
+  // Estado del modal de mesa seleccionada e inspección
   const [selectedTable, setSelectedTable] = useState<TableCardData | null>(null);
+  const [showTableDetailModal, setShowTableDetailModal] = useState<boolean>(false);
+  const [orderTableNumber, setOrderTableNumber] = useState<string>("");
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
   // Estados para catálogo y adición de platos (Gourmet UX)
@@ -124,8 +126,12 @@ export default function WaiterApp() {
   const [showTransferModal, setShowTransferModal] = useState<boolean>(false);
   const [targetTableNumber, setTargetTableNumber] = useState<string>("");
 
+  // Estado de montaje en cliente (elimina hydration mismatch por extensiones del navegador)
+  const [isMounted, setIsMounted] = useState<boolean>(false);
+
   // Cargar sesión guardada de mesero
   useEffect(() => {
+    setIsMounted(true);
     try {
       const saved = localStorage.getItem("pio_waiter_session");
       if (saved) {
@@ -206,18 +212,10 @@ export default function WaiterApp() {
   // Manejador centralizado para la barra inferior (siempre disponible para cambiar de vista)
   const handleBottomNavClick = (tab: "all" | "pending" | "order" | "active" | "menu" | "profile") => {
     setActiveBottomNav(tab);
-    if (tab === "order") {
-      setShowAddDishModal(false);
-      setIsStagingExpanded(false);
-      setShowTransferModal(false);
-    } else {
-      if (stagedItems.length === 0) {
-        setSelectedTable(null);
-      }
-      setShowAddDishModal(false);
-      setIsStagingExpanded(false);
-      setShowTransferModal(false);
-    }
+    setShowTableDetailModal(false);
+    setShowAddDishModal(false);
+    setIsStagingExpanded(false);
+    setShowTransferModal(false);
   };
 
   // Manejo del PIN táctil
@@ -448,14 +446,22 @@ export default function WaiterApp() {
 
   // Confirmar Pedido: Se marcha a cocina y YA NO se puede quitar por el mesero
   const handleSaveStagedOrder = async () => {
-    if (!selectedTable || stagedItems.length === 0) return;
+    const tableToOrder = orderTableNumber || selectedTable?.tableNumber;
+    if (!tableToOrder) {
+      toast.error("Por favor selecciona a qué mesa pertenece este pedido");
+      return;
+    }
+    if (stagedItems.length === 0) {
+      toast.error("La comanda está vacía. Agrega al menos un plato antes de confirmar");
+      return;
+    }
     setActionLoading(true);
     try {
       const res = await fetch("/api/tables/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tableNumber: selectedTable.tableNumber,
+          tableNumber: tableToOrder,
           waiterId: waiter?.id,
           waiterName: waiter?.name,
           addedBy: "WAITER",
@@ -465,11 +471,16 @@ export default function WaiterApp() {
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.message);
 
-      toast.success("¡Pedido confirmado y marchado a cocina! Los productos han quedado fijados en la cuenta.");
+      toast.success(
+        `¡Pedido confirmado y marchado a cocina para Mesa #${tableToOrder}! Los productos han quedado fijados en la cuenta.`
+      );
       setStagedItems([]);
+      setOrderTableNumber("");
       setShowAddDishModal(false);
+      setShowTableDetailModal(false);
       setIsStagingExpanded(false);
       await fetchTables(true);
+      setActiveBottomNav("all");
     } catch (err: any) {
       toast.error(err.message || "Error al confirmar pedido");
     } finally {
@@ -523,10 +534,18 @@ export default function WaiterApp() {
     return tablesData;
   }, [tablesData, activeBottomNav]);
 
+  // Esperar a que monte en el cliente para evitar discrepancias de SSR y atributos inyectados por extensiones
+  if (!isMounted) {
+    return null;
+  }
+
   // Si no ha iniciado sesión, mostrar pantalla de PIN gourmet institucional
   if (!waiter) {
     return (
-      <div className="min-h-screen bg-[#0b0c0e] text-white flex flex-col justify-center items-center p-4">
+      <div
+        suppressHydrationWarning
+        className="min-h-screen bg-[#0b0c0e] text-white flex flex-col justify-center items-center p-4"
+      >
         <div className="w-full max-w-sm bg-[#14161a] border border-gray-800 rounded-3xl p-6 shadow-2xl space-y-6 text-center relative overflow-hidden">
           {/* Resplandor decorativo ámbar */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-24 bg-gradient-to-b from-amber-500/20 to-transparent blur-2xl pointer-events-none" />
@@ -605,7 +624,10 @@ export default function WaiterApp() {
 
   // Vista principal del mesero
   return (
-    <div className="min-h-screen bg-[#0b0c0e] text-white flex flex-col pb-24">
+    <div
+      suppressHydrationWarning
+      className="min-h-screen bg-[#0b0c0e] text-white flex flex-col pb-24"
+    >
       {/* Barra superior de estado */}
       <header className="sticky top-0 z-30 bg-[#14161a]/95 backdrop-blur-md border-b border-gray-800 px-4 py-3 shadow-md">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
@@ -797,8 +819,14 @@ export default function WaiterApp() {
                       onClick={() => {
                         setSelectedTable(table);
                         if (isFree) {
-                          setStagedItems([]);
+                          if (orderTableNumber !== table.tableNumber) {
+                            setOrderTableNumber(table.tableNumber);
+                            setStagedItems([]);
+                          }
+                          setShowTableDetailModal(false);
                           setShowAddDishModal(true);
+                        } else {
+                          setShowTableDetailModal(true);
                         }
                       }}
                       className={`relative p-3 rounded-2xl border text-left flex flex-col justify-between min-h-[82px] sm:min-h-[88px] transition-all duration-200 active:scale-95 shadow-sm ${
@@ -1000,265 +1028,328 @@ export default function WaiterApp() {
         )}
 
         {/* VISTA 6: PEDIDO EN PANTALLA COMPLETA (ESTILO CARRITO DEL MENÚ CON DETALLE TOTAL) */}
-        {activeBottomNav === "order" && (
-          <div className="max-w-2xl mx-auto space-y-4 pt-2">
-            {/* Header del Pedido */}
-            <div className="bg-[#14161a] border border-gray-800 rounded-3xl p-4 sm:p-5 shadow-xl flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center font-black text-xl shadow-md shadow-amber-500/10">
-                  <ShoppingBag className="w-6 h-6" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-base sm:text-lg font-black text-white">
-                      {selectedTable ? `Comanda • Mesa #${selectedTable.tableNumber}` : "Comanda de Pedido"}
-                    </h2>
-                    {stagedCount > 0 && (
-                      <span className="text-[10px] bg-amber-500 text-black font-black px-2 py-0.5 rounded-full">
-                        {stagedCount} plato(s)
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-400">
-                    Mesero: <span className="text-amber-400 font-semibold">{waiter.name}</span>
-                  </p>
-                </div>
-              </div>
+        {activeBottomNav === "order" && (() => {
+          const currentTableNumber = orderTableNumber || selectedTable?.tableNumber || "";
 
-              {selectedTable && (
+          return (
+            <div className="max-w-2xl mx-auto space-y-4 pt-2">
+              {/* Header del Pedido */}
+              <div className="bg-[#14161a] border border-gray-800 rounded-3xl p-4 sm:p-5 shadow-xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center font-black text-xl shadow-md shadow-amber-500/10">
+                    <ShoppingBag className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-base sm:text-lg font-black text-white">
+                        {currentTableNumber ? `Comanda • Mesa #${currentTableNumber}` : "Comanda de Pedido"}
+                      </h2>
+                      {stagedCount > 0 && (
+                        <span className="text-[10px] bg-amber-500 text-black font-black px-2 py-0.5 rounded-full">
+                          {stagedCount} plato(s)
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      Mesero: <span className="text-amber-400 font-semibold">{waiter.name}</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Botón superior Agregar Platos (Siempre visible) */}
                 <button
                   type="button"
-                  onClick={() => setShowAddDishModal(true)}
-                  className="px-3 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all active:scale-95"
+                  onClick={() => {
+                    setShowTableDetailModal(false);
+                    setShowAddDishModal(true);
+                  }}
+                  className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold text-xs rounded-xl flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition-all active:scale-95"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                   <span>+ Agregar platos</span>
                 </button>
-              )}
-            </div>
-
-            {/* Si no hay platos en el pedido */}
-            {stagedItems.length === 0 ? (
-              <div className="text-center py-16 bg-[#14161a] border border-gray-800 rounded-3xl p-6 space-y-4">
-                <div className="w-16 h-16 rounded-full bg-gray-800/80 flex items-center justify-center mx-auto text-gray-500">
-                  <ShoppingBag className="w-8 h-8" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-base font-black text-white">Tu comanda de pedido está vacía</h3>
-                  <p className="text-xs text-gray-400 max-w-sm mx-auto">
-                    Selecciona una mesa en el salón y agrega los platos, porciones y notas que pidan los comensales.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleBottomNavClick("all")}
-                  className="px-5 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white font-black text-xs rounded-2xl shadow-lg shadow-amber-500/20 active:scale-95 transition-all"
-                >
-                  Ir al Salón de Mesas &rarr;
-                </button>
               </div>
-            ) : (
-              /* Si hay platos en el pedido: Pantalla Completa con todos los detalles */
-              <div className="space-y-3">
-                {/* Cabecera con selector o alerta de mesa */}
-                <div className="flex items-center justify-between px-2">
-                  <span className="text-xs text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <Utensils className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Platos en este pedido ({stagedItems.length}):</span>
-                  </span>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStagedItems([]);
-                      toast.info("Se vació el pedido");
-                    }}
-                    className="text-red-400 hover:text-red-300 font-bold text-xs flex items-center gap-1 active:scale-95"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>Vaciar comanda</span>
-                  </button>
+              {/* Selector interactivo de mesa para la comanda */}
+              <div className="bg-[#14161a] border border-gray-800 rounded-2xl p-3.5 space-y-2.5 shadow-md">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-300 font-bold flex items-center gap-1.5">
+                    <span className="text-amber-400">📍 Mesa asignada:</span>
+                    <span className="font-black text-white text-xs sm:text-sm">
+                      {currentTableNumber ? `Mesa #${currentTableNumber}` : "⚠️ Selecciona una mesa"}
+                    </span>
+                  </span>
+                  <span className="text-[10px] text-gray-400">
+                    Toca para cambiar de mesa
+                  </span>
                 </div>
 
-                {/* Lista de Platos en Pantalla Completa */}
-                <div className="space-y-2.5">
-                  {stagedItems.map((item, idx) => {
-                    const dishObj = categories
-                      .flatMap((c) => c.dishes)
-                      .find((d) => d.id === item.dishId);
-
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                  {tablesData.map((t) => {
+                    const isSelected = String(currentTableNumber) === String(t.tableNumber);
                     return (
-                      <div
-                        key={idx}
-                        className="p-3.5 bg-[#14161a] border border-gray-800 rounded-2xl space-y-3 shadow-md hover:border-gray-700/80 transition-all"
+                      <button
+                        key={t.tableNumber}
+                        type="button"
+                        onClick={() => {
+                          setOrderTableNumber(t.tableNumber);
+                          setSelectedTable(t);
+                          toast.info(`Comanda asignada a Mesa #${t.tableNumber}`);
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                          isSelected
+                            ? "bg-amber-500 text-black font-black ring-2 ring-amber-400 shadow-md scale-105"
+                            : t.status === "FREE"
+                            ? "bg-[#181b20] border border-emerald-500/40 text-emerald-300 hover:border-emerald-400"
+                            : "bg-[#181b20] border border-gray-800 text-gray-400 hover:text-white"
+                        }`}
                       >
-                        {/* Fila del Plato: Foto, Nombre, Porción, Quitar y Cantidad */}
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            {/* Botón explícito para QUITAR PLATO */}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveStagedItem(idx)}
-                              className="p-2 text-red-400 hover:text-red-300 hover:bg-red-950/40 rounded-xl active:scale-90 transition-all flex-shrink-0"
-                              title="Quitar este plato"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-
-                            {/* Foto del plato */}
-                            {dishObj?.imageUrl ? (
-                              <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-900 flex-shrink-0 border border-gray-800">
-                                <img
-                                  src={dishObj.imageUrl}
-                                  alt={item.dishName}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                            ) : (
-                              <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-black flex-shrink-0 border border-amber-500/20 text-lg">
-                                🍗
-                              </div>
-                            )}
-
-                            {/* Nombre y Precio */}
-                            <div className="min-w-0 flex-1">
-                              <h4 className="text-xs sm:text-sm font-bold text-white truncate">
-                                {item.dishName}
-                              </h4>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                {item.portionLabel && (
-                                  <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-bold">
-                                    {item.portionLabel}
-                                  </span>
-                                )}
-                                <span className="text-[11px] text-gray-400 font-mono">
-                                  {formatPrice(item.unitPrice)} c/u
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Control ergonómico de cantidad [+] / [-] y Subtotal */}
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            <div className="flex items-center bg-[#181b20] border border-gray-800 rounded-xl p-0.5">
-                              <button
-                                type="button"
-                                onClick={() => handleUpdateStagedQuantity(idx, -1)}
-                                className="w-7 h-7 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-950/30 flex items-center justify-center active:scale-90 transition-all"
-                              >
-                                <Minus className="w-3.5 h-3.5" />
-                              </button>
-                              <span className="w-6 text-center text-xs font-black text-white">
-                                {item.quantity}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => handleUpdateStagedQuantity(idx, 1)}
-                                className="w-7 h-7 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-950/30 flex items-center justify-center active:scale-90 transition-all"
-                              >
-                                <Plus className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-
-                            <span className="text-xs sm:text-sm font-black text-amber-400 min-w-[70px] text-right">
-                              {formatPrice(item.unitPrice * item.quantity)}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Chips de Notas Rápidas de Cocina */}
-                        <div className="space-y-1.5 pt-1 border-t border-gray-800/60">
-                          <span className="text-[10px] text-gray-400 font-semibold flex items-center gap-1">
-                            <MessageSquare className="w-3 h-3 text-amber-400" />
-                            <span>Instrucciones rápidas para cocina:</span>
-                          </span>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            {QUICK_KITCHEN_NOTES.map((chip) => (
-                              <button
-                                key={chip}
-                                type="button"
-                                onClick={() => {
-                                  const curr = item.notes
-                                    ? `${item.notes}, ${chip}`
-                                    : chip;
-                                  handleUpdateStagedNotes(idx, curr);
-                                }}
-                                className="px-2.5 py-1 bg-[#181b20] hover:bg-gray-800 active:scale-95 text-gray-300 hover:text-white rounded-lg text-[10px] font-semibold border border-gray-700/60 transition-colors"
-                              >
-                                + {chip}
-                              </button>
-                            ))}
-                          </div>
-
-                          <input
-                            type="text"
-                            placeholder="Nota especial (ej. pechuga dorada, sin hielo, salsa aparte)..."
-                            value={item.notes}
-                            onChange={(e) => handleUpdateStagedNotes(idx, e.target.value)}
-                            className="w-full bg-[#181b20] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-500"
-                          />
-                        </div>
-                      </div>
+                        #{t.tableNumber} {t.status === "FREE" ? "🟢" : "🔵"}
+                      </button>
                     );
                   })}
                 </div>
+              </div>
 
-                {/* Botón para Seguir Agregando Platos */}
-                {selectedTable && (
-                  <button
-                    type="button"
-                    onClick={() => setShowAddDishModal(true)}
-                    className="w-full py-3 bg-[#14161a] hover:bg-[#1a1d22] border border-gray-800 text-amber-400 font-bold text-xs rounded-2xl flex items-center justify-center gap-2 active:scale-98 transition-all"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>+ Agregar más platos al menú de esta mesa</span>
-                  </button>
-                )}
+              {/* Si no hay platos en el pedido */}
+              {stagedItems.length === 0 ? (
+                <div className="text-center py-16 bg-[#14161a] border border-gray-800 rounded-3xl p-6 space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-gray-800/80 flex items-center justify-center mx-auto text-gray-500">
+                    <ShoppingBag className="w-8 h-8" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-base font-black text-white">Tu comanda de pedido está vacía</h3>
+                    <p className="text-xs text-gray-400 max-w-sm mx-auto">
+                      {currentTableNumber
+                        ? `Selecciona platos del menú para la Mesa #${currentTableNumber}.`
+                        : "Selecciona una mesa en el salón y agrega los platos que pidan los comensales."}
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowTableDetailModal(false);
+                        setShowAddDishModal(true);
+                      }}
+                      className="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white font-black text-xs rounded-2xl shadow-lg shadow-amber-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Abrir Catálogo de Platos</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleBottomNavClick("all")}
+                      className="w-full sm:w-auto px-5 py-3 bg-[#181b20] hover:bg-gray-800 border border-gray-700 text-gray-300 font-bold text-xs rounded-2xl active:scale-95 transition-all"
+                    >
+                      Ver Salón de Mesas
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Si hay platos en el pedido: Pantalla Completa con todos los detalles */
+                <div className="space-y-3">
+                  {/* Cabecera con selector o alerta de mesa */}
+                  <div className="flex items-center justify-between px-2">
+                    <span className="text-xs text-gray-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                      <Utensils className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Platos en este pedido ({stagedItems.length}):</span>
+                    </span>
 
-                {/* Resumen Financiero y Confirmación Definitiva */}
-                <div className="bg-[#14161a] border border-gray-800 rounded-3xl p-5 space-y-4 shadow-2xl">
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between text-gray-400">
-                      <span>Cantidad total de platos:</span>
-                      <span className="font-bold text-white">{stagedCount} unidades</span>
-                    </div>
-                    <div className="flex justify-between text-gray-400">
-                      <span>Mesa asignada:</span>
-                      <span className="font-bold text-amber-400">
-                        {selectedTable ? `Mesa #${selectedTable.tableNumber}` : "Sin mesa asignada"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-base pt-2 border-t border-gray-800">
-                      <span className="font-bold text-white">Total a Confirmar:</span>
-                      <span className="text-xl font-black text-amber-400">
-                        {formatPrice(stagedTotal)}
-                      </span>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStagedItems([]);
+                        toast.info("Se vació el pedido");
+                      }}
+                      className="text-red-400 hover:text-red-300 font-bold text-xs flex items-center gap-1 active:scale-95"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Vaciar comanda</span>
+                    </button>
                   </div>
 
-                  {/* BOTÓN EXPLÍCITO: CONFIRMAR PEDIDO */}
+                  {/* Lista de Platos en Pantalla Completa */}
+                  <div className="space-y-2.5">
+                    {stagedItems.map((item, idx) => {
+                      const dishObj = categories
+                        .flatMap((c) => c.dishes)
+                        .find((d) => d.id === item.dishId);
+
+                      return (
+                        <div
+                          key={idx}
+                          className="p-3.5 bg-[#14161a] border border-gray-800 rounded-2xl space-y-3 shadow-md hover:border-gray-700/80 transition-all"
+                        >
+                          {/* Fila del Plato: Foto, Nombre, Porción, Quitar y Cantidad */}
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                              {/* Botón explícito para QUITAR PLATO */}
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveStagedItem(idx)}
+                                className="p-2 text-red-400 hover:text-red-300 hover:bg-red-950/40 rounded-xl active:scale-90 transition-all flex-shrink-0"
+                                title="Quitar este plato"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+
+                              {/* Foto del plato */}
+                              {dishObj?.imageUrl ? (
+                                <div className="w-12 h-12 rounded-xl overflow-hidden bg-gray-900 flex-shrink-0 border border-gray-800">
+                                  <img
+                                    src={dishObj.imageUrl}
+                                    alt={item.dishName}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-black flex-shrink-0 border border-amber-500/20 text-lg">
+                                  🍗
+                                </div>
+                              )}
+
+                              {/* Nombre y Precio */}
+                              <div className="min-w-0 flex-1">
+                                <h4 className="text-xs sm:text-sm font-bold text-white truncate">
+                                  {item.dishName}
+                                </h4>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  {item.portionLabel && (
+                                    <span className="text-[10px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-bold">
+                                      {item.portionLabel}
+                                    </span>
+                                  )}
+                                  <span className="text-[11px] text-gray-400 font-mono">
+                                    {formatPrice(item.unitPrice)} c/u
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Control ergonómico de cantidad [+] / [-] y Subtotal */}
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <div className="flex items-center bg-[#181b20] border border-gray-800 rounded-xl p-0.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateStagedQuantity(idx, -1)}
+                                  className="w-7 h-7 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-950/30 flex items-center justify-center active:scale-90 transition-all"
+                                >
+                                  <Minus className="w-3.5 h-3.5" />
+                                </button>
+                                <span className="w-6 text-center text-xs font-black text-white">
+                                  {item.quantity}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateStagedQuantity(idx, 1)}
+                                  className="w-7 h-7 rounded-lg text-gray-400 hover:text-green-400 hover:bg-green-950/30 flex items-center justify-center active:scale-90 transition-all"
+                                >
+                                  <Plus className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+
+                              <span className="text-xs sm:text-sm font-black text-amber-400 min-w-[70px] text-right">
+                                {formatPrice(item.unitPrice * item.quantity)}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Chips de Notas Rápidas de Cocina */}
+                          <div className="space-y-1.5 pt-1 border-t border-gray-800/60">
+                            <span className="text-[10px] text-gray-400 font-semibold flex items-center gap-1">
+                              <MessageSquare className="w-3 h-3 text-amber-400" />
+                              <span>Instrucciones rápidas para cocina:</span>
+                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {QUICK_KITCHEN_NOTES.map((chip) => (
+                                <button
+                                  key={chip}
+                                  type="button"
+                                  onClick={() => {
+                                    const curr = item.notes
+                                      ? `${item.notes}, ${chip}`
+                                      : chip;
+                                    handleUpdateStagedNotes(idx, curr);
+                                  }}
+                                  className="px-2.5 py-1 bg-[#181b20] hover:bg-gray-800 active:scale-95 text-gray-300 hover:text-white rounded-lg text-[10px] font-semibold border border-gray-700/60 transition-colors"
+                                >
+                                  + {chip}
+                                </button>
+                              ))}
+                            </div>
+
+                            <input
+                              type="text"
+                              placeholder="Nota especial (ej. pechuga dorada, sin hielo, salsa aparte)..."
+                              value={item.notes}
+                              onChange={(e) => handleUpdateStagedNotes(idx, e.target.value)}
+                              className="w-full bg-[#181b20] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-500"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Botón para Seguir Agregando Platos (Siempre visible y accesible) */}
                   <button
                     type="button"
-                    onClick={handleSaveStagedOrder}
-                    disabled={actionLoading || !selectedTable}
-                    className="w-full py-4 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-600 hover:opacity-95 disabled:opacity-50 text-white font-black text-sm rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-600/30 active:scale-98 transition-all"
+                    onClick={() => {
+                      setShowTableDetailModal(false);
+                      setShowAddDishModal(true);
+                    }}
+                    className="w-full py-3.5 bg-[#14161a] hover:bg-[#1a1d22] border-2 border-dashed border-amber-500/40 hover:border-amber-400 text-amber-400 font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 active:scale-98 transition-all shadow-sm"
                   >
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span>
-                      {actionLoading
-                        ? "Confirmando y marchando a cocina..."
-                        : `Confirmar Pedido • ${formatPrice(stagedTotal)}`}
-                    </span>
+                    <Plus className="w-4 h-4" />
+                    <span>+ Seguir agregando más platos a esta comanda {currentTableNumber ? `(Mesa #${currentTableNumber})` : ""}</span>
                   </button>
 
-                  <p className="text-[10px] text-gray-400 text-center font-semibold">
-                    ⚠️ Al pulsar "Confirmar Pedido" los platos se marcharán a cocina y quedarán fijados en la comanda de la mesa.
-                  </p>
+                  {/* Resumen Financiero y Confirmación Definitiva */}
+                  <div className="bg-[#14161a] border border-gray-800 rounded-3xl p-5 space-y-4 shadow-2xl">
+                    <div className="space-y-1.5 text-xs">
+                      <div className="flex justify-between text-gray-400">
+                        <span>Cantidad total de platos:</span>
+                        <span className="font-bold text-white">{stagedCount} unidades</span>
+                      </div>
+                      <div className="flex justify-between text-gray-400">
+                        <span>Mesa asignada:</span>
+                        <span className="font-bold text-amber-400">
+                          {currentTableNumber ? `Mesa #${currentTableNumber}` : "⚠️ Sin mesa asignada"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-base pt-2 border-t border-gray-800">
+                        <span className="font-bold text-white">Total a Confirmar:</span>
+                        <span className="text-xl font-black text-amber-400">
+                          {formatPrice(stagedTotal)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* BOTÓN EXPLÍCITO: CONFIRMAR PEDIDO */}
+                    <button
+                      type="button"
+                      onClick={handleSaveStagedOrder}
+                      disabled={actionLoading || !currentTableNumber}
+                      className="w-full py-4 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-600 hover:opacity-95 disabled:opacity-50 text-white font-black text-sm rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-emerald-600/30 active:scale-98 transition-all"
+                    >
+                      <CheckCircle2 className="w-5 h-5" />
+                      <span>
+                        {actionLoading
+                          ? "Confirmando y marchando a cocina..."
+                          : `Confirmar Pedido • ${formatPrice(stagedTotal)}`}
+                      </span>
+                    </button>
+
+                    <p className="text-[10px] text-gray-400 text-center font-semibold">
+                      ⚠️ Al pulsar "Confirmar Pedido" los platos se marcharán a cocina y quedarán fijados en la comanda de la mesa.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          );
+        })()}
       </main>
 
       {/* ========================================================================= */}
@@ -1367,10 +1458,10 @@ export default function WaiterApp() {
       {/* ========================================================================= */}
       {/* MODAL DETALLE DE MESA OCUPADA (RESPETA BOTTOM-16 PARA DEJAR LA BARRA VISIBLE) */}
       {/* ========================================================================= */}
-      {selectedTable && !showAddDishModal && (
+      {showTableDetailModal && selectedTable && (
         <div
           className="fixed inset-x-0 top-0 bottom-16 z-40 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in"
-          onClick={() => setSelectedTable(null)}
+          onClick={() => setShowTableDetailModal(false)}
         >
           <div
             className="w-full max-w-lg max-h-[85vh] overflow-y-auto bg-[#14161a] border border-gray-800 rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 space-y-4"
@@ -1399,7 +1490,8 @@ export default function WaiterApp() {
               </div>
 
               <button
-                onClick={() => setSelectedTable(null)}
+                type="button"
+                onClick={() => setShowTableDetailModal(false)}
                 className="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -1415,7 +1507,11 @@ export default function WaiterApp() {
                 <button
                   type="button"
                   onClick={() => {
-                    setStagedItems([]);
+                    setOrderTableNumber(selectedTable.tableNumber);
+                    if (orderTableNumber !== selectedTable.tableNumber) {
+                      setStagedItems([]);
+                    }
+                    setShowTableDetailModal(false);
                     setShowAddDishModal(true);
                   }}
                   className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 active:scale-95 transition-all"
@@ -1538,7 +1634,11 @@ export default function WaiterApp() {
                 <div className="space-y-2 pt-1">
                   <button
                     onClick={() => {
-                      setStagedItems([]);
+                      setOrderTableNumber(selectedTable.tableNumber);
+                      if (orderTableNumber !== selectedTable.tableNumber) {
+                        setStagedItems([]);
+                      }
+                      setShowTableDetailModal(false);
                       setShowAddDishModal(true);
                     }}
                     className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 active:scale-95 transition-all"
@@ -1583,7 +1683,7 @@ export default function WaiterApp() {
       {/* ========================================================================= */}
       {/* PANTALLA GOURMET DE TOMA DE PEDIDOS (RESPETA BOTTOM-16 PARA DEJAR LA BARRA VISIBLE) */}
       {/* ========================================================================= */}
-      {showAddDishModal && selectedTable && (
+      {showAddDishModal && (
         <div className="fixed inset-x-0 top-0 bottom-16 z-40 bg-[#0b0c0e] text-white flex flex-col animate-in fade-in">
           {/* Header Superior del Catálogo */}
           <header className="sticky top-0 z-20 bg-[#14161a] border-b border-gray-800 px-4 py-3 shadow-md flex items-center justify-between">
@@ -1592,6 +1692,7 @@ export default function WaiterApp() {
                 type="button"
                 onClick={() => {
                   setShowAddDishModal(false);
+                  setShowTableDetailModal(false);
                   setIsStagingExpanded(false);
                 }}
                 className="w-9 h-9 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 flex items-center justify-center active:scale-95 transition-all"
@@ -1602,7 +1703,9 @@ export default function WaiterApp() {
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-sm font-black text-white">
-                    Tomar Pedido • Mesa #{selectedTable.tableNumber}
+                    {orderTableNumber || selectedTable?.tableNumber
+                      ? `Tomar Pedido • Mesa #${orderTableNumber || selectedTable?.tableNumber}`
+                      : "Tomar Pedido"}
                   </h2>
                   <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-1.5 py-0.5 rounded">
                     Mesero: {waiter.name}
@@ -1614,16 +1717,33 @@ export default function WaiterApp() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                setShowAddDishModal(false);
-                setIsStagingExpanded(false);
-              }}
-              className="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              {stagedItems.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddDishModal(false);
+                    setShowTableDetailModal(false);
+                    setActiveBottomNav("order");
+                  }}
+                  className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all active:scale-95"
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span>Ver Pedido ({stagedCount})</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAddDishModal(false);
+                  setShowTableDetailModal(false);
+                  setIsStagingExpanded(false);
+                }}
+                className="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </header>
 
           {/* Barra de Búsqueda Gourmet */}
@@ -1907,6 +2027,7 @@ export default function WaiterApp() {
                 type="button"
                 onClick={() => {
                   setShowAddDishModal(false);
+                  setShowTableDetailModal(false);
                   setActiveBottomNav("order");
                 }}
                 className="w-full py-3.5 px-5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 active:scale-98 text-white font-extrabold rounded-2xl shadow-2xl shadow-orange-500/40 flex items-center justify-between border border-amber-300/30 transition-all min-h-[52px]"

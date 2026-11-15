@@ -89,6 +89,9 @@ export default function AdminTablesCashierPage() {
   const [targetTableNumber, setTargetTableNumber] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<string>("Efectivo");
 
+  // Estado de montaje en cliente para evitar hydration mismatch con extensiones
+  const [isMounted, setIsMounted] = useState<boolean>(false);
+
   // Filtro de mesas en caja
   const [tableFilter, setTableFilter] = useState<"all" | "free" | "pending" | "open" | "billRequested">("all");
 
@@ -162,6 +165,7 @@ export default function AdminTablesCashierPage() {
   }, []);
 
   useEffect(() => {
+    setIsMounted(true);
     loadTables();
     loadWaiters();
     loadMenu();
@@ -389,8 +393,12 @@ export default function AdminTablesCashierPage() {
     return list;
   }, [categories, selectedCategoryTab, searchProductQuery]);
 
+  if (!isMounted) {
+    return null;
+  }
+
   return (
-    <div className="space-y-6">
+    <div suppressHydrationWarning className="space-y-6">
       {/* Encabezado y Pestañas */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-[#14161a] p-5 rounded-3xl border border-gray-800">
         <div>

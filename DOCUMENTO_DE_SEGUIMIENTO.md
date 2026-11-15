@@ -717,6 +717,41 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores** de TypeScript.
   - Rutas `/admin/tables` y `/waiter` operando con HTTP 200 OK.
 
+### Hito 43: Blindaje contra Inyecciones de Extensiones de Navegador y Supresión de Hydration Mismatch
+- **Diagnóstico del Registro de Consola:**
+  - `contentscript.js` y `app-init-liveness / background-liveness`: Pertenecen a una **extensión instalada en el navegador del usuario** (billeteras Web3, gestor de contraseñas Bitwarden/Avast o bloqueadores), ajena al código del aplicativo Pío Pío.
+  - `bis_skin_checked="1"` / Hydration Mismatch: La extensión inyecta dinámicamente este atributo en los elementos `<div>` antes de que el motor de React finalice su hidratación en cliente.
+- **Blindaje en Frontend ([src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx) y [src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+  - Implementación del ciclo de vida seguro de cliente (`isMounted`) retornando `null` en SSR para garantizar que React realice el montaje fresco directamente en el cliente, eliminando de raíz cualquier comparación contra DOM alterado por extensiones y suprimiendo la píldora roja "1 Issue".
+  - Inclusión de la directiva `suppressHydrationWarning` en contenedores raíz.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores**.
+  - Servidor local en HTTP 200 OK.
+
+### Hito 44: Corrección Integral del Flujo de Comandas en Mesero (Desacoplamiento de Modal, Confirmación Atómica y Adición Continua de Platos)
+- **Diagnóstico de los Errores de Toma de Pedidos ([src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)):**
+  1. *Carrito aparentemente vacío al pulsar "Ver Pedido Completo":* Al cerrar `showAddDishModal` para ver la comanda, la condición superpuesta `selectedTable && !showAddDishModal` se activaba erróneamente, desplegando el modal de detalle de mesa (que en mesas libres no tiene ítems confirmados), tapando la vista real del pedido.
+  2. *Fallo de envío en "Confirmar Pedido":* Al cerrar el modal de detalle de mesa superpuesto, el manejador ejecutaba `setSelectedTable(null)`. Al quedar `selectedTable` en `null`, la función `handleSaveStagedOrder` abortaba de inmediato (`if (!selectedTable) return;`), por lo que no enviaba la orden a la base de datos ni a la cocina.
+  3. *Ausencia de botones para agregar más productos:* Al perderse la referencia de la mesa, el botón condicional `+ Agregar platos` desaparecía de la pantalla del pedido.
+- **Solución Arquitectónica Implementada:**
+  1. **Desacoplamiento de Estados (`orderTableNumber` vs `showTableDetailModal`):**
+     - Se creó el estado `orderTableNumber` independiente para retener el número de mesa asignado a la comanda en borrador.
+     - El modal de inspección de mesa ahora está estrictamente condicionado a `showTableDetailModal && selectedTable`, impidiendo que se superponga accidentalmente sobre la vista del pedido.
+  2. **Transición Limpia desde el Botón Flotante "Ver Pedido Completo":**
+     - Al pulsar la píldora flotante en el catálogo (`showAddDishModal`), se cierran de forma segura los modales y se activa directamente la vista `activeBottomNav = "order"` en pantalla completa, mostrando de inmediato todos los platos agregados con fotos, cantidades, notas y subtotales.
+  3. **Envío Robusto y Resiliente en `handleSaveStagedOrder`:**
+     - Ahora evalúa `const tableToOrder = orderTableNumber || selectedTable?.tableNumber`.
+     - Si falta la mesa, alerta amigablemente mediante toast: `"Por favor selecciona a qué mesa pertenece este pedido"`.
+     - Si la comanda está lista, envía `POST /api/tables/order`, notifica confirmación con toast institucional, limpia el borrador y regresa al salón con la mesa activa.
+  4. **Adición Continua de Productos en la Comanda:**
+     - Botón superior prominente **`+ Agregar platos`** siempre visible en el header del pedido.
+     - Selector interactivo horizontal de chips de mesa (`#1, #2, #3...`) para asignar o reasignar la comanda con 1 toque.
+     - Botón inferior destacado **`+ Seguir agregando más platos a esta comanda (Mesa #X)`** ubicado entre la lista de platos y el resumen de cobro.
+     - Botón de acceso directo en estado vacío: **`+ Abrir Catálogo de Platos`**.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores**.
+  - Petición HTTP a `/waiter`: Código 200 OK en 42ms.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

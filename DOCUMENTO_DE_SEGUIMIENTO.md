@@ -785,6 +785,23 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores**.
   - Servidor local en puerto 3000 corriendo con éxito.
 
+### Hito 48: Migración Exitosa a Supabase PostgreSQL (Sin Límites de Horas de Cómputo) y Restauración Integral del Sistema
+- **Migración de Infraestructura de Base de Datos:**
+  - Se sustituyó Neon Serverless por **Supabase PostgreSQL** (`aws-1-us-west-2.pooler.supabase.com`), eliminando permanentemente la restricción de 100 horas mensuales y asegurando alta disponibilidad 24/7 sin riesgo de bloqueo por horas de cómputo.
+  - Se configuró la arquitectura recomendada por Supabase en `prisma/schema.prisma` con soporte de Connection Pooling dual:
+    - `DATABASE_URL`: Conexión de transacciones vía PgBouncer en puerto `6543` para Next.js Serverless.
+    - `DIRECT_URL`: Conexión directa en puerto `5432` para sincronizaciones de esquema y migraciones Prisma.
+- **Sincronización y Sembrado de Datos:**
+  - `npx prisma db push` completado en 13.8s (esquema PostgreSQL 100% sincronizado).
+  - `npm run db:seed` ejecutado con éxito:
+    - 9 categorías oficiales de Pío Pío creadas.
+    - 49 platos de la carta con sus fotos oficiales, porciones y precios en COP cargados.
+    - Usuario administrador `Piopio123` y meseros institucionales listos.
+    - Ajustes del restaurante y 15 mesas del salón inicializadas.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación de producción limpia con **código de salida 0**.
+  - Endpoints probados localmente (`/api/public/menu`, `/api/tables`, `/api/public/settings`, `/api/public/table-status`): **200 OK**.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

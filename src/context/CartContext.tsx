@@ -143,12 +143,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [activeTableNumber]);
 
-  // Polling automático cada 3.5 segundos cuando hay una mesa activa
+  // Polling inteligente con detección de visibilidad activa (ahorra cuota y suspende en reposo)
   useEffect(() => {
     if (!activeTableNumber) return;
     refreshTableSession();
-    const interval = setInterval(refreshTableSession, 3500);
-    return () => clearInterval(interval);
+
+    // Solo consulta si la pestaña está activa y visible en pantalla
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        refreshTableSession();
+      }
+    }, 5000);
+
+    // Refresco instantáneo al desbloquear el teléfono o volver a la pestaña
+    const handleResume = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        refreshTableSession();
+      }
+    };
+
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", handleResume);
+      window.addEventListener("focus", handleResume);
+    }
+
+    return () => {
+      clearInterval(interval);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", handleResume);
+        window.removeEventListener("focus", handleResume);
+      }
+    };
   }, [activeTableNumber, refreshTableSession]);
 
   const clearCustomerSession = () => {

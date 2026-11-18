@@ -191,10 +191,33 @@ export default function WaiterApp() {
     if (waiter) {
       fetchTables();
       fetchMenu();
+
+      // Polling inteligente: solo consulta si la pestaña está activa y visible en pantalla
       const interval = setInterval(() => {
-        fetchTables(true);
-      }, 5000);
-      return () => clearInterval(interval);
+        if (typeof document !== "undefined" && document.visibilityState === "visible") {
+          fetchTables(true);
+        }
+      }, 6000);
+
+      // Refresco inmediato al desbloquear el teléfono o volver a la app
+      const handleResume = () => {
+        if (typeof document !== "undefined" && document.visibilityState === "visible") {
+          fetchTables(true);
+        }
+      };
+
+      if (typeof document !== "undefined") {
+        document.addEventListener("visibilitychange", handleResume);
+        window.addEventListener("focus", handleResume);
+      }
+
+      return () => {
+        clearInterval(interval);
+        if (typeof document !== "undefined") {
+          document.removeEventListener("visibilitychange", handleResume);
+          window.removeEventListener("focus", handleResume);
+        }
+      };
     }
   }, [waiter, fetchTables, fetchMenu]);
 

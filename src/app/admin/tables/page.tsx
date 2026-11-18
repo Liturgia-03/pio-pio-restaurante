@@ -173,10 +173,32 @@ export default function AdminTablesCashierPage() {
     loadWaiters();
     loadMenu();
 
+    // Polling inteligente: solo consulta si la ventana de administración está en pantalla activa
     const interval = setInterval(() => {
-      loadTables(true);
-    }, 5000);
-    return () => clearInterval(interval);
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        loadTables(true);
+      }
+    }, 6000);
+
+    // Refresco inmediato al volver a la pestaña de administración
+    const handleResume = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        loadTables(true);
+      }
+    };
+
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", handleResume);
+      window.addEventListener("focus", handleResume);
+    }
+
+    return () => {
+      clearInterval(interval);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", handleResume);
+        window.removeEventListener("focus", handleResume);
+      }
+    };
   }, [loadTables, loadWaiters, loadMenu]);
 
   // Total acumulado en mesas en este momento

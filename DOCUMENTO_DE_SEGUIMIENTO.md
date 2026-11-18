@@ -773,6 +773,18 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores**.
   - Servidor de desarrollo corriendo de forma estable en puerto 3000.
 
+### Hito 47: Diagnóstico de Cuota Agotada en Neon Serverless e Implementación de Polling Inteligente con Detección de Visibilidad
+- **Diagnóstico Integral de Arquitectura:**
+  - Se identificó la causa raíz exacta del fallo simultáneo en Menú, Mesero y Admin: la base de datos PostgreSQL en la nube de Neon (`ep-frosty-fire-bctywa8j-pooler`) arrojó el error `ERROR: Your account or project has exceeded the quota. Upgrade your plan to increase limits.` al agotar las 100 horas de cómputo del Free Tier mensual.
+  - Esto ocurrió porque las llamadas periódicas de polling en background se ejecutaban 24/7 sin detectar si la pestaña del navegador o pantalla del celular estaba activa o en reposo, impidiendo el auto-apagado (*Scale-to-Zero*) de Neon.
+- **Blindaje y Optimización de Polling ([src/context/CartContext.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/context/CartContext.tsx), [src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx), [src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+  - Implementación de guardas `document.visibilityState === "visible"`. Si la aplicación se minimiza, se bloquea el teléfono o se cambia de pestaña, el polling se suspende en un 100%.
+  - Listeners de `visibilitychange` y `window.onfocus` para refrescar inmediatamente la información en cuanto el mesero, comensal o cajero vuelve a la app.
+  - Intervalos optimizados a 6.000ms.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores**.
+  - Servidor local en puerto 3000 corriendo con éxito.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

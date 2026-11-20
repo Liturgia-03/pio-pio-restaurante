@@ -635,51 +635,26 @@ export default function AdminTablesCashierPage() {
     <div suppressHydrationWarning className="space-y-6">
       {/* Encabezado y Pestañas */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-[#14161a] p-5 rounded-3xl border border-gray-800">
-        <div className="flex items-center justify-between w-full md:w-auto">
-          <div className="flex items-center gap-2">
-            <span className="p-2 bg-amber-500/20 text-amber-400 rounded-xl text-lg font-black">
-              🍽️
-            </span>
-            <div>
-              <h1 className="text-xl font-black text-white">
-                Control de Mesas y Caja
-              </h1>
-              <p className="text-xs text-gray-400">
-                Pío Pío • Sincronización en tiempo real entre Salón, QR y Caja
-              </p>
-            </div>
+        <div className="flex items-center gap-2">
+          <span className="p-2 bg-amber-500/20 text-amber-400 rounded-xl text-lg font-black">
+            🍽️
+          </span>
+          <div>
+            <h1 className="text-xl font-black text-white">
+              Control de Mesas y Caja
+            </h1>
+            <p className="text-xs text-gray-400">
+              Pío Pío • Sincronización en tiempo real entre Salón, QR y Caja
+            </p>
           </div>
-
-          {activeTab === "tables" && (
-            <button
-              type="button"
-              onClick={() => setShowNewTableModal(true)}
-              className="md:hidden py-2 px-3 bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs rounded-xl shadow-md flex items-center gap-1 transition-all active:scale-95"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>+ Mesa</span>
-            </button>
-          )}
         </div>
 
-        {/* Selector de pestañas y botón Nueva Mesa */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {activeTab === "tables" && (
-            <button
-              type="button"
-              onClick={() => setShowNewTableModal(true)}
-              className="hidden md:flex py-2 px-3.5 bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs rounded-xl shadow-md items-center gap-1.5 transition-all active:scale-95"
-            >
-              <Plus className="w-4 h-4" />
-              <span>+ Nueva Mesa</span>
-            </button>
-          )}
-
-          <div className="flex items-center gap-1.5 bg-[#0f1115] p-1.5 rounded-2xl border border-gray-800">
+        {/* Contenedor de pestañas con botón Nueva Mesa adentro */}
+        <div className="flex items-center gap-1.5 bg-[#0f1115] p-1.5 rounded-2xl border border-gray-800 overflow-x-auto max-w-full">
           <button
             type="button"
             onClick={() => setActiveTab("tables")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
               activeTab === "tables"
                 ? "bg-amber-500 text-black shadow-md font-black"
                 : "text-gray-400 hover:text-white"
@@ -692,7 +667,7 @@ export default function AdminTablesCashierPage() {
           <button
             type="button"
             onClick={() => setActiveTab("history")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
               activeTab === "history"
                 ? "bg-amber-500 text-black shadow-md font-black"
                 : "text-gray-400 hover:text-white"
@@ -705,7 +680,7 @@ export default function AdminTablesCashierPage() {
           <button
             type="button"
             onClick={() => setActiveTab("waiters")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
               activeTab === "waiters"
                 ? "bg-amber-500 text-black shadow-md font-black"
                 : "text-gray-400 hover:text-white"
@@ -714,9 +689,18 @@ export default function AdminTablesCashierPage() {
             <Users className="w-4 h-4" />
             <span>Meseros ({waiters.length})</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setShowNewTableModal(true)}
+            className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all active:scale-95 whitespace-nowrap"
+            title="Crear nueva mesa"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Nueva Mesa</span>
+          </button>
         </div>
       </div>
-    </div>
 
       {/* PESTAÑA 1: MESAS ACTIVAS Y CAJA */}
       {activeTab === "tables" && (

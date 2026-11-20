@@ -896,6 +896,16 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores** de TypeScript.
   - `npm run build`: Compilación de producción exitosa con **código de salida 0** (44 rutas estáticas y dinámicas generadas).
 
+### Hito 53: Integración del Botón "Nueva Mesa" Dentro del Contenedor de Pestañas
+- **Solicitud del usuario:** Ubicar el botón de "Nueva Mesa" exactamente dentro del contenedor donde están las pestañas `Mesas Activas`, `Cuentas Cerradas Hoy` y `Meseros`, logrando una barra de navegación unificada, alineada y limpia.
+- **Implementación Técnica ([src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+  - Se eliminó el botón flotante exterior y la duplicidad en responsive que causaba saltos de línea.
+  - Se incorporó el botón `Nueva Mesa` (con ícono `Plus` y estilo ambar distintivo) como un elemento nativo dentro del contenedor oscuro de navegación (`bg-[#0f1115] border border-gray-800`).
+  - Se corrigió el texto para evitar la repetición del signo más (`+ + Nueva Mesa` -> `+ Nueva Mesa`).
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores** de TypeScript.
+  - `npm run build`: Compilación de producción exitosa con **código de salida 0**.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

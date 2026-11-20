@@ -931,6 +931,16 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores**.
   - `npm run build`: Compilación exitosa con **código de salida 0**.
 
+### Hito 56: Desplazamiento Horizontal Exclusivo para Móviles en Botones de Salón
+- **Solicitud del usuario:** En la vista desde el móvil, evitar que el botón `Nueva Mesa` se salga del contenedor o quede cortado fuera de la pantalla, aplicando scroll horizontal única y exclusivamente en móviles para ese contenedor de 4 botones, mientras en escritorio permanece 100% visible sin scroll.
+- **Implementación Técnica ([src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+  - Se aplicaron las clases condicionales `overflow-x-auto md:overflow-x-visible max-w-full md:max-w-none` en el contenedor de pestañas.
+  - En móviles (<768px): El contenedor contiene los 4 botones en su interior y permite swipe / scroll horizontal táctil sin desbordamientos.
+  - En escritorio (≥768px): La visualización se mantiene en `overflow-visible`, fija, sin barras de scroll.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores**.
+  - `npm run build`: Compilación exitosa con **código de salida 0**.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

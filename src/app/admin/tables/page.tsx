@@ -649,8 +649,8 @@ export default function AdminTablesCashierPage() {
           </div>
         </div>
 
-        {/* Contenedor de pestañas con los 4 botones uno al lado del otro sin scrollbar */}
-        <div className="flex items-center gap-1 sm:gap-1.5 bg-[#0f1115] p-1.5 rounded-2xl border border-gray-800 shrink-0">
+        {/* Contenedor de pestañas: scroll horizontal exclusivo en móvil, visible sin scroll en escritorio */}
+        <div className="flex items-center gap-1 sm:gap-1.5 bg-[#0f1115] p-1.5 rounded-2xl border border-gray-800 overflow-x-auto md:overflow-x-visible max-w-full md:max-w-none shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab("tables")}

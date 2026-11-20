@@ -921,6 +921,16 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores** de TypeScript.
   - `npm run build`: Compilación de producción exitosa con **código de salida 0**.
 
+### Hito 55: Visualización Completa y Sin Scroll de los 4 Botones de Navegación del Salón
+- **Solicitud del usuario:** Mostrar los 4 botones (`Mesas Activas`, `Cuentas Cerradas Hoy`, `Meseros` y `Nueva Mesa`) completos, a primera vista y uno al lado del otro, suprimiendo cualquier barra de scroll o necesidad de deslizamiento.
+- **Implementación Técnica ([src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+  - Se eliminó `overflow-x-auto` que provocaba la aparición de la barra de scroll horizontal en resoluciones medianas y pantallas de escritorio.
+  - Se ajustó el breakpoint del encabezado a `xl:flex-row` para asegurar que en resoluciones menores el contenedor de botones ocupe el ancho natural completo sin ser apretado por el bloque de título.
+  - Se añadieron etiquetas responsivas compactas (`Cuentas Cerradas Hoy` / `Cuentas Hoy`, `Mesas Activas` / `Mesas`) con `shrink-0` y espaciado optimizado (`px-2.5 sm:px-3.5 py-2`), garantizando visualización completa sin recortes en ninguna pantalla.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores**.
+  - `npm run build`: Compilación exitosa con **código de salida 0**.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

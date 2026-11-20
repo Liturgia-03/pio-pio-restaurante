@@ -634,9 +634,9 @@ export default function AdminTablesCashierPage() {
   return (
     <div suppressHydrationWarning className="space-y-6">
       {/* Encabezado y Pestañas */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-[#14161a] p-5 rounded-3xl border border-gray-800">
-        <div className="flex items-center gap-2">
-          <span className="p-2 bg-amber-500/20 text-amber-400 rounded-xl text-lg font-black">
+      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 bg-[#14161a] p-4 sm:p-5 rounded-3xl border border-gray-800">
+        <div className="flex items-center gap-2.5">
+          <span className="p-2.5 bg-amber-500/20 text-amber-400 rounded-xl text-lg font-black shrink-0">
             🍽️
           </span>
           <div>
@@ -649,54 +649,56 @@ export default function AdminTablesCashierPage() {
           </div>
         </div>
 
-        {/* Contenedor de pestañas con botón Nueva Mesa adentro */}
-        <div className="flex items-center gap-1.5 bg-[#0f1115] p-1.5 rounded-2xl border border-gray-800 overflow-x-auto max-w-full">
+        {/* Contenedor de pestañas con los 4 botones uno al lado del otro sin scrollbar */}
+        <div className="flex items-center gap-1 sm:gap-1.5 bg-[#0f1115] p-1.5 rounded-2xl border border-gray-800 shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab("tables")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`px-2.5 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
               activeTab === "tables"
                 ? "bg-amber-500 text-black shadow-md font-black"
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            <Utensils className="w-4 h-4" />
-            <span>Mesas Activas</span>
+            <Utensils className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden md:inline">Mesas Activas</span>
+            <span className="md:hidden">Mesas</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("history")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`px-2.5 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
               activeTab === "history"
                 ? "bg-amber-500 text-black shadow-md font-black"
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            <History className="w-4 h-4" />
-            <span>Cuentas Cerradas Hoy</span>
+            <History className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden lg:inline">Cuentas Cerradas Hoy</span>
+            <span className="lg:hidden">Cuentas Hoy</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("waiters")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`px-2.5 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
               activeTab === "waiters"
                 ? "bg-amber-500 text-black shadow-md font-black"
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            <Users className="w-4 h-4" />
+            <Users className="w-3.5 h-3.5 shrink-0" />
             <span>Meseros ({waiters.length})</span>
           </button>
 
           <button
             type="button"
             onClick={() => setShowNewTableModal(true)}
-            className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all active:scale-95 whitespace-nowrap"
+            className="px-2.5 sm:px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all active:scale-95 whitespace-nowrap shrink-0"
             title="Crear nueva mesa"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3.5 h-3.5 shrink-0" />
             <span>Nueva Mesa</span>
           </button>
         </div>

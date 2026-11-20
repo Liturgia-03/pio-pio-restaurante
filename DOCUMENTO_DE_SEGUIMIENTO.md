@@ -831,6 +831,17 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores**.
   - `npm run build`: Compilación de producción exitosa con **código de salida 0** (23 rutas generadas).
 
+### Hito 50: Eliminación de Botones de Instrucciones Rápidas de Cocina en la Comanda del Mesero
+- **Solicitud del usuario:** En la sección de mesero (`/waiter`), en el desglose de platos de la comanda de pedido, eliminar la sección de "Instrucciones rápidas para cocina" (botones de sugerencias rápidas predefinidas).
+- **Implementación Técnica:**
+  - En [`src/app/waiter/page.tsx`](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx):
+    - Se eliminó el bloque de botones de chips rápidos (`QUICK_KITCHEN_NOTES.map`) y el texto de cabecera con el icono `MessageSquare`.
+    - Se conservó únicamente el campo de entrada de texto directo para notas especiales manuales del plato.
+    - Se eliminó la constante no utilizada `QUICK_KITCHEN_NOTES` y el import de `MessageSquare` para mantener el código limpio.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores**.
+
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

@@ -29,7 +29,6 @@ import {
   ChevronDown,
   ChevronUp,
   Layers,
-  MessageSquare,
   LayoutGrid,
   BookOpen,
   Trash2,
@@ -67,17 +66,6 @@ interface MenuCategory {
   sortOrder?: number;
   dishes: MenuItem[];
 }
-
-const QUICK_KITCHEN_NOTES = [
-  "Sin ensalada",
-  "Bien dorado",
-  "Papas doradas",
-  "Para llevar",
-  "Sin sal",
-  "Salsa aparte",
-  "Gaseosa fría",
-  "Sopa caliente",
-];
 
 export default function WaiterApp() {
   // Estado de autenticación
@@ -1386,30 +1374,8 @@ export default function WaiterApp() {
                             </div>
                           </div>
 
-                          {/* Chips de Notas Rápidas de Cocina */}
-                          <div className="space-y-1.5 pt-1 border-t border-gray-800/60">
-                            <span className="text-[10px] text-gray-400 font-semibold flex items-center gap-1">
-                              <MessageSquare className="w-3 h-3 text-amber-400" />
-                              <span>Instrucciones rápidas para cocina:</span>
-                            </span>
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {QUICK_KITCHEN_NOTES.map((chip) => (
-                                <button
-                                  key={chip}
-                                  type="button"
-                                  onClick={() => {
-                                    const curr = item.notes
-                                      ? `${item.notes}, ${chip}`
-                                      : chip;
-                                    handleUpdateStagedNotes(idx, curr);
-                                  }}
-                                  className="px-2.5 py-1 bg-[#181b20] hover:bg-gray-800 active:scale-95 text-gray-300 hover:text-white rounded-lg text-[10px] font-semibold border border-gray-700/60 transition-colors"
-                                >
-                                  + {chip}
-                                </button>
-                              ))}
-                            </div>
-
+                          {/* Nota especial para cocina */}
+                          <div className="pt-1 border-t border-gray-800/60">
                             <input
                               type="text"
                               placeholder="Nota especial (ej. pechuga dorada, sin hielo, salsa aparte)..."

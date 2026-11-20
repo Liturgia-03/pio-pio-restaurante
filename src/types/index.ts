@@ -131,7 +131,9 @@ export interface TableSessionData {
 }
 
 export interface TableCardData {
+  id?: string;
   tableNumber: string;
+  label?: string | null;
   session: TableSessionData | null;
   status: "FREE" | TableStatus;
   minutesOpen?: number | null;

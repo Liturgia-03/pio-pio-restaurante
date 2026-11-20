@@ -41,6 +41,12 @@ export async function DELETE(
   try {
     const { id } = await params;
 
+    // Desvincular mesero de sesiones activas o históricas antes de eliminar
+    await prisma.tableSession.updateMany({
+      where: { waiterId: id },
+      data: { waiterId: null },
+    });
+
     await prisma.waiter.delete({
       where: { id },
     });

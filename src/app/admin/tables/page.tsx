@@ -21,6 +21,7 @@ import {
   MinusCircle,
   DollarSign,
   UserCheck,
+  Edit2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TableCardData, TableSessionData, WaiterItem } from "@/types";
@@ -83,6 +84,21 @@ export default function AdminTablesCashierPage() {
   const [showNewWaiterModal, setShowNewWaiterModal] = useState<boolean>(false);
   const [newWaiterName, setNewWaiterName] = useState<string>("");
   const [newWaiterPin, setNewWaiterPin] = useState<string>("");
+
+  // Modal para editar mesero existente
+  const [editingWaiter, setEditingWaiter] = useState<WaiterItem | null>(null);
+  const [editWaiterName, setEditWaiterName] = useState<string>("");
+  const [editWaiterPin, setEditWaiterPin] = useState<string>("");
+
+  // Modal para crear nueva mesa
+  const [showNewTableModal, setShowNewTableModal] = useState<boolean>(false);
+  const [newTableNumber, setNewTableNumber] = useState<string>("");
+  const [newTableLabel, setNewTableLabel] = useState<string>("");
+
+  // Modal para editar mesa existente
+  const [editingTable, setEditingTable] = useState<TableCardData | null>(null);
+  const [editTableNumber, setEditTableNumber] = useState<string>("");
+  const [editTableLabel, setEditTableLabel] = useState<string>("");
 
   // Modal para transferir mesa y método de pago
   const [showTransferModal, setShowTransferModal] = useState<boolean>(false);
@@ -448,6 +464,144 @@ export default function AdminTablesCashierPage() {
     }
   };
 
+  // Editar mesero existente
+  const handleUpdateWaiter = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingWaiter || !editWaiterName.trim() || editWaiterPin.length !== 4) {
+      toast.error("El nombre es requerido y el PIN debe ser de 4 dígitos");
+      return;
+    }
+
+    setIsActionLoading(true);
+    try {
+      const res = await fetch(`/api/admin/waiters/${editingWaiter.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editWaiterName.trim(), pin: editWaiterPin.trim() }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.message);
+
+      toast.success("Mesero actualizado correctamente");
+      setEditingWaiter(null);
+      await loadWaiters();
+    } catch (err: any) {
+      toast.error(err.message || "Error al actualizar mesero");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Eliminar mesero
+  const handleDeleteWaiter = async (waiter: WaiterItem) => {
+    if (!confirm(`¿Eliminar permanentemente al mesero "${waiter.name}"?`)) return;
+
+    setIsActionLoading(true);
+    try {
+      const res = await fetch(`/api/admin/waiters/${waiter.id}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.message);
+
+      toast.success(json.message || "Mesero eliminado correctamente");
+      await loadWaiters();
+    } catch (err: any) {
+      toast.error(err.message || "Error al eliminar mesero");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Crear nueva mesa
+  const handleCreateTable = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTableNumber.trim()) {
+      toast.error("El número o identificador de mesa es requerido");
+      return;
+    }
+
+    setIsActionLoading(true);
+    try {
+      const res = await fetch("/api/admin/tables", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number: newTableNumber.trim(), label: newTableLabel.trim() || null }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.message);
+
+      toast.success(json.message || "Mesa creada exitosamente");
+      setNewTableNumber("");
+      setNewTableLabel("");
+      setShowNewTableModal(false);
+      await loadTables(true);
+    } catch (err: any) {
+      toast.error(err.message || "Error al crear mesa");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Editar mesa existente
+  const handleUpdateTable = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTable || !editingTable.id || !editTableNumber.trim()) {
+      toast.error("El número de mesa es requerido");
+      return;
+    }
+
+    setIsActionLoading(true);
+    try {
+      const res = await fetch(`/api/admin/tables/${editingTable.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number: editTableNumber.trim(), label: editTableLabel.trim() || null }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.message);
+
+      toast.success(json.message || "Mesa actualizada exitosamente");
+      setEditingTable(null);
+      setSelectedTable(null);
+      await loadTables(true);
+    } catch (err: any) {
+      toast.error(err.message || "Error al actualizar mesa");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Eliminar mesa existente
+  const handleDeleteTable = async (table: TableCardData) => {
+    if (!table.id) {
+      toast.error("Identificador de mesa no válido");
+      return;
+    }
+    if (table.status !== "FREE") {
+      toast.error("No puedes eliminar una mesa ocupada. Debes liberarla o cobrarla primero.");
+      return;
+    }
+    if (!confirm(`¿Eliminar permanentemente la Mesa #${table.tableNumber}?`)) return;
+
+    setIsActionLoading(true);
+    try {
+      const res = await fetch(`/api/admin/tables/${table.id}`, {
+        method: "DELETE",
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.message);
+
+      toast.success(json.message || "Mesa eliminada correctamente");
+      setSelectedTable(null);
+      await loadTables(true);
+    } catch (err: any) {
+      toast.error(err.message || "Error al eliminar mesa");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
   // Filtrado de platos para adiciones
   const filteredDishes = useMemo(() => {
     let list: { dish: MenuItem; categoryName: string }[] = [];
@@ -481,7 +635,7 @@ export default function AdminTablesCashierPage() {
     <div suppressHydrationWarning className="space-y-6">
       {/* Encabezado y Pestañas */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-[#14161a] p-5 rounded-3xl border border-gray-800">
-        <div>
+        <div className="flex items-center justify-between w-full md:w-auto">
           <div className="flex items-center gap-2">
             <span className="p-2 bg-amber-500/20 text-amber-400 rounded-xl text-lg font-black">
               🍽️
@@ -495,10 +649,33 @@ export default function AdminTablesCashierPage() {
               </p>
             </div>
           </div>
+
+          {activeTab === "tables" && (
+            <button
+              type="button"
+              onClick={() => setShowNewTableModal(true)}
+              className="md:hidden py-2 px-3 bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs rounded-xl shadow-md flex items-center gap-1 transition-all active:scale-95"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Mesa</span>
+            </button>
+          )}
         </div>
 
-        {/* Selector de pestañas */}
-        <div className="flex items-center gap-1.5 bg-[#0f1115] p-1.5 rounded-2xl border border-gray-800">
+        {/* Selector de pestañas y botón Nueva Mesa */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {activeTab === "tables" && (
+            <button
+              type="button"
+              onClick={() => setShowNewTableModal(true)}
+              className="hidden md:flex py-2 px-3.5 bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs rounded-xl shadow-md items-center gap-1.5 transition-all active:scale-95"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Nueva Mesa</span>
+            </button>
+          )}
+
+          <div className="flex items-center gap-1.5 bg-[#0f1115] p-1.5 rounded-2xl border border-gray-800">
           <button
             type="button"
             onClick={() => setActiveTab("tables")}
@@ -539,6 +716,7 @@ export default function AdminTablesCashierPage() {
           </button>
         </div>
       </div>
+    </div>
 
       {/* PESTAÑA 1: MESAS ACTIVAS Y CAJA */}
       {activeTab === "tables" && (
@@ -904,14 +1082,42 @@ export default function AdminTablesCashierPage() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setSelectedTable(null)}
-                className="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center transition-colors"
-                title="Cerrar y volver al salón"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingTable(selectedTable);
+                    setEditTableNumber(selectedTable.tableNumber);
+                    setEditTableLabel(selectedTable.label || "");
+                  }}
+                  title="Editar número o nombre de esta mesa"
+                  className="p-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-all active:scale-95 flex items-center gap-1.5 text-xs font-bold"
+                >
+                  <Edit2 className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="hidden sm:inline">Editar Mesa</span>
+                </button>
+
+                {selectedTable.status === "FREE" && selectedTable.id && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteTable(selectedTable)}
+                    title="Eliminar esta mesa permanentemente"
+                    className="p-2 rounded-xl bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 text-red-400 transition-all active:scale-95 flex items-center gap-1.5 text-xs font-bold"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Eliminar</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedTable(null)}
+                  className="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center transition-colors"
+                  title="Cerrar y volver al salón"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {/* CASO 1: MESA LIBRE */}
@@ -1411,17 +1617,41 @@ export default function AdminTablesCashierPage() {
                   </span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleToggleWaiterStatus(w.id, w.isActive)}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
-                    w.isActive
-                      ? "bg-red-950/30 hover:bg-red-900/50 border-red-800/40 text-red-300"
-                      : "bg-emerald-950/30 hover:bg-emerald-900/50 border-emerald-800/40 text-emerald-300"
-                  }`}
-                >
-                  {w.isActive ? "Desactivar" : "Activar"}
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleWaiterStatus(w.id, w.isActive)}
+                    className={`text-xs font-bold px-2.5 py-1.5 rounded-xl border transition-all ${
+                      w.isActive
+                        ? "bg-gray-800/60 hover:bg-gray-700/60 border-gray-700 text-gray-300"
+                        : "bg-emerald-950/30 hover:bg-emerald-900/50 border-emerald-800/40 text-emerald-300"
+                    }`}
+                  >
+                    {w.isActive ? "Desactivar" : "Activar"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingWaiter(w);
+                      setEditWaiterName(w.name);
+                      setEditWaiterPin(w.pin);
+                    }}
+                    title="Editar datos del mesero"
+                    className="p-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-all active:scale-90"
+                  >
+                    <Edit2 className="w-3.5 h-3.5 text-amber-400" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteWaiter(w)}
+                    title="Eliminar mesero permanentemente"
+                    className="p-2 rounded-xl bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 text-red-400 transition-all active:scale-90"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -1914,6 +2144,230 @@ export default function AdminTablesCashierPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* MODAL EDITAR MESERO */}
+      {editingWaiter && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in"
+          onClick={() => setEditingWaiter(null)}
+        >
+          <form
+            onSubmit={handleUpdateWaiter}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-[#14161a] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+              <h3 className="text-sm font-black text-white flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-amber-400" />
+                <span>Editar Mesero</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingWaiter(null)}
+                className="w-7 h-7 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-gray-400">
+                  Nombre Completo *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editWaiterName}
+                  onChange={(e) => setEditWaiterName(e.target.value)}
+                  className="w-full bg-[#181b20] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-gray-400">
+                  PIN de Acceso (4 dígitos) *
+                </label>
+                <input
+                  type="password"
+                  maxLength={4}
+                  required
+                  value={editWaiterPin}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, "");
+                    setEditWaiterPin(val);
+                  }}
+                  className="w-full bg-[#181b20] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white font-mono tracking-widest focus:outline-none focus:border-amber-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingWaiter(null)}
+                className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs rounded-xl"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isActionLoading || editWaiterPin.length !== 4}
+                className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-black text-xs rounded-xl shadow-lg shadow-amber-500/20"
+              >
+                {isActionLoading ? "Guardando..." : "Guardar Cambios"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* MODAL CREAR NUEVA MESA */}
+      {showNewTableModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in"
+          onClick={() => setShowNewTableModal(false)}
+        >
+          <form
+            onSubmit={handleCreateTable}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-[#14161a] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+              <h3 className="text-sm font-black text-white flex items-center gap-2">
+                <Plus className="w-4 h-4 text-amber-400" />
+                <span>Crear Nueva Mesa</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowNewTableModal(false)}
+                className="w-7 h-7 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-gray-400">
+                  Número o Identificador de Mesa *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej: 16, Terraza 1, Barra 2"
+                  value={newTableNumber}
+                  onChange={(e) => setNewTableNumber(e.target.value)}
+                  className="w-full bg-[#181b20] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-bold"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-gray-400">
+                  Ubicación o Etiqueta Opcional
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej: Salón Principal, Balcón, VIP"
+                  value={newTableLabel}
+                  onChange={(e) => setNewTableLabel(e.target.value)}
+                  className="w-full bg-[#181b20] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowNewTableModal(false)}
+                className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs rounded-xl"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isActionLoading || !newTableNumber.trim()}
+                className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-black text-xs rounded-xl shadow-lg shadow-amber-500/20"
+              >
+                {isActionLoading ? "Creando..." : "Crear Mesa"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* MODAL EDITAR MESA EXISTENTE */}
+      {editingTable && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in"
+          onClick={() => setEditingTable(null)}
+        >
+          <form
+            onSubmit={handleUpdateTable}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-[#14161a] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4"
+          >
+            <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+              <h3 className="text-sm font-black text-white flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-amber-400" />
+                <span>Editar Mesa #{editingTable.tableNumber}</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingTable(null)}
+                className="w-7 h-7 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-gray-400">
+                  Número o Identificador de Mesa *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editTableNumber}
+                  onChange={(e) => setEditTableNumber(e.target.value)}
+                  className="w-full bg-[#181b20] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500 font-bold"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-gray-400">
+                  Ubicación o Etiqueta Opcional
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej: Salón Principal, Balcón, VIP"
+                  value={editTableLabel}
+                  onChange={(e) => setEditTableLabel(e.target.value)}
+                  className="w-full bg-[#181b20] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingTable(null)}
+                className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs rounded-xl"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                disabled={isActionLoading || !editTableNumber.trim()}
+                className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-black font-black text-xs rounded-xl shadow-lg shadow-amber-500/20"
+              >
+                {isActionLoading ? "Guardando..." : "Guardar Cambios"}
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

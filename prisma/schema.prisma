@@ -132,6 +132,18 @@ model RestaurantSettings {
   @@map("restaurant_settings")
 }
 
+model RestaurantTable {
+  id        String   @id @default(cuid())
+  number    String   @unique // Ej: "1", "2", "3", "16"
+  label     String?  // Ej: "Salón Principal", "Terraza", "VIP"
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("restaurant_tables")
+}
+
 model Waiter {
   id        String         @id @default(cuid())
   name      String         // Ej: "Carlos", "Sandra"

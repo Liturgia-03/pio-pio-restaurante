@@ -5,12 +5,39 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    // 1. Obtener ajustes del restaurante para saber el total de mesas configuradas
-    const settings = await prisma.restaurantSettings.findUnique({
-      where: { id: "default" },
-      select: { totalTables: true },
+    // 1. Obtener mesas configuradas en base de datos (o inicializar de 1 a totalTablesCount si es primera vez)
+    let dbTables = await prisma.restaurantTable.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: "asc" }, { number: "asc" }],
     });
-    const totalTablesCount = settings?.totalTables || 15;
+
+    if (dbTables.length === 0) {
+      const settings = await prisma.restaurantSettings.findUnique({
+        where: { id: "default" },
+        select: { totalTables: true },
+      });
+      const totalTablesCount = settings?.totalTables || 15;
+
+      const initialTables = [];
+      for (let i = 1; i <= totalTablesCount; i++) {
+        initialTables.push({
+          number: String(i),
+          sortOrder: i,
+          isActive: true,
+        });
+      }
+      await prisma.restaurantTable.createMany({
+        data: initialTables,
+        skipDuplicates: true,
+      });
+
+      dbTables = await prisma.restaurantTable.findMany({
+        where: { isActive: true },
+        orderBy: [{ sortOrder: "asc" }, { number: "asc" }],
+      });
+    }
+
+    const totalTablesCount = dbTables.length;
 
     // 2. Obtener todas las sesiones de mesa activas (no cerradas)
     const activeSessions = await prisma.tableSession.findMany({
@@ -43,10 +70,10 @@ export async function GET() {
       }
     }
 
-    // 3. Generar la cuadrícula de mesas de la 1 a totalTablesCount
+    // 3. Generar la cuadrícula de mesas a partir de las mesas configuradas en base de datos
     const tables = [];
-    for (let i = 1; i <= totalTablesCount; i++) {
-      const tableNumberStr = String(i);
+    for (const t of dbTables) {
+      const tableNumberStr = t.number;
       const session = sessionByTable.get(tableNumberStr) || null;
       const minutesOpen = session?.createdAt
         ? Math.max(0, Math.floor((Date.now() - new Date(session.createdAt).getTime()) / 60000))
@@ -85,7 +112,9 @@ export async function GET() {
       }
 
       tables.push({
+        id: t.id,
         tableNumber: tableNumberStr,
+        label: t.label,
         status: session ? session.status : "FREE",
         minutesOpen,
         hasPendingDelivery,

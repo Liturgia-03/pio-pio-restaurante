@@ -874,6 +874,27 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores**.
   - `npm run build`: Compilación de producción exitosa con **código de salida 0** (23 rutas generadas).
 
+### Hito 52: Gestión Integral de Meseros y Mesas (CRUD: Crear, Editar y Eliminar)
+- **Solicitud del usuario:**
+  1. En la opción de meseros: permitir editar datos del mesero (nombre y PIN) y eliminar mesero.
+  2. En la opción de mesas: permitir crear nuevas mesas dinámicamente, editar mesa (número/identificador y ubicación) y eliminar mesas.
+- **Implementación Técnica:**
+  - **Base de Datos ([prisma/schema.prisma](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/prisma/schema.prisma)):**
+    - Se creó el modelo `RestaurantTable` con identificador único `number`, campo opcional `label` (ubicación: ej. "Terraza", "VIP"), estado `isActive`, orden de visualización `sortOrder` y marcas de tiempo. Sincronizado exitosamente con PostgreSQL en Supabase (`npx prisma db push`).
+  - **Nuevos Endpoints RESTful de Mesas:**
+    - `POST` / `GET` ([src/app/api/admin/tables/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/tables/route.ts)): Obtención y creación de nuevas mesas en base de datos con validación de identificador único.
+    - `PUT` / `DELETE` ([src/app/api/admin/tables/[id]/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/tables/[id]/route.ts)): Modificación de número y etiqueta de mesa (con actualización en cascada de sesiones activas) y eliminación protegida (validando que la mesa no tenga sesiones o consumos abiertos).
+  - **Endpoint Seguro de Meseros ([src/app/api/admin/waiters/[id]/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/waiters/[id]/route.ts)):**
+    - El método `DELETE` fue blindado para desvincular automáticamente el `waiterId` en las sesiones históricas o activas antes de borrar el registro, preservando la integridad referencial de la base de datos sin errores de clave foránea.
+  - **Compatibilidad y Consulta Dinámica de Mesas ([src/app/api/tables/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/tables/route.ts)):**
+    - La API ahora consulta dinámicamente las mesas registradas en `RestaurantTable` (con auto-siembra inicial de 1 a 15 si la tabla estuviese vacía), garantizando total compatibilidad hacia atrás con el salón y los códigos QR.
+  - **Interfaz de Usuario Administrativa ([src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+    - **Gestión de Meseros (Pestaña "Meseros"):** Se agregaron botones de acción rápida en cada tarjeta: **Editar** (abre modal para modificar nombre y PIN de 4 dígitos) y **Eliminar** (con confirmación de seguridad).
+    - **Creación de Mesas:** Botón **`+ Nueva Mesa`** en el encabezado principal (visible en móvil y escritorio) con modal dedicado para definir número y ubicación.
+    - **Edición y Eliminación de Mesas:** Dentro de la vista detallada de la mesa seleccionada, se incorporaron los botones **Editar Mesa** y **Eliminar Mesa** (habilitado únicamente cuando la mesa está en estado libre `FREE`).
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores** de TypeScript.
+  - `npm run build`: Compilación de producción exitosa con **código de salida 0** (44 rutas estáticas y dinámicas generadas).
 
 ---
 

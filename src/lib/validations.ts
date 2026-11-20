@@ -30,6 +30,7 @@ export const categorySchema = z.object({
   name: z.string().min(2, "Nombre requerido").max(60),
   description: z.string().max(200).optional().nullable(),
   iconName: z.string().default("Flame"),
+  imageUrl: z.string().optional().nullable(),
   sortOrder: z.coerce.number().int().default(0),
   isActive: z.boolean().default(true),
 });

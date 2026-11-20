@@ -36,6 +36,7 @@ export interface CategoryWithDishes {
   slug: string;
   description: string | null;
   iconName: string | null;
+  imageUrl?: string | null;
   sortOrder: number;
   isActive: boolean;
   dishes: DishItem[];

@@ -26,6 +26,7 @@ model Category {
   slug        String   @unique
   description String?
   iconName    String?  // Nombre de icono Lucide (ej: "Flame", "UtensilsCrossed", "Beer", "Salad")
+  imageUrl    String?  // Imagen de la categoría para la tarjeta del menú
   sortOrder   Int      @default(0)
   isActive    Boolean  @default(true)
   dishes      Dish[]

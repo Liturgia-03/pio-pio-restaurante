@@ -32,6 +32,7 @@ const fallbackCategoryImages: Record<string, string> = {
 
 export function CategoryCard({ category, onSelect }: CategoryCardProps) {
   const imageUrl =
+    category.imageUrl ||
     category.dishes?.[0]?.imageUrl ||
     fallbackCategoryImages[category.slug] ||
     "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=800&auto=format&fit=crop";

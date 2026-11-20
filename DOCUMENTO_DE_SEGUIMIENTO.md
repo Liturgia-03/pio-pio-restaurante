@@ -802,6 +802,27 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npm run build`: Compilación de producción limpia con **código de salida 0**.
   - Endpoints probados localmente (`/api/public/menu`, `/api/tables`, `/api/public/settings`, `/api/public/table-status`): **200 OK**.
 
+### Hito 49: Soporte de Carga de Imagen para Categorías del Menú y Renderizado en Tarjetas de la Carta Digital
+- **Solicitud del usuario:** En el panel de administración (`/admin/categories`), en la sección de creación y edición de categorías, agregar estrictamente la opción de subir o cargar una imagen o foto para que se vea reflejada de fondo en la tarjeta de esa categoría en la carta digital del cliente.
+- **Implementación Técnica:**
+  - **Base de Datos ([prisma/schema.prisma](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/prisma/schema.prisma)):**
+    - Se incorporó la columna opcional `imageUrl String?` al modelo `Category`.
+    - Sincronización inmediata ejecutada con `npx prisma db push` contra la base de datos Supabase PostgreSQL.
+  - **Validación de Datos ([src/lib/validations.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/lib/validations.ts)):**
+    - Se agregó `imageUrl: z.string().optional().nullable()` al esquema `categorySchema`.
+  - **Tipado TypeScript ([src/types/index.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/types/index.ts)):**
+    - Se actualizó la interfaz `CategoryWithDishes` con `imageUrl?: string | null`.
+  - **Panel de Administración ([src/app/admin/categories/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/categories/page.tsx)):**
+    - Se añadió el selector y botón interactivo para subir imágenes desde la galería o cámara del dispositivo conectando directamente con `/api/upload`.
+    - Se incorporó campo para URL directa, estado de carga visual (`isUploading`), previsualización de miniatura en tiempo real y botón para remover la foto.
+    - Se integró la persistencia de `imageUrl` en las mutaciones de creación (`POST /api/admin/categories`) y edición (`PUT /api/admin/categories/[id]`).
+    - En el listado general de categorías, se muestra la foto miniatura de la categoría cuando cuenta con una asignada.
+  - **Menú Digital Público ([src/components/public/CategoryCard.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/CategoryCard.tsx)):**
+    - La tarjeta de categoría prioriza en primer lugar la imagen personalizada (`category.imageUrl`), manteniendo como fallback el primer plato de la categoría o las imágenes predeterminadas.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores**.
+  - `npm run build`: Compilación de producción exitosa con **código de salida 0** (23 rutas generadas).
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

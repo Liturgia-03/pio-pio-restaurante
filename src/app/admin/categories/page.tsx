@@ -12,6 +12,7 @@ import {
   Save,
   X,
   Loader2,
+  Image as ImageIcon,
 } from "lucide-react";
 import { IconRenderer } from "@/components/common/IconRenderer";
 import { toast } from "sonner";
@@ -25,6 +26,8 @@ export default function AdminCategoriesPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [iconName, setIconName] = useState("Flame");
+  const [imageUrl, setImageUrl] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
   const [isActive, setIsActive] = useState(true);
 
   const isFormOpenRef = useRef(false);
@@ -145,6 +148,8 @@ export default function AdminCategoriesPage() {
     setName("");
     setDescription("");
     setIconName("Flame");
+    setImageUrl("");
+    setIsUploading(false);
     setIsActive(true);
   };
 
@@ -171,13 +176,21 @@ export default function AdminCategoriesPage() {
     setName(cat.name);
     setDescription(cat.description || "");
     setIconName(cat.iconName || "Flame");
+    setImageUrl(cat.imageUrl || "");
+    setIsUploading(false);
     setIsActive(cat.isActive);
     setIsCreating(false);
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = { name, description, iconName, isActive };
+    const payload = {
+      name,
+      description: description.trim() || null,
+      iconName,
+      imageUrl: imageUrl.trim() || null,
+      isActive,
+    };
     if (editingId) {
       updateMutation.mutate({ id: editingId, payload });
     } else {
@@ -270,6 +283,77 @@ export default function AdminCategoriesPage() {
             />
           </div>
 
+          {/* Imagen de la Categoría */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-gray-300">
+                Foto de la Categoría (para la tarjeta del menú)
+              </label>
+              <label className="cursor-pointer text-[11px] font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-lg transition-colors">
+                <ImageIcon className="w-3.5 h-3.5" />
+                <span>{isUploading ? "Subiendo..." : "Subir Imagen"}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={isUploading}
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    try {
+                      setIsUploading(true);
+                      toast.info("Subiendo imagen...");
+                      const res = await fetch("/api/upload", {
+                        method: "POST",
+                        body: formData,
+                      });
+                      const json = await res.json();
+                      if (json.success && json.data?.url) {
+                        setImageUrl(json.data.url);
+                        toast.success("Foto de categoría subida con éxito");
+                      } else {
+                        toast.error(json.message || "Error al subir imagen");
+                      }
+                    } catch {
+                      toast.error("Error al conectar con el servidor de carga");
+                    } finally {
+                      setIsUploading(false);
+                    }
+                  }}
+                />
+              </label>
+            </div>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="URL o sube una imagen desde el botón arriba"
+                className="flex-1 bg-[#14161a] border border-gray-800 rounded-xl px-3 py-2 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-orange-500 font-mono"
+              />
+              {imageUrl && (
+                <div className="relative group w-10 h-10 rounded-xl overflow-hidden border border-orange-500/40 flex-shrink-0">
+                  <img
+                    src={imageUrl}
+                    alt="Vista previa"
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setImageUrl("")}
+                    title="Quitar imagen"
+                    className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-red-400 transition-opacity"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="flex items-center justify-between pt-2">
             <label className="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
               <input
@@ -306,9 +390,17 @@ export default function AdminCategoriesPage() {
               className="flex items-center justify-between p-3.5 bg-[#181b20] border border-gray-800 hover:border-gray-700/80 rounded-2xl gap-3 transition-all duration-300 ease-out hover:shadow-md"
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-orange-600/10 border border-orange-500/20 text-orange-400 flex items-center justify-center flex-shrink-0">
-                  <IconRenderer name={cat.iconName} className="w-4 h-4" />
-                </div>
+                {cat.imageUrl ? (
+                  <img
+                    src={cat.imageUrl}
+                    alt={cat.name}
+                    className="w-10 h-10 rounded-xl object-cover border border-orange-500/30 flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-xl bg-orange-600/10 border border-orange-500/20 text-orange-400 flex items-center justify-center flex-shrink-0">
+                    <IconRenderer name={cat.iconName} className="w-4 h-4" />
+                  </div>
+                )}
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <h4 className="text-xs font-bold text-white truncate">

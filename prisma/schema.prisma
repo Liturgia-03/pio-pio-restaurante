@@ -153,6 +153,7 @@ model TableSession {
 
   total       Float       @default(0)
 
+  deliveredAt DateTime?   // Última fecha/hora en que se entregó el pedido o adición en mesa
   closedAt    DateTime?
   closedBy    String?
 
@@ -186,6 +187,8 @@ model OrderItem {
 
   status          ItemStatus   @default(CONFIRMED) // PENDING_CONFIRMATION, CONFIRMED, CANCELLED
   cancelledReason String?      // Motivo si el Admin elimina/anula el ítem
+  deliveredAt     DateTime?    // Fecha/hora en que este ítem fue entregado en mesa
+
 
   createdAt       DateTime     @default(now())
 

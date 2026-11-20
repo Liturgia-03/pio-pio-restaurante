@@ -24,6 +24,7 @@ import {
   ChefHat,
   ChevronRight,
   Info,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -470,30 +471,84 @@ export function CartSheet({
 
               {/* 2. ESTADO: PEDIDO RECIBIDO Y APROBADO EN COCINA */}
               {isOpenInKitchen && (
-                <div className="p-5 bg-[#14161a] border border-emerald-500/40 rounded-3xl space-y-4 text-center relative overflow-hidden shadow-xl shadow-emerald-500/10">
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-20 bg-emerald-500/15 blur-2xl pointer-events-none" />
+                <div
+                  className={`p-5 bg-[#14161a] border ${
+                    customerSession.hasPendingDelivery
+                      ? "border-amber-500/40 shadow-amber-500/10"
+                      : "border-emerald-500/40 shadow-emerald-500/10"
+                  } rounded-3xl space-y-4 text-center relative overflow-hidden shadow-xl`}
+                >
+                  <div
+                    className={`absolute top-0 left-1/2 -translate-x-1/2 w-48 h-20 ${
+                      customerSession.hasPendingDelivery ? "bg-amber-500/15" : "bg-emerald-500/15"
+                    } blur-2xl pointer-events-none`}
+                  />
 
-                  <div className="w-16 h-16 rounded-3xl bg-emerald-500/20 border-2 border-emerald-500/50 text-emerald-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20 animate-bounce">
-                    <CheckCircle2 className="w-9 h-9" />
+                  <div
+                    className={`w-16 h-16 rounded-3xl ${
+                      customerSession.hasPendingDelivery
+                        ? "bg-amber-500/20 border-2 border-amber-500/50 text-amber-400"
+                        : "bg-emerald-500/20 border-2 border-emerald-500/50 text-emerald-400"
+                    } flex items-center justify-center mx-auto shadow-lg ${
+                      customerSession.hasPendingDelivery ? "animate-pulse" : "animate-bounce"
+                    }`}
+                  >
+                    {customerSession.hasPendingDelivery ? (
+                      <Clock className="w-8 h-8" />
+                    ) : (
+                      <CheckCircle2 className="w-9 h-9" />
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
-                    <span className="inline-block px-3 py-1 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-[11px] font-black rounded-full uppercase tracking-wider">
-                      Mesa #{customerSession.tableNumber} • Pedido Aprobado
+                    <span
+                      className={`inline-block px-3 py-1 ${
+                        customerSession.hasPendingDelivery
+                          ? "bg-amber-500/20 border border-amber-500/40 text-amber-300"
+                          : "bg-emerald-500/20 border border-emerald-500/40 text-emerald-300"
+                      } text-[11px] font-black rounded-full uppercase tracking-wider`}
+                    >
+                      Mesa #{customerSession.tableNumber} •{" "}
+                      {customerSession.hasPendingDelivery
+                        ? customerSession.deliveryState === "PENDING_ADDITION"
+                          ? "Adición en Preparación"
+                          : "Pedido en Preparación"
+                        : "Pedido Entregado en Mesa"}
                     </span>
+
                     <h4 className="text-lg font-black text-white">
-                      ¡Tu Pedido está en Cocina!
+                      {customerSession.hasPendingDelivery
+                        ? customerSession.deliveryState === "PENDING_ADDITION"
+                          ? "¡Tu Adición está en Cocina!"
+                          : "¡Tu Pedido está en Cocina!"
+                        : "🍽️ ¡Buen Provecho!"}
                     </h4>
+
                     <p className="text-xs text-gray-300 max-w-sm mx-auto leading-relaxed">
-                      El pedido fue recibido con éxito. Nuestros cocineros ya están preparando tus
-                      platos con el toque gourmet de Pío Pío.
+                      {customerSession.hasPendingDelivery
+                        ? "Nuestros cocineros están preparando tus platos con todo el sabor tradicional de Pío Pío."
+                        : "Tu pedido ha sido entregado en tu mesa. Esperamos que disfrutes de tu comida."}
                     </p>
+
                     {customerSession.waiterName && (
                       <span className="text-xs font-semibold text-amber-400 block pt-0.5">
                         Mesero a cargo: {customerSession.waiterName}
                       </span>
                     )}
                   </div>
+
+                  {/* Notificación de Cortesía y Paciencia si lleva 5 minutos o más esperando */}
+                  {customerSession.hasPendingDelivery && (customerSession.pendingWaitMinutes || 0) >= 5 && (
+                    <div className="p-4 bg-amber-950/40 border border-amber-500/40 rounded-2xl text-left space-y-1.5 shadow-md">
+                      <div className="flex items-center gap-1.5 text-amber-400 font-extrabold text-xs">
+                        <Clock className="w-4 h-4 animate-pulse flex-shrink-0" />
+                        <span>Agradecemos tu paciencia</span>
+                      </div>
+                      <p className="text-[11px] text-gray-200 leading-relaxed">
+                        En <strong>Pío Pío</strong> preparamos nuestros asados al momento para garantizarte el punto exacto, frescura y la máxima calidad en tu mesa. Tu pedido ya está en los toques finales y pronto te lo serviremos.
+                      </p>
+                    </div>
+                  )}
 
                   {/* Acciones del Cliente en Mesa */}
                   <div className="space-y-2 pt-2 text-left">
@@ -526,16 +581,28 @@ export function CartSheet({
                         <span>{isCallingWaiter ? "Llamando..." : "Llamar Mesero"}</span>
                       </button>
 
-                      {/* Botón: Pedir la cuenta */}
-                      <button
-                        type="button"
-                        onClick={handleRequestBill}
-                        disabled={isRequestingBill}
-                        className="py-3 px-3 bg-purple-900/60 hover:bg-purple-800 border border-purple-600/60 text-purple-200 font-extrabold text-xs rounded-2xl flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md shadow-purple-900/20"
-                      >
-                        <CreditCard className="w-4 h-4 text-purple-300" />
-                        <span>{isRequestingBill ? "Notificando..." : "Pedir Cuenta"}</span>
-                      </button>
+                      {/* Botón: Pedir la cuenta (Protegido si tiene pedidos pendientes de entrega) */}
+                      {customerSession.hasPendingDelivery ? (
+                        <button
+                          type="button"
+                          disabled
+                          title="Podrás pedir la cuenta una vez tu pedido sea entregado en la mesa"
+                          className="py-3 px-2 bg-gray-900/80 border border-gray-800 text-gray-500 font-extrabold text-[11px] rounded-2xl flex items-center justify-center gap-1.5 cursor-not-allowed opacity-75"
+                        >
+                          <Lock className="w-3.5 h-3.5 text-gray-500" />
+                          <span>Cuenta tras entrega</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleRequestBill}
+                          disabled={isRequestingBill}
+                          className="py-3 px-3 bg-purple-900/60 hover:bg-purple-800 border border-purple-600/60 text-purple-200 font-extrabold text-xs rounded-2xl flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md shadow-purple-900/20"
+                        >
+                          <CreditCard className="w-4 h-4 text-purple-300" />
+                          <span>{isRequestingBill ? "Notificando..." : "Pedir Cuenta"}</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

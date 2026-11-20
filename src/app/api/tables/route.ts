@@ -52,14 +52,54 @@ export async function GET() {
         ? Math.max(0, Math.floor((Date.now() - new Date(session.createdAt).getTime()) / 60000))
         : null;
 
+      let hasPendingDelivery = false;
+      let deliveryState: "PENDING_INITIAL" | "PENDING_ADDITION" | "ALL_DELIVERED" | "NONE" = "NONE";
+      let pendingWaitMinutes = 0;
+      let isOverdue = false;
+
+      if (session) {
+        const confirmedItems = (session.items || []).filter(
+          (it: any) => it.status !== "PENDING_CONFIRMATION" && it.status !== "CANCELLED"
+        );
+        const pendingDeliveryItems = confirmedItems.filter((it: any) => !it.deliveredAt);
+        const hasDeliveredItems = confirmedItems.some((it: any) => it.deliveredAt);
+
+        hasPendingDelivery = pendingDeliveryItems.length > 0;
+        if (confirmedItems.length > 0) {
+          if (!hasPendingDelivery) {
+            deliveryState = "ALL_DELIVERED";
+          } else if (hasDeliveredItems) {
+            deliveryState = "PENDING_ADDITION";
+          } else {
+            deliveryState = "PENDING_INITIAL";
+          }
+        }
+
+        if (pendingDeliveryItems.length > 0) {
+          const earliestPendingTime = Math.min(
+            ...pendingDeliveryItems.map((it: any) => new Date(it.createdAt).getTime())
+          );
+          pendingWaitMinutes = Math.max(0, Math.floor((Date.now() - earliestPendingTime) / 60000));
+        }
+        isOverdue = pendingWaitMinutes >= 5;
+      }
+
       tables.push({
         tableNumber: tableNumberStr,
         status: session ? session.status : "FREE",
         minutesOpen,
+        hasPendingDelivery,
+        deliveryState,
+        pendingWaitMinutes,
+        isOverdue,
         session: session
           ? {
               ...session,
               total: Number(session.total),
+              hasPendingDelivery,
+              deliveryState,
+              pendingWaitMinutes,
+              isOverdue,
               items: session.items.map((item: any) => ({
                 ...item,
                 unitPrice: Number(item.unitPrice),
@@ -111,6 +151,7 @@ export async function GET() {
       pending: tables.filter((t: any) => t.status === "PENDING_CONFIRMATION").length,
       billRequested: tables.filter((t: any) => t.status === "BILL_REQUESTED").length,
       free: tables.filter((t: any) => t.status === "FREE").length,
+      pendingDelivery: tables.filter((t: any) => t.hasPendingDelivery).length,
     };
 
     const pendingQRSessionsCount = counts.pending;

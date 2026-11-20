@@ -841,6 +841,39 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npx tsc --noEmit`: **0 errores**.
 
+### Hito 51: Sistema de Control de Entrega de Pedidos en Mesa ("Pedido Entregado"), Tiempos de Espera en Cocina, Notificación de Cortesía al Cliente y Bloqueo de Cuenta
+- **Solicitud del usuario:** 
+  1. Implementar la opción para que el mesero (y el administrador en caja) pueda marcar un pedido como entregado en mesa una vez los platos son servidos.
+  2. Visibilidad en tiempo real tanto en la plataforma del mesero como en el panel de administrador sobre qué mesas tienen pedidos pendientes por entregar vs. mesas ya servidas.
+  3. Soporte para adiciones posteriores (si una mesa ya servida pide otra ronda, vuelve a marcarse como "Adición por Entregar").
+  4. Medición de tiempos de espera en cocina en minutos.
+  5. Notificación de cortesía y disculpas automática en el móvil del cliente si su pedido demora más de 5 minutos en preparación.
+  6. Bloqueo del botón "Pedir Cuenta" en el móvil del cliente hasta que su pedido haya sido marcado como entregado en la mesa.
+- **Implementación Técnica:**
+  - **Base de Datos ([prisma/schema.prisma](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/prisma/schema.prisma)):**
+    - Se añadió `deliveredAt DateTime?` a los modelos `TableSession` y `OrderItem`. Sincronizado con Supabase (`npx prisma db push`).
+  - **Nuevo Endpoint RESTful ([src/app/api/tables/[sessionId]/deliver/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/tables/[sessionId]/deliver/route.ts)):**
+    - Endpoint `POST` que marca todos los ítems activos no entregados con la fecha actual y actualiza la sesión.
+  - **Backend y Cálculo de Tiempos ([src/app/api/public/table-status/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/public/table-status/route.ts) y [src/app/api/tables/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/tables/route.ts)):**
+    - Cálculo reactivo de `hasPendingDelivery`, `deliveryState` (`PENDING_INITIAL`, `PENDING_ADDITION`, `ALL_DELIVERED`), `pendingWaitMinutes` e `isOverdue` (`>= 5 min`).
+  - **Tipado TypeScript ([src/types/index.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/types/index.ts) y [src/context/CartContext.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/context/CartContext.tsx)):**
+    - Tipado de sesiones y mesas con estados de entrega y tiempos de espera.
+  - **Experiencia del Cliente ([src/components/public/CartSheet.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/public/CartSheet.tsx)):**
+    - Si el pedido está en preparación: Se bloquea el botón "Pedir Cuenta" con candado (`🔒 Cuenta tras entrega`).
+    - Si el tiempo de espera supera los 5 minutos: Despliegue automático del banner de cortesía y disculpas de Pío Pío pidiendo paciencia.
+    - Cuando se marca como entregado: Estado verde `🍽️ ¡Buen Provecho! Pedido Entregado en Mesa` y desbloqueo inmediato de `[ 🧾 Pedir Cuenta ]`.
+  - **Plataforma de Mesero ([src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)):**
+    - Nueva pastilla métrica superior: `⏳ Por Entregar (X)`.
+    - En las tarjetas del salón: Alerta de tiempo en cocina (ej. `Cocina: 7m` parpadeando en rojo si supera 5 min, o `✓ Servido`).
+    - Botón en comanda: `✓ Marcar Pedido Entregado en Mesa` / `✓ Marcar Adición Entregada`.
+  - **Panel de Administración y Caja ([src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+    - Filtro rápido `Por Entregar (X)` en la barra de pastillas.
+    - Indicador de minutos de cocina y alerta si supera 5 min en cada tarjeta.
+    - Banner y botón directo en el detalle de mesa para marcar entrega desde la caja.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores**.
+  - `npm run build`: Compilación de producción exitosa con **código de salida 0** (23 rutas generadas).
+
 
 ---
 

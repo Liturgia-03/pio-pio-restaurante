@@ -107,6 +107,7 @@ export interface OrderItemData {
   round: number;
   status: ItemStatus;
   cancelledReason?: string | null;
+  deliveredAt?: string | null;
   createdAt: string;
 }
 
@@ -117,6 +118,11 @@ export interface TableSessionData {
   waiterId?: string | null;
   waiter?: WaiterItem | null;
   total: number;
+  deliveredAt?: string | null;
+  hasPendingDelivery?: boolean;
+  deliveryState?: "PENDING_INITIAL" | "PENDING_ADDITION" | "ALL_DELIVERED" | "NONE";
+  pendingWaitMinutes?: number;
+  isOverdue?: boolean;
   closedAt?: string | null;
   closedBy?: string | null;
   createdAt: string;
@@ -129,6 +135,10 @@ export interface TableCardData {
   session: TableSessionData | null;
   status: "FREE" | TableStatus;
   minutesOpen?: number | null;
+  hasPendingDelivery?: boolean;
+  deliveryState?: "PENDING_INITIAL" | "PENDING_ADDITION" | "ALL_DELIVERED" | "NONE";
+  pendingWaitMinutes?: number;
+  isOverdue?: boolean;
 }
 
 

@@ -83,7 +83,7 @@ export default function WaiterApp() {
 
   // Datos de mesas y menú
   const [tablesData, setTablesData] = useState<TableCardData[]>([]);
-  const [counts, setCounts] = useState({ open: 0, pending: 0, billRequested: 0, free: 0 });
+  const [counts, setCounts] = useState({ open: 0, pending: 0, billRequested: 0, free: 0, pendingDelivery: 0 });
   const [isLoadingTables, setIsLoadingTables] = useState<boolean>(true);
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
@@ -332,6 +332,26 @@ export default function WaiterApp() {
       await fetchTables(true);
     } catch (err: any) {
       toast.error(err.message || "Error al asignarte la mesa");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Marcar pedido o adición como entregado en mesa
+  const handleMarkDelivered = async (sessionId: string) => {
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/tables/${sessionId}/deliver`, {
+        method: "POST",
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.message);
+
+      toast.success(json.message || "¡Pedido entregado en mesa!");
+      await fetchTables(true);
+      setShowTableDetailModal(false);
+    } catch (err: any) {
+      toast.error(err.message || "Error al marcar como entregado");
     } finally {
       setActionLoading(false);
     }
@@ -728,7 +748,7 @@ export default function WaiterApp() {
         </div>
 
         {/* Contadores rápidos en semáforo */}
-        <div className="max-w-6xl mx-auto mt-3 grid grid-cols-4 gap-2 text-center text-xs">
+        <div className="max-w-6xl mx-auto mt-3 grid grid-cols-2 sm:grid-cols-5 gap-2 text-center text-xs">
           <button
             type="button"
             onClick={() => handleBottomNavClick("all")}
@@ -757,6 +777,24 @@ export default function WaiterApp() {
               Ocupadas
             </span>
             <span className="text-lg font-black text-blue-300">{counts?.open || 0}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleBottomNavClick("active")}
+            className={`p-2 rounded-2xl border transition-all ${
+              (counts?.pendingDelivery || 0) > 0
+                ? "bg-amber-950/70 border-2 border-amber-500 animate-pulse text-amber-300 shadow-md shadow-amber-500/20"
+                : "bg-amber-950/20 border-amber-800/30 text-amber-400"
+            }`}
+          >
+            <span className="block text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1">
+              <Clock className="w-2.5 h-2.5 text-amber-400" />
+              <span>Por Entregar</span>
+            </span>
+            <span className="text-lg font-black text-amber-300">
+              {counts?.pendingDelivery || 0}
+            </span>
           </button>
 
           <button
@@ -1010,9 +1048,26 @@ export default function WaiterApp() {
 
                         {isOpen && table.session && (
                           <>
-                            <span className="text-xs sm:text-sm font-black text-amber-400">
-                              {formatPrice(table.session.total)}
-                            </span>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-xs sm:text-sm font-black text-amber-400">
+                                {formatPrice(table.session.total)}
+                              </span>
+                              {table.hasPendingDelivery ? (
+                                <span
+                                  className={`text-[9px] font-extrabold flex items-center gap-0.5 ${
+                                    table.isOverdue ? "text-red-400 animate-pulse" : "text-amber-400"
+                                  }`}
+                                >
+                                  <Clock className="w-2.5 h-2.5" />
+                                  {table.deliveryState === "PENDING_ADDITION" ? "Adición" : "Cocina"}:{" "}
+                                  {table.pendingWaitMinutes}m
+                                </span>
+                              ) : (
+                                <span className="text-[9px] text-emerald-400 font-extrabold">
+                                  ✓ Servido
+                                </span>
+                              )}
+                            </div>
                             <span className="text-[10px] text-gray-400 font-medium">
                               {
                                 table.session.items.filter((it: any) => it.status !== "CANCELLED")
@@ -1761,6 +1816,21 @@ export default function WaiterApp() {
 
                 {/* Acciones del Mesero */}
                 <div className="space-y-2 pt-1">
+                  {selectedTable.hasPendingDelivery && (
+                    <button
+                      onClick={() => handleMarkDelivered(selectedTable.session!.id)}
+                      disabled={actionLoading}
+                      className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 active:scale-95 transition-all"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>
+                        {selectedTable.deliveryState === "PENDING_ADDITION"
+                          ? "✓ Marcar Adición Entregada en Mesa"
+                          : "✓ Marcar Pedido Entregado en Mesa"}
+                      </span>
+                    </button>
+                  )}
+
                   <button
                     onClick={() => {
                       setOrderTableNumber(selectedTable.tableNumber);

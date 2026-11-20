@@ -25,6 +25,7 @@ export interface CustomerSessionItem {
   notes?: string;
   round: number;
   status: string;
+  deliveredAt?: string | null;
   createdAt: string;
 }
 
@@ -37,6 +38,12 @@ export interface CustomerTableSession {
   waiterName?: string | null;
   itemsCount?: number;
   createdAt?: string;
+  deliveredAt?: string | null;
+  hasPendingDelivery?: boolean;
+  isAllDelivered?: boolean;
+  deliveryState?: "PENDING_INITIAL" | "PENDING_ADDITION" | "ALL_DELIVERED" | "NONE";
+  pendingWaitMinutes?: number;
+  isOverdue?: boolean;
   items?: CustomerSessionItem[];
 }
 

@@ -65,6 +65,34 @@ export async function GET(request: Request) {
       const items = session.items || [];
       const total = items.reduce((acc, it) => acc + Number(it.subtotal), 0);
 
+      // Cálculo de entrega y tiempo de espera en cocina
+      const confirmedItems = items.filter((it) => it.status !== "PENDING_CONFIRMATION");
+      const pendingDeliveryItems = confirmedItems.filter((it) => !it.deliveredAt);
+      const hasDeliveredItems = confirmedItems.some((it) => it.deliveredAt);
+
+      const hasPendingDelivery = pendingDeliveryItems.length > 0;
+      const isAllDelivered = confirmedItems.length > 0 && pendingDeliveryItems.length === 0;
+
+      let deliveryState: "PENDING_INITIAL" | "PENDING_ADDITION" | "ALL_DELIVERED" | "NONE" = "NONE";
+      if (confirmedItems.length > 0) {
+        if (isAllDelivered) {
+          deliveryState = "ALL_DELIVERED";
+        } else if (hasDeliveredItems) {
+          deliveryState = "PENDING_ADDITION";
+        } else {
+          deliveryState = "PENDING_INITIAL";
+        }
+      }
+
+      let pendingWaitMinutes = 0;
+      if (pendingDeliveryItems.length > 0) {
+        const earliestPendingTime = Math.min(
+          ...pendingDeliveryItems.map((it) => new Date(it.createdAt).getTime())
+        );
+        pendingWaitMinutes = Math.max(0, Math.floor((Date.now() - earliestPendingTime) / 60000));
+      }
+      const isOverdue = pendingWaitMinutes >= 5;
+
       return NextResponse.json({
         success: true,
         data: {
@@ -76,6 +104,12 @@ export async function GET(request: Request) {
           waiterName: session.waiter?.name || null,
           createdAt: session.createdAt,
           updatedAt: session.updatedAt,
+          deliveredAt: session.deliveredAt,
+          hasPendingDelivery,
+          isAllDelivered,
+          deliveryState,
+          pendingWaitMinutes,
+          isOverdue,
           itemsCount: items.reduce((acc, it) => acc + it.quantity, 0),
           items: items.map((it) => ({
             id: it.id,
@@ -88,6 +122,7 @@ export async function GET(request: Request) {
             notes: it.notes,
             round: it.round,
             status: it.status,
+            deliveredAt: it.deliveredAt,
             createdAt: it.createdAt,
           })),
         },

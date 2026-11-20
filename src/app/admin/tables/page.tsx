@@ -49,7 +49,7 @@ export default function AdminTablesCashierPage() {
 
   // Datos del backend
   const [tablesData, setTablesData] = useState<TableCardData[]>([]);
-  const [counts, setCounts] = useState({ open: 0, pending: 0, billRequested: 0, free: 0 });
+  const [counts, setCounts] = useState({ open: 0, pending: 0, billRequested: 0, free: 0, pendingDelivery: 0 });
   const [todaySessions, setTodaySessions] = useState<TableSessionData[]>([]);
   const [waiters, setWaiters] = useState<WaiterItem[]>([]);
   const [categories, setCategories] = useState<MenuCategory[]>([]);
@@ -96,13 +96,16 @@ export default function AdminTablesCashierPage() {
   const [isMounted, setIsMounted] = useState<boolean>(false);
 
   // Filtro de mesas en caja
-  const [tableFilter, setTableFilter] = useState<"all" | "free" | "pending" | "open" | "billRequested">("all");
+  const [tableFilter, setTableFilter] = useState<
+    "all" | "free" | "pending" | "open" | "billRequested" | "pendingDelivery"
+  >("all");
 
   const filteredTables = useMemo(() => {
     if (tableFilter === "free") return tablesData.filter((t) => t.status === "FREE");
     if (tableFilter === "pending") return tablesData.filter((t) => t.status === "PENDING_CONFIRMATION");
     if (tableFilter === "open") return tablesData.filter((t) => t.status === "OPEN");
     if (tableFilter === "billRequested") return tablesData.filter((t) => t.status === "BILL_REQUESTED");
+    if (tableFilter === "pendingDelivery") return tablesData.filter((t) => t.hasPendingDelivery);
     return tablesData;
   }, [tablesData, tableFilter]);
 
@@ -286,6 +289,36 @@ export default function AdminTablesCashierPage() {
       await loadTables(true);
     } catch (err: any) {
       toast.error(err.message || "Error al anular ítem");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  // Marcar pedido como entregado en mesa desde caja
+  const handleMarkDelivered = async (sessionId: string) => {
+    setIsActionLoading(true);
+    try {
+      const res = await fetch(`/api/tables/${sessionId}/deliver`, {
+        method: "POST",
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.message);
+
+      toast.success(json.message || "Pedido entregado en mesa exitosamente");
+      await loadTables(true);
+      setSelectedTable((prev) =>
+        prev && prev.session && prev.session.id === sessionId
+          ? {
+              ...prev,
+              hasPendingDelivery: false,
+              deliveryState: "ALL_DELIVERED",
+              pendingWaitMinutes: 0,
+              isOverdue: false,
+            }
+          : prev
+      );
+    } catch (err: any) {
+      toast.error(err.message || "Error al marcar entrega");
     } finally {
       setIsActionLoading(false);
     }
@@ -649,6 +682,18 @@ export default function AdminTablesCashierPage() {
               </button>
               <button
                 type="button"
+                onClick={() => setTableFilter("pendingDelivery")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  tableFilter === "pendingDelivery"
+                    ? "bg-amber-500 text-black font-black shadow"
+                    : "bg-amber-950/40 text-amber-300 hover:bg-amber-900/40 border border-amber-700/50"
+                }`}
+              >
+                <Clock className="w-3 h-3 text-amber-400" />
+                Por Entregar ({counts?.pendingDelivery || 0})
+              </button>
+              <button
+                type="button"
                 onClick={() => setTableFilter("billRequested")}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                   tableFilter === "billRequested"
@@ -761,9 +806,26 @@ export default function AdminTablesCashierPage() {
 
                       {isOpen && (
                         <>
-                          <span className="font-semibold text-blue-300">
-                            🔵 Ocupada
-                          </span>
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-semibold text-blue-300">
+                              🔵 Ocupada
+                            </span>
+                            {table.hasPendingDelivery ? (
+                              <span
+                                className={`text-[9px] font-extrabold flex items-center gap-0.5 ${
+                                  table.isOverdue ? "text-red-400 animate-pulse" : "text-amber-400"
+                                }`}
+                              >
+                                <Clock className="w-2.5 h-2.5" />
+                                {table.deliveryState === "PENDING_ADDITION" ? "Adición" : "Cocina"}:{" "}
+                                {table.pendingWaitMinutes}m
+                              </span>
+                            ) : (
+                              <span className="text-[9px] text-emerald-400 font-extrabold">
+                                ✓ Servida
+                              </span>
+                            )}
+                          </div>
                           <span className="text-gray-400 text-[10px]">
                             Entrar &rarr;
                           </span>
@@ -1070,6 +1132,39 @@ export default function AdminTablesCashierPage() {
                     })}
                   </div>
                 </div>
+
+                {/* Banner y Botón de Marcar como Entregado en Mesa desde Caja */}
+                {selectedTable.hasPendingDelivery && (
+                  <div className="p-3.5 bg-amber-950/40 border border-amber-500/40 rounded-2xl flex items-center justify-between gap-3 shadow-sm">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Clock className="w-4 h-4 text-amber-400 flex-shrink-0 animate-pulse" />
+                      <div className="min-w-0">
+                        <span className="text-xs font-bold text-amber-200 block truncate">
+                          {selectedTable.deliveryState === "PENDING_ADDITION"
+                            ? "Adición pendiente por entregar"
+                            : "Pedido pendiente por entregar"}
+                        </span>
+                        <span className="text-[10px] text-gray-400 block">
+                          En preparación en cocina hace {selectedTable.pendingWaitMinutes || 0} min
+                          {(selectedTable.pendingWaitMinutes || 0) >= 5 && (
+                            <strong className="text-amber-400 font-bold ml-1">
+                              (Demorado &gt; 5m)
+                            </strong>
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleMarkDelivered(selectedTable.session!.id)}
+                      disabled={isActionLoading}
+                      className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-1.5 flex-shrink-0"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Marcar Entregado</span>
+                    </button>
+                  </div>
+                )}
 
                 {/* Sección de Liquidación y Cobro de la Mesa */}
                 <div className="p-4 bg-[#181b20] border border-gray-800 rounded-3xl space-y-3">

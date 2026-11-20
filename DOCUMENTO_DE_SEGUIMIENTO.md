@@ -4,6 +4,14 @@
 
 ---
 
+## ⚠️ REGLAS DE ORO DEL PROYECTO (OBLIGATORIAS E INVIOLABLES)
+
+1. **Alcance Estricto y Quirúrgico:** Ante cualquier solicitud de cambio, modificación, adición o eliminación, se debe implementar **estrictamente y únicamente lo solicitado**. Queda terminantemente prohibido agregar, quitar, refactorizar o alterar funciones, opciones, estilos o módulos adicionales sin autorización previa y explícita del usuario.
+2. **Transparencia y Detalle:** Cada intervención debe ser explicada detalladamente, informando qué archivos fueron modificados y cuál fue el cambio exacto realizado.
+3. **Permiso Previo para Despliegues:** NUNCA ejecutar un despliegue (`git push` a GitHub o Vercel) sin haber solicitado y recibido la **confirmación previa y explícita** del usuario.
+
+---
+
 ## 📌 1. Ficha Técnica General
 
 | Parámetro | Detalle |

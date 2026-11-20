@@ -21,6 +21,26 @@ export async function POST(
       );
     }
 
+    // Validar que no haya platos o adiciones pendientes de entrega en mesa
+    const pendingItemsCount = await prisma.orderItem.count({
+      where: {
+        tableSessionId: sessionId,
+        status: { not: "CANCELLED" },
+        deliveredAt: null,
+      },
+    });
+
+    if (pendingItemsCount > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "No puedes pedir la cuenta todavía. Tus platos están siendo preparados en cocina y deben ser entregados en tu mesa primero.",
+        },
+        { status: 400 }
+      );
+    }
+
     await prisma.tableSession.update({
       where: { id: sessionId },
       data: {

@@ -906,6 +906,21 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores** de TypeScript.
   - `npm run build`: Compilación de producción exitosa con **código de salida 0**.
 
+### Hito 54: Blindaje Backend y Certificación Integral del Flujo de Entrega y Bloqueo de Cuenta
+- **Solicitud del usuario:** Analizar, verificar y probar exhaustivamente que cuando un cliente pide, la opción de "Pedir Cuenta" permanezca 100% bloqueada hasta que el mesero o el administrador marquen el pedido como entregado en la mesa, verificando también adiciones y tiempos de espera.
+- **Implementación y Blindaje Técnico:**
+  - **Doble Capa de Protección ([src/app/api/tables/[sessionId]/bill-request/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/tables/[sessionId]/bill-request/route.ts)):**
+    - Se añadió validación a nivel de API REST en el backend: si existen platos no entregados (`deliveredAt: null`), el servidor rechaza con HTTP 400 cualquier solicitud de cuenta, blindando el sistema tanto en la interfaz de usuario como en el servidor.
+  - **Prueba End-to-End Real en Base de Datos:**
+    - Se ejecutó un test integral que simuló:
+      1. Creación de comanda inicial en cocina (`deliveredAt: null`) -> Se certificó `hasPendingDelivery: true` y bloqueo de cuenta.
+      2. Entrega por mesero/admin (`/api/tables/[sessionId]/deliver`) -> Se certificó `hasPendingDelivery: false` y desbloqueo de "Pedir Cuenta".
+      3. Adición de segunda ronda (bebidas/platos) -> Se certificó transición a `deliveryState: "PENDING_ADDITION"` y re-bloqueo automático de "Pedir Cuenta".
+      4. Entrega de adición -> Desbloqueo definitivo y limpieza de registros.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores** de TypeScript.
+  - `npm run build`: Compilación de producción exitosa con **código de salida 0**.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

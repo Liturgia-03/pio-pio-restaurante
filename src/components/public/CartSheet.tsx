@@ -539,13 +539,13 @@ export function CartSheet({
 
                   {/* Notificación de Cortesía y Paciencia si lleva 5 minutos o más esperando */}
                   {customerSession.hasPendingDelivery && (customerSession.pendingWaitMinutes || 0) >= 5 && (
-                    <div className="p-4 bg-amber-950/40 border border-amber-500/40 rounded-2xl text-left space-y-1.5 shadow-md">
+                    <div className="p-3.5 bg-amber-950/40 border border-amber-500/40 rounded-2xl text-left space-y-1 shadow-md">
                       <div className="flex items-center gap-1.5 text-amber-400 font-extrabold text-xs">
-                        <Clock className="w-4 h-4 animate-pulse flex-shrink-0" />
-                        <span>Agradecemos tu paciencia</span>
+                        <Clock className="w-3.5 h-3.5 animate-pulse flex-shrink-0" />
+                        <span>¡Ya casi está listo!</span>
                       </div>
                       <p className="text-[11px] text-gray-200 leading-relaxed">
-                        En <strong>Pío Pío</strong> preparamos nuestros asados al momento para garantizarte el punto exacto, frescura y la máxima calidad en tu mesa. Tu pedido ya está en los toques finales y pronto te lo serviremos.
+                        Preparamos todo fresco y al momento para ti. Gracias por tu paciencia.
                       </p>
                     </div>
                   )}

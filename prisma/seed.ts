@@ -26,80 +26,99 @@ async function main() {
   });
   console.log(`Usuario creado: ${admin.email}`);
 
-  // 2. Categorías oficiales de Pío Pío
-  const catPolloCompleto = await prisma.category.create({
+  // 2. CREACIÓN DE LAS 10 CATEGORÍAS REALES
+  const catEspecialidadesPollo = await prisma.category.create({
     data: {
-      name: "Pollo Completo, Medios y Cuartos",
-      slug: "pollo-completo",
-      description: "Pollo asado a la brasa y apanado crujiente en diferentes porciones",
+      name: "Especialidades de Pollo",
+      slug: "especialidades-de-pollo",
+      description: "Pollo asado dorado al punto y apanado extra crujiente por presas y enteros",
       iconName: "Flame",
+      imageUrl: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=800&auto=format&fit=crop",
       sortOrder: 1,
       isActive: true,
     },
   });
 
-  const catCombosPollo = await prisma.category.create({
+  const catCombosCrocantes = await prisma.category.create({
     data: {
-      name: "Combos de Pollo",
-      slug: "combos-pollo",
-      description: "Acompañados con papas a la francesa y ensalada fresca",
+      name: "Combos Crocantes (Pollo Apanado)",
+      slug: "combos-crocantes",
+      description: "Piezas apanadas extra crujientes acompañadas de papas a la francesa y ensalada fresca",
       iconName: "Flame",
+      imageUrl: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=800&auto=format&fit=crop",
       sortOrder: 2,
       isActive: true,
     },
   });
 
-  const catAsados = await prisma.category.create({
+  const catCombosAsados = await prisma.category.create({
     data: {
-      name: "Asados a la Brasa",
-      slug: "asados-brasa",
-      description: "Con papas a la francesa, arepa con queso y ensalada de la casa",
-      iconName: "UtensilsCrossed",
+      name: "Combos Asados de la Casa",
+      slug: "combos-asados",
+      description: "Presas asadas tradicionales de la casa con papas a la francesa y ensalada fresca",
+      iconName: "Flame",
+      imageUrl: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=800&auto=format&fit=crop",
       sortOrder: 3,
       isActive: true,
     },
   });
 
-  const catPlatosTipicos = await prisma.category.create({
+  const catSopasArroces = await prisma.category.create({
     data: {
-      name: "Platos Típicos",
-      slug: "platos-tipicos",
-      description: "Lo más autóctono y delicioso de nuestra gastronomía colombiana",
-      iconName: "UtensilsCrossed",
+      name: "Sopas, Arroces y Acompañamientos",
+      slug: "sopas-arroces-y-acompanamientos",
+      description: "Consomés calientes de menudencias y pescado, arroces especiales y porciones caseras",
+      iconName: "Soup",
+      imageUrl: "https://images.unsplash.com/photo-1547592166-23ac45744acd?q=80&w=800&auto=format&fit=crop",
       sortOrder: 4,
-      isActive: true,
-    },
-  });
-
-  const catBandejas = await prisma.category.create({
-    data: {
-      name: "Bandejas del Día",
-      slug: "bandejas",
-      description: "Incluye sopa, arroz, frijoles, huevo, ensalada y jugo o limonada",
-      iconName: "Salad",
-      sortOrder: 5,
-      isActive: true,
-    },
-  });
-
-  const catSopasPorciones = await prisma.category.create({
-    data: {
-      name: "Sopa y Porciones",
-      slug: "sopa-y-porciones",
-      description: "Consomés calientes, arroces, papas y acompañamientos",
-      iconName: "Salad",
-      sortOrder: 6,
       isActive: true,
     },
   });
 
   const catDesayunos = await prisma.category.create({
     data: {
-      name: "Desayunos Pío Pío",
-      slug: "desayunos",
-      description: "Calentados campesinos, huevos al gusto y arepas tradicionales",
+      name: "Desayunos Tradicionales",
+      slug: "desayunos-tradicionales",
+      description: "Calentados campesinos, huevos al gusto y arepas tradicionales de la mañana",
       iconName: "Coffee",
+      imageUrl: "https://images.unsplash.com/photo-1525351484163-7529414344d8?q=80&w=800&auto=format&fit=crop",
+      sortOrder: 5,
+      isActive: true,
+    },
+  });
+
+  const catCortesPlancha = await prisma.category.create({
+    data: {
+      name: "Cortes y Asados a la Plancha",
+      slug: "cortes-y-asados-a-la-plancha",
+      description: "Punta de anca, churrasco, lomo de cerdo y parrilladas con arepa con queso gratinado",
+      iconName: "UtensilsCrossed",
+      imageUrl: "https://images.unsplash.com/photo-1558030006-450675393462?q=80&w=800&auto=format&fit=crop",
+      sortOrder: 6,
+      isActive: true,
+    },
+  });
+
+  const catSaboresTierra = await prisma.category.create({
+    data: {
+      name: "Sabores de Nuestra Tierra (Platos Típicos)",
+      slug: "sabores-de-nuestra-tierra",
+      description: "Bandeja paisa tradicional, trucha dorada, tilapia frita y especialidades autóctonas",
+      iconName: "UtensilsCrossed",
+      imageUrl: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?q=80&w=800&auto=format&fit=crop",
       sortOrder: 7,
+      isActive: true,
+    },
+  });
+
+  const catBandejasCompletas = await prisma.category.create({
+    data: {
+      name: "Bandejas Completas",
+      slug: "bandejas-completas",
+      description: "Servidas con arroz blanco, frijol, tajada de maduro, ensalada, limonada y consomé",
+      iconName: "Salad",
+      imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=800&auto=format&fit=crop",
+      sortOrder: 8,
       isActive: true,
     },
   });
@@ -108,557 +127,428 @@ async function main() {
     data: {
       name: "Menú Infantil",
       slug: "menu-infantil",
-      description: "Especiales favoritos para los más pequeños",
+      description: "Especiales favoritos y crocantes pensados para los más pequeños",
       iconName: "Sparkles",
-      sortOrder: 8,
+      imageUrl: "https://images.unsplash.com/photo-1585109649139-366815a0d713?q=80&w=800&auto=format&fit=crop",
+      sortOrder: 9,
       isActive: true,
     },
   });
 
   const catBebidas = await prisma.category.create({
     data: {
-      name: "Bebidas y Jugos",
-      slug: "bebidas",
-      description: "Jugos naturales en agua o leche, gaseosas y refrescos fríos",
+      name: "Bebidas Refrescantes",
+      slug: "bebidas-refrescantes",
+      description: "Jugos naturales en leche y agua, limonadas, gaseosas familiares y personales",
       iconName: "Beer",
-      sortOrder: 9,
+      imageUrl: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=800&auto=format&fit=crop",
+      sortOrder: 10,
       isActive: true,
     },
   });
 
-  // 3. Platos de Pío Pío
-
-  // CATEGORÍA 1: Pollo Completo
-  const platoPolloAsado = await prisma.dish.create({
+  // 3. PLATOS
+  // CATEGORÍA 1: Especialidades de Pollo
+  const pPolloAsadoEntero = await prisma.dish.create({
     data: {
-      categoryId: catPolloCompleto.id,
-      name: "Pollo Asado Pío Pío",
-      slug: "pollo-asado-pio-pio",
-      description: "Pollo dorado a fuego lento con el adobo secreto de la casa. Servido con papas y arepa.",
-      basePrice: 43000,
+      categoryId: catEspecialidadesPollo.id,
+      name: "Pollo Asado Entero",
+      slug: "pollo-asado-entero",
+      description: "Jugoso pollo dorado al punto con el sazón clásico de la casa, acompañado de suaves papas al vapor, arepa frita y tajadas de maduro frito.",
+      basePrice: 45000,
       imageUrl: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=800&auto=format&fit=crop",
       isAvailable: true,
-      isFeatured: true,
       badge: "POPULAR",
-      servings: "1 a 4 personas según porción",
+      servings: "Para 3 a 4 personas",
       sortOrder: 1,
-      portions: {
-        create: [
-          { label: "1/4 Asado", price: 14000, isDefault: false },
-          { label: "Medio Pollo Asado", price: 25000, isDefault: false },
-          { label: "Pollo Completo Asado", price: 43000, isDefault: true },
-        ],
-      },
     },
   });
 
   await prisma.dish.create({
     data: {
-      categoryId: catPolloCompleto.id,
-      name: "Pollo Apanado Broaster Pío Pío",
-      slug: "pollo-apanado-pio-pio",
-      description: "Pollo apanado crocante y jugoso con la receta especial Pío Pío. Servido con papas a la francesa.",
-      basePrice: 45000,
+      categoryId: catEspecialidadesPollo.id,
+      name: "Medio Pollo Asado",
+      slug: "medio-pollo-asado",
+      description: "Medio pollo asado con el sabor tradicional de la casa, servido con papas al vapor, arepa frita y maduro frito.",
+      basePrice: 25000,
+      imageUrl: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      servings: "Para 2 personas",
+      sortOrder: 2,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catEspecialidadesPollo.id,
+      name: "Cuarto de Pollo Asado",
+      slug: "cuarto-de-pollo-asado",
+      description: "Un cuarto de nuestro pollo asado tradicional, acompañado de papa al vapor y arepa frita.",
+      basePrice: 14000,
+      imageUrl: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      servings: "Individual",
+      sortOrder: 3,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catEspecialidadesPollo.id,
+      name: "Pollo Apanado Entero",
+      slug: "pollo-apanado-entero",
+      description: "Pollo entero en piezas con un apanado dorado y extra crocante por fuera, servido con papas al vapor, arepa frita y maduro frito.",
+      basePrice: 46000,
       imageUrl: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=800&auto=format&fit=crop",
       isAvailable: true,
-      isFeatured: true,
-      badge: "CHEFS_SPECIAL",
-      servings: "1 a 4 personas según porción",
-      sortOrder: 2,
-      portions: {
-        create: [
-          { label: "1/4 Apanado", price: 15000, isDefault: false },
-          { label: "Medio Pollo Apanado", price: 25000, isDefault: false },
-          { label: "Pollo Completo Apanado", price: 45000, isDefault: true },
-        ],
-      },
+      badge: "POPULAR",
+      servings: "Para 3 a 4 personas",
+      sortOrder: 4,
     },
   });
 
-  // CATEGORÍA 2: Combos Pollo
   await prisma.dish.create({
     data: {
-      categoryId: catCombosPollo.id,
-      name: "Combo Asado Pechuga y Ala",
-      slug: "combo-asado-pechuga-ala",
-      description: "Pechuga y ala asadas a la brasa con papas a la francesa y ensalada.",
+      categoryId: catEspecialidadesPollo.id,
+      name: "Medio Pollo Apanado",
+      slug: "medio-pollo-apanado",
+      description: "Medio pollo apanado crujiente por fuera y jugoso por dentro, acompañado de papas al vapor, arepa frita y maduro frito.",
+      basePrice: 25000,
+      imageUrl: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      servings: "Para 2 personas",
+      sortOrder: 5,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catEspecialidadesPollo.id,
+      name: "Cuarto de Pollo Apanado",
+      slug: "cuarto-de-pollo-apanado",
+      description: "Un cuarto de pollo apanado crocante al estilo de la casa, servido con papa al vapor y arepa frita.",
+      basePrice: 15000,
+      imageUrl: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      servings: "Individual",
+      sortOrder: 6,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catEspecialidadesPollo.id,
+      name: "Pechuga Apanada Individual",
+      slug: "pechuga-apanada-individual",
+      description: "Porción individual de pechuga apanada doradita y crujiente, acompañada de papa al vapor y arepa frita.",
+      basePrice: 8000,
+      imageUrl: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      servings: "Individual",
+      sortOrder: 7,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catEspecialidadesPollo.id,
+      name: "Contramuslo Apanado Individual",
+      slug: "contramuslo-apanado-individual",
+      description: "Pieza individual de contramuslo apanado jugoso y crocante, servida con papa al vapor y arepa frita.",
+      basePrice: 7000,
+      imageUrl: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      servings: "Individual",
+      sortOrder: 8,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catEspecialidadesPollo.id,
+      name: "Muslo Apanado Individual",
+      slug: "muslo-apanado-individual",
+      description: "Pieza individual de muslo apanado al punto perfecto, acompañado de papa al vapor y arepa frita.",
+      basePrice: 6500,
+      imageUrl: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      servings: "Individual",
+      sortOrder: 9,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catEspecialidadesPollo.id,
+      name: "Ala Apanada Individual",
+      slug: "ala-apanada-individual",
+      description: "Pieza individual de ala apanada extra crocante, servida con papa al vapor y arepa frita.",
+      basePrice: 5500,
+      imageUrl: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      servings: "Individual",
+      sortOrder: 10,
+    },
+  });
+
+  // CATEGORÍA 2: Combos Crocantes (Pollo Apanado)
+  await prisma.dish.create({
+    data: {
+      categoryId: catCombosCrocantes.id,
+      name: "Combo Crujiente de Muslo",
+      slug: "combo-crujiente-de-muslo",
+      description: "Muslo de pollo apanado extra crocante, acompañado de papas a la francesa y ensalada fresca.",
+      basePrice: 17000,
+      imageUrl: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      servings: "Individual",
+      sortOrder: 1,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catCombosCrocantes.id,
+      name: "Combo Crujiente de Contramuslo",
+      slug: "combo-crujiente-de-contramuslo",
+      description: "Jugoso contramuslo apanado y dorado, servido con papas a la francesa y ensalada fresca.",
+      basePrice: 17000,
+      imageUrl: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      servings: "Individual",
+      sortOrder: 2,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catCombosCrocantes.id,
+      name: "Combo Crujiente de Ala",
+      slug: "combo-crujiente-de-ala",
+      description: "Ala de pollo apanada y crujiente, acompañada de papas a la francesa y ensalada fresca.",
+      basePrice: 15000,
+      imageUrl: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      servings: "Individual",
+      sortOrder: 3,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catCombosCrocantes.id,
+      name: "Combo Suprema de Pechuga Apanada",
+      slug: "combo-suprema-de-pechuga-apanada",
+      description: "Generosa porción de pechuga apanada doradita, acompañada de papas a la francesa y ensalada fresca.",
+      basePrice: 18000,
+      imageUrl: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      servings: "Individual",
+      sortOrder: 4,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catCombosCrocantes.id,
+      name: "Combo Doble Presa (Muslo y Contramuslo)",
+      slug: "combo-doble-presa-muslo-y-contramuslo",
+      description: "Combinación de muslo y contramuslo apanados, servidos con papas a la francesa y ensalada fresca.",
+      basePrice: 22000,
+      imageUrl: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      badge: "CHEFS_SPECIAL",
+      servings: "Individual",
+      sortOrder: 5,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catCombosCrocantes.id,
+      name: "Combo Especial Crujiente (Pechuga y Ala)",
+      slug: "combo-especial-crujiente-pechuga-y-ala",
+      description: "Porción de pechuga y ala apanadas al punto perfecto, acompañadas de papas a la francesa y ensalada fresca.",
+      basePrice: 22000,
+      imageUrl: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      badge: "POPULAR",
+      servings: "Individual",
+      sortOrder: 6,
+    },
+  });
+
+  // CATEGORÍA 3: Combos Asados de la Casa
+  await prisma.dish.create({
+    data: {
+      categoryId: catCombosAsados.id,
+      name: "Combo Asado Tradicional (Muslo y Contramuslo)",
+      slug: "combo-asado-tradicional-muslo-y-contramuslo",
+      description: "Presas de muslo y contramuslo asados con el toque de la casa, acompañados de papas a la francesa y ensalada fresca.",
+      basePrice: 22000,
+      imageUrl: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      servings: "Individual",
+      sortOrder: 1,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catCombosAsados.id,
+      name: "Combo Asado Especial (Pechuga y Ala)",
+      slug: "combo-asado-especial-pechuga-y-ala",
+      description: "Combinación de pechuga y ala asadas y jugosas, servidas con papas a la francesa y ensalada fresca.",
       basePrice: 22000,
       imageUrl: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=800&auto=format&fit=crop",
       isAvailable: true,
       badge: "POPULAR",
-      servings: "1 persona",
-      sortOrder: 1,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catCombosPollo.id,
-      name: "Combo Asado Muslo y Contramuslo",
-      slug: "combo-asado-muslo-contramuslo",
-      description: "Pierna y pernil asados con papas a la francesa y ensalada fresca.",
-      basePrice: 21000,
-      imageUrl: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
+      servings: "Individual",
       sortOrder: 2,
     },
   });
 
   await prisma.dish.create({
     data: {
-      categoryId: catCombosPollo.id,
-      name: "Combo 1/4 Asado Económico",
-      slug: "combo-cuarto-asado",
-      description: "Cuarto de pollo asado con papas a la francesa y ensalada.",
-      basePrice: 12000,
-      imageUrl: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=800&auto=format&fit=crop",
+      categoryId: catCombosAsados.id,
+      name: "Combo Cuarto de Pollo Asado",
+      slug: "combo-cuarto-de-pollo-asado",
+      description: "Un cuarto de pollo asado tradicional, acompañado de papas a la francesa y ensalada fresca.",
+      basePrice: 22000,
+      imageUrl: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?q=80&w=800&auto=format&fit=crop",
       isAvailable: true,
-      badge: "PROMO",
-      servings: "1 persona",
+      servings: "Individual",
+      sortOrder: 3,
+    },
+  });
+
+  // CATEGORÍA 4: Sopas, Arroces y Acompañamientos
+  const dConsomeMenudencias = await prisma.dish.create({
+    data: {
+      categoryId: catSopasArroces.id,
+      name: "Consomé Campesino de Menudencias",
+      slug: "consome-campesino-de-menudencias",
+      description: "Caldo sustancioso preparado con menudencias de pollo y hierbas frescas, acompañado de arepa y limón.",
+      basePrice: 10000,
+      imageUrl: "https://images.unsplash.com/photo-1547592166-23ac45744acd?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 1,
+    },
+  });
+  await prisma.dishPortion.createMany({
+    data: [
+      { dishId: dConsomeMenudencias.id, label: "Pequeño", price: 10000, isDefault: true },
+      { dishId: dConsomeMenudencias.id, label: "Grande", price: 12000, isDefault: false },
+    ],
+  });
+
+  const dConsomePescado = await prisma.dish.create({
+    data: {
+      categoryId: catSopasArroces.id,
+      name: "Consomé de Pescado Fresco",
+      slug: "consome-de-pescado-fresco",
+      description: "Caldo reconfortante de pescado con el sazón casero tradicional, servido con arepa y limón.",
+      basePrice: 10000,
+      imageUrl: "https://images.unsplash.com/photo-1547592166-23ac45744acd?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 2,
+    },
+  });
+  await prisma.dishPortion.createMany({
+    data: [
+      { dishId: dConsomePescado.id, label: "Pequeño", price: 10000, isDefault: true },
+      { dishId: dConsomePescado.id, label: "Grande", price: 12000, isDefault: false },
+    ],
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catSopasArroces.id,
+      name: "Arroz Mixto Especial",
+      slug: "arroz-mixto-especial",
+      description: "Generosa combinación de arroz salteado con variedad de carnes seleccionadas y vegetales.",
+      basePrice: 9000,
+      imageUrl: "https://images.unsplash.com/photo-1512058564366-18510be2db19?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
       sortOrder: 3,
     },
   });
 
   await prisma.dish.create({
     data: {
-      categoryId: catCombosPollo.id,
-      name: "Combo Apanado Pechuga y Ala",
-      slug: "combo-apanado-pechuga-ala",
-      description: "Presas apanadas crocantes con papas a la francesa y ensalada.",
-      basePrice: 21000,
-      imageUrl: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
+      categoryId: catSopasArroces.id,
+      name: "Arroz con Pollo de la Casa",
+      slug: "arroz-con-pollo-de-la-casa",
+      description: "Arroz sazonado y salteado con abundante pollo desmechado y vegetales tiernos.",
+      basePrice: 0,
+      imageUrl: "https://images.unsplash.com/photo-1512058564366-18510be2db19?q=80&w=800&auto=format&fit=crop",
+      isAvailable: false,
       sortOrder: 4,
     },
   });
 
   await prisma.dish.create({
     data: {
-      categoryId: catCombosPollo.id,
-      name: "Combo Apanado Muslo y Contramuslo",
-      slug: "combo-apanado-muslo-contramuslo",
-      description: "Muslo y contramuslo crocantes con papas a la francesa y ensalada.",
-      basePrice: 21000,
-      imageUrl: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=800&auto=format&fit=crop",
+      categoryId: catSopasArroces.id,
+      name: "Cazuelita de Frijoles Tradicionales",
+      slug: "cazuelita-de-frijoles-tradicionales",
+      description: "Porción de frijoles caseros cocinados a fuego lento al estilo antioqueño.",
+      basePrice: 10000,
+      imageUrl: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?q=80&w=800&auto=format&fit=crop",
       isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
       sortOrder: 5,
     },
   });
 
   await prisma.dish.create({
     data: {
-      categoryId: catCombosPollo.id,
-      name: "Combo Apanado con Pechuga",
-      slug: "combo-apanado-pechuga",
-      description: "Pechuga apanada grande con papas y ensalada.",
-      basePrice: 18000,
-      imageUrl: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=800&auto=format&fit=crop",
+      categoryId: catSopasArroces.id,
+      name: "Porción de Papas a la Francesa Crujientes",
+      slug: "porcion-de-papas-a-la-francesa-crujientes",
+      description: "Porción de papas doradas y crocantes.",
+      basePrice: 6000,
+      imageUrl: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=800&auto=format&fit=crop",
       isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
       sortOrder: 6,
     },
   });
 
   await prisma.dish.create({
     data: {
-      categoryId: catCombosPollo.id,
-      name: "Combo Apanado Muslo o Contramuslo",
-      slug: "combo-apanado-muslo",
-      description: "Presa apanada con papas a la francesa y ensalada.",
-      basePrice: 17000,
-      imageUrl: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=800&auto=format&fit=crop",
+      categoryId: catSopasArroces.id,
+      name: "Ensalada Fresca de la Casa",
+      slug: "ensalada-fresca-de-la-casa",
+      description: "Mezcla cremosa y fresca ideal para acompañar cualquier plato.",
+      basePrice: 6000,
+      imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=800&auto=format&fit=crop",
       isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
       sortOrder: 7,
     },
   });
 
-  // CATEGORÍA 3: Asados a la Brasa
-  const platoMixto = await prisma.dish.create({
-    data: {
-      categoryId: catAsados.id,
-      name: "Mixto de Carnes Pío Pío",
-      slug: "mixto-de-carnes",
-      description: "Parrillada mixta con res, cerdo, pechuga y chorizo. Servido con papas a la francesa, arepa con queso y ensalada.",
-      basePrice: 45000,
-      imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      isFeatured: true,
-      badge: "CHEFS_SPECIAL",
-      servings: "Para compartir (2 personas)",
-      sortOrder: 1,
-    },
-  });
-
   await prisma.dish.create({
     data: {
-      categoryId: catAsados.id,
-      name: "Punta de Anca a la Brasa",
-      slug: "punta-de-anca",
-      description: "Corte jugoso asado a la parrilla con papas a la francesa, arepa con queso y ensalada fresca.",
-      basePrice: 33000,
-      imageUrl: "https://images.unsplash.com/photo-1558030006-450675393462?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "POPULAR",
-      servings: "1 persona",
-      sortOrder: 2,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catAsados.id,
-      name: "Churrasco Tradicional",
-      slug: "churrasco",
-      description: "Corte de res a la parrilla al carbón con papas a la francesa, arepa con queso y ensalada.",
-      basePrice: 33000,
-      imageUrl: "https://images.unsplash.com/photo-1546964124-0cce460f38ef?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
-      sortOrder: 3,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catAsados.id,
-      name: "Lomo de Cerdo a la Plancha",
-      slug: "lomo-de-cerdo",
-      description: "Lomo de cerdo asado a la brasa con papas a la francesa, arepa con queso y ensalada.",
-      basePrice: 33000,
-      imageUrl: "https://images.unsplash.com/photo-1432139555190-58524dae6a55?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
-      sortOrder: 4,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catAsados.id,
-      name: "Filete de Pechuga de Pollo",
-      slug: "filete-de-pollo",
-      description: "Filete de pechuga marinada a la brasa con papas a la francesa, arepa con queso y ensalada.",
-      basePrice: 28000,
-      imageUrl: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
-      sortOrder: 5,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catAsados.id,
-      name: "Chuzo de Carne Parrillero",
-      slug: "chuzo-de-carne",
-      description: "Brocheta parrillera de trozos de carne con papas a la francesa, arepa con queso y ensalada.",
-      basePrice: 25000,
-      imageUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
-      sortOrder: 6,
-    },
-  });
-
-  // CATEGORÍA 4: Platos Típicos
-  await prisma.dish.create({
-    data: {
-      categoryId: catPlatosTipicos.id,
-      name: "Bandeja Paisa Completa",
-      slug: "bandeja-paisa",
-      description: "Frijoles, arroz, carne molida, chicharrón crocante, huevo frito, tajada de plátano maduro, chorizo y arepa.",
-      basePrice: 30000,
-      imageUrl: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "POPULAR",
-      servings: "Muy abundante (1 a 2 personas)",
-      sortOrder: 1,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catPlatosTipicos.id,
-      name: "Trucha Frita Dorada",
-      slug: "trucha-frita",
-      description: "Trucha fresca frita con arroz blanco, patacón o papas a la francesa y ensalada.",
-      basePrice: 30000,
-      imageUrl: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
-      sortOrder: 2,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catPlatosTipicos.id,
-      name: "Tilapia Frita de la Casa",
-      slug: "tilapia-frita",
-      description: "Pescado tilapia entero dorado con arroz blanco, patacón y ensalada fresca.",
-      basePrice: 30000,
-      imageUrl: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
-      sortOrder: 3,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catPlatosTipicos.id,
-      name: "Sancocho de Res Campesino",
-      slug: "sancocho-de-res",
-      description: "Sopa criolla tradicional con carne de res, plátano, yuca, papa y mazorca. Incluye arroz y ensalada.",
-      basePrice: 18000,
-      imageUrl: "https://images.unsplash.com/photo-1547592166-23ac45744acd?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
-      sortOrder: 4,
-    },
-  });
-
-  // Platos que estaban marcados con X en la carta física (se crean como isAvailable: false)
-  await prisma.dish.create({
-    data: {
-      categoryId: catPlatosTipicos.id,
-      name: "Cazuela de Fríjol",
-      slug: "cazuela-de-frijol",
-      description: "Frijoles cargados con chicharrón, plátano maduro en cubos, maíz tierno y aguacate.",
-      basePrice: 25000,
-      imageUrl: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?q=80&w=800&auto=format&fit=crop",
-      isAvailable: false, // Marcado con X en el menú físico
-      badge: "NONE",
-      servings: "1 persona",
-      sortOrder: 5,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catPlatosTipicos.id,
-      name: "Mondongo Tradicional",
-      slug: "mondongo",
-      description: "Sopa típica de callo de res cocinado lentamente con verduras y especias criollas.",
-      basePrice: 20000,
-      imageUrl: "https://images.unsplash.com/photo-1547592166-23ac45744acd?q=80&w=800&auto=format&fit=crop",
-      isAvailable: false, // Marcado con X en el menú físico
-      badge: "NONE",
-      servings: "1 persona",
-      sortOrder: 6,
-    },
-  });
-
-  // CATEGORÍA 5: Bandejas del Día
-  await prisma.dish.create({
-    data: {
-      categoryId: catBandejas.id,
-      name: "Bandeja 1/4 Pollo Asado",
-      slug: "bandeja-cuarto-asado",
-      description: "1/4 de pollo asado con sopa del día, arroz, frijoles, huevo, ensalada y jugo o limonada.",
-      basePrice: 25000,
-      imageUrl: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "POPULAR",
-      servings: "1 persona",
-      sortOrder: 1,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catBandejas.id,
-      name: "Bandeja con Carne de Res",
-      slug: "bandeja-res",
-      description: "Carne de res asada con sopa, arroz, frijoles, huevo, ensalada y jugo.",
-      basePrice: 20000,
-      imageUrl: "https://images.unsplash.com/photo-1546964124-0cce460f38ef?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
-      sortOrder: 2,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catBandejas.id,
-      name: "Bandeja con Carne de Cerdo",
-      slug: "bandeja-cerdo",
-      description: "Filete de cerdo con sopa, arroz, frijoles, huevo, ensalada y jugo.",
-      basePrice: 20000,
-      imageUrl: "https://images.unsplash.com/photo-1432139555190-58524dae6a55?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
-      sortOrder: 3,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catBandejas.id,
-      name: "Bandeja con Chicharrón Crocante",
-      slug: "bandeja-chicharron",
-      description: "Chicharrón de cerdo carnudo y tostado con sopa, arroz, frijoles, huevo y ensalada.",
-      basePrice: 20000,
-      imageUrl: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "POPULAR",
-      servings: "1 persona",
-      sortOrder: 4,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catBandejas.id,
-      name: "Bandeja Económica 1/4 Apanado",
-      slug: "bandeja-cuarto-apanado",
-      description: "1/4 de pollo apanado con sopa, arroz, frijoles, huevo, ensalada y jugo.",
-      basePrice: 15000,
-      imageUrl: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "PROMO",
-      servings: "1 persona",
-      sortOrder: 5,
-    },
-  });
-
-  // CATEGORÍA 6: Sopa y Porciones
-  await prisma.dish.create({
-    data: {
-      categoryId: catSopasPorciones.id,
-      name: "Consomé de Menudencias con Arepa",
-      slug: "consome-de-menudencias",
-      description: "Caldo criollo caliente con menudencias de pollo, cilantro y limón.",
-      basePrice: 10000,
-      imageUrl: "https://images.unsplash.com/photo-1547592166-23ac45744acd?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 plato hondo",
-      sortOrder: 1,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catSopasPorciones.id,
-      name: "Consomé de Pescado",
-      slug: "consome-de-pescado",
-      description: "Caldo de pescado fresco reconfortante sazonado con hierbas naturales.",
-      basePrice: 10000,
-      imageUrl: "https://images.unsplash.com/photo-1547592166-23ac45744acd?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 plato",
-      sortOrder: 2,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catSopasPorciones.id,
-      name: "Porción de Fríjoles de la Casa",
-      slug: "porcion-frijoles",
-      description: "Fríjoles tradicionales cocinados en cazuela con toque campesino.",
-      basePrice: 10000,
-      imageUrl: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "Porción",
-      sortOrder: 3,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catSopasPorciones.id,
-      name: "Porción de Arroz Mixto",
-      slug: "arroz-mixto",
-      description: "Arroz salteado con carnes y verduras al estilo Pío Pío.",
-      basePrice: 9000,
-      imageUrl: "https://images.unsplash.com/photo-1512058564366-18510be2db19?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "Porción",
-      sortOrder: 4,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catSopasPorciones.id,
-      name: "Porción de Papas a la Francesa",
-      slug: "porcion-papas-francesa",
-      description: "Papas doradas y crujientes con sal parrillera.",
-      basePrice: 6000,
-      imageUrl: "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "Porción",
-      sortOrder: 5,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catSopasPorciones.id,
-      name: "Porción de Ensalada",
-      slug: "porcion-ensalada",
-      description: "Ensalada fresca de repollo, zanahoria y aderezo agridulce.",
-      basePrice: 8000,
-      imageUrl: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "Porción",
-      sortOrder: 6,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catSopasPorciones.id,
+      categoryId: catSopasArroces.id,
       name: "Porción de Arroz Blanco",
-      slug: "porcion-arroz",
+      slug: "porcion-de-arroz-blanco",
       description: "Arroz blanco suelto y recién preparado.",
       basePrice: 3000,
       imageUrl: "https://images.unsplash.com/photo-1516684732162-798a0062be99?q=80&w=800&auto=format&fit=crop",
       isAvailable: true,
-      badge: "NONE",
-      servings: "Porción",
-      sortOrder: 7,
+      sortOrder: 8,
     },
   });
 
-  // CATEGORÍA 7: Desayunos
+  // CATEGORÍA 5: Desayunos Tradicionales
   await prisma.dish.create({
     data: {
       categoryId: catDesayunos.id,
-      name: "Calentado Campesino con Chorizo",
-      slug: "calentado-chorizo",
-      description: "Arroz y frijoles calentados con chorizo frito, arepa y huevo.",
-      basePrice: 17000,
+      name: "Calentado Criollo con Chorizo",
+      slug: "calentado-criollo-con-chorizo",
+      description: "Mezcla tradicional de arroz y frijoles salteados, acompañado de chorizo dorado al punto y arepa.",
+      basePrice: 0,
       imageUrl: "https://images.unsplash.com/photo-1525351484163-7529414344d8?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "POPULAR",
-      servings: "1 desayuno completo",
+      isAvailable: false,
       sortOrder: 1,
     },
   });
@@ -666,14 +556,12 @@ async function main() {
   await prisma.dish.create({
     data: {
       categoryId: catDesayunos.id,
-      name: "Calentado con Carne Asada",
-      slug: "calentado-carne",
-      description: "Arroz y frijoles mezclados con carne de res a la plancha, arepa con mantequilla y huevo.",
-      basePrice: 17000,
+      name: "Calentado Especial con Carne Asada",
+      slug: "calentado-especial-con-carne-asada",
+      description: "Clásico calentado de la casa servido con una jugosa porción de carne a la plancha y arepa.",
+      basePrice: 0,
       imageUrl: "https://images.unsplash.com/photo-1525351484163-7529414344d8?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
+      isAvailable: false,
       sortOrder: 2,
     },
   });
@@ -681,14 +569,12 @@ async function main() {
   await prisma.dish.create({
     data: {
       categoryId: catDesayunos.id,
-      name: "Calentado con Huevos Fritos",
-      slug: "calentado-huevos",
-      description: "Calentado de frijol y arroz acompañado de dos huevos fritos y arepa.",
-      basePrice: 14000,
+      name: "Calentado Clásico con Huevos Fritos",
+      slug: "calentado-clasico-con-huevos-fritos",
+      description: "Tradicional calentado paisa coronado con dos huevos fritos al gusto y acompañado de arepa.",
+      basePrice: 0,
       imageUrl: "https://images.unsplash.com/photo-1525351484163-7529414344d8?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
+      isAvailable: false,
       sortOrder: 3,
     },
   });
@@ -696,14 +582,12 @@ async function main() {
   await prisma.dish.create({
     data: {
       categoryId: catDesayunos.id,
-      name: "Huevos al Gusto con Salchicha",
-      slug: "huevos-con-salchicha",
-      description: "Huevos revueltos o pericos con salchicha y arepa.",
-      basePrice: 11500,
+      name: "Huevos Revueltos con Salchicha",
+      slug: "huevos-revueltos-con-salchicha",
+      description: "Suaves huevos revueltos preparados con trozos de salchicha dorada, acompañados de arepa.",
+      basePrice: 0,
       imageUrl: "https://images.unsplash.com/photo-1525351484163-7529414344d8?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
+      isAvailable: false,
       sortOrder: 4,
     },
   });
@@ -711,30 +595,266 @@ async function main() {
   await prisma.dish.create({
     data: {
       categoryId: catDesayunos.id,
-      name: "Arepa con Pajarilla Tradicional",
-      slug: "arepa-pajarilla",
-      description: "Arepa campesina asada acompañada de pajarilla en salsa criolla.",
-      basePrice: 8500,
+      name: "Arepa Asada con Pajarilla",
+      slug: "arepa-asada-con-pajarilla",
+      description: "Arepa tradicional dorada, servida con una porción de pajarilla sazonada y salteada al estilo criollo.",
+      basePrice: 0,
       imageUrl: "https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "1 persona",
+      isAvailable: false,
       sortOrder: 5,
     },
   });
 
-  // CATEGORÍA 8: Menú Infantil
+  // CATEGORÍA 6: Cortes y Asados a la Plancha
   await prisma.dish.create({
     data: {
-      categoryId: catMenuInfantil.id,
-      name: "Salchipapas Pío Pío Especial",
-      slug: "salchipapas-pio-pio",
-      description: "Papas a la francesa crocantes con salchicha en rodajas, queso y salsas de la casa.",
-      basePrice: 12000,
-      imageUrl: "https://images.unsplash.com/photo-1585109649139-366815a0d713?q=80&w=800&auto=format&fit=crop",
+      categoryId: catCortesPlancha.id,
+      name: "Punta de Anca a la Plancha",
+      slug: "punta-de-anca-a-la-plancha",
+      description: "Corte tierno y jugoso sellado a la plancha, acompañado de papas a la francesa, ensalada fresca y arepa con queso gratinado.",
+      basePrice: 33000,
+      imageUrl: "https://images.unsplash.com/photo-1558030006-450675393462?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      badge: "CHEFS_SPECIAL",
+      sortOrder: 1,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catCortesPlancha.id,
+      name: "Lomo de Cerdo Jugoso",
+      slug: "lomo-de-cerdo-jugoso",
+      description: "Filete de lomo de cerdo dorado a la plancha, servido con papas a la francesa, ensalada fresca y arepa con queso gratinado.",
+      basePrice: 33000,
+      imageUrl: "https://images.unsplash.com/photo-1432139555190-58524dae6a55?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 2,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catCortesPlancha.id,
+      name: "Churrasco Clásico",
+      slug: "churrasco-clasico",
+      description: "Corte seleccionado de res preparado a la plancha al término deseado, acompañado de papas a la francesa, ensalada fresca y arepa con queso gratinado.",
+      basePrice: 33000,
+      imageUrl: "https://images.unsplash.com/photo-1546964124-0cce460f38ef?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 3,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catCortesPlancha.id,
+      name: "Filete de Pechuga a la Plancha",
+      slug: "filete-de-pechuga-a-la-plancha",
+      description: "Pechuga de pollo fileteada y asada a la plancha, acompañada de papas a la francesa, ensalada fresca y arepa con queso gratinado.",
+      basePrice: 28000,
+      imageUrl: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 4,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catCortesPlancha.id,
+      name: "Parrillada Mixta de Carnes",
+      slug: "parrillada-mixta-de-carnes",
+      description: "Abundante selección de carnes preparadas a la plancha, servida con papas a la francesa, ensalada fresca y arepa con queso gratinado.",
+      basePrice: 45000,
+      imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=800&auto=format&fit=crop",
       isAvailable: true,
       badge: "POPULAR",
-      servings: "Para niños",
+      sortOrder: 5,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catCortesPlancha.id,
+      name: "Chuzo Especial de Pollo a la Plancha",
+      slug: "chuzo-especial-de-pollo-a-la-plancha",
+      description: "Brocheta de pechuga de pollo sazonada y dorada a la plancha, acompañada de papas a la francesa, ensalada fresca y arepa con queso gratinado.",
+      basePrice: 25000,
+      imageUrl: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 6,
+    },
+  });
+
+  // CATEGORÍA 7: Sabores de Nuestra Tierra (Platos Típicos)
+  await prisma.dish.create({
+    data: {
+      categoryId: catSaboresTierra.id,
+      name: "Bandeja Paisa Tradicional",
+      slug: "bandeja-paisa-tradicional",
+      description: "El plato insignia de nuestra tierra con frijoles, arroz blanco, carne molida, chicharrón crocante, huevo frito, tajada de maduro, arepa y aguacate.",
+      basePrice: 30000,
+      imageUrl: "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      badge: "CHEFS_SPECIAL",
+      sortOrder: 1,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catSaboresTierra.id,
+      name: "Trucha Dorada a la Plancha",
+      slug: "trucha-dorada-a-la-plancha",
+      description: "Filete entero de trucha dorada a la plancha, acompañado de papas a la francesa, ensalada fresca, arepa con queso gratinado y buen limón.",
+      basePrice: 33000,
+      imageUrl: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 2,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catSaboresTierra.id,
+      name: "Tilapia Frita Crocante",
+      slug: "tilapia-frita-crocante",
+      description: "Tilapia entera frita hasta quedar dorada y crujiente, servida con papas a la francesa, ensalada fresca, arepa con queso gratinado y buen limón.",
+      basePrice: 33000,
+      imageUrl: "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 3,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catSaboresTierra.id,
+      name: "Cazuela Montañera de Frijoles",
+      slug: "cazuela-montanera-de-frijoles",
+      description: "Frijoles tradicionales servidos con trozos de chicharrón crocante, maduritos, maicitos, aguacate y acompañados de arroz blanco y arepa.",
+      basePrice: 0,
+      imageUrl: "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?q=80&w=800&auto=format&fit=crop",
+      isAvailable: false,
+      sortOrder: 4,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catSaboresTierra.id,
+      name: "Sancocho Casero de Res",
+      slug: "sancocho-casero-de-res",
+      description: "Sopa tradicional con costilla y carne de res, papa, yuca, plátano y mazorca, acompañada de arroz blanco, aguacate y arepa.",
+      basePrice: 0,
+      imageUrl: "https://images.unsplash.com/photo-1547592166-23ac45744acd?q=80&w=800&auto=format&fit=crop",
+      isAvailable: false,
+      sortOrder: 5,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catSaboresTierra.id,
+      name: "Sopa Tradicional de Mondongo",
+      slug: "sopa-tradicional-de-mondongo",
+      description: "Sustanciosa sopa de mondongo preparada al estilo de la casa, servida con arroz blanco, aguacate y arepa.",
+      basePrice: 0,
+      imageUrl: "https://images.unsplash.com/photo-1547592166-23ac45744acd?q=80&w=800&auto=format&fit=crop",
+      isAvailable: false,
+      sortOrder: 6,
+    },
+  });
+
+  // CATEGORÍA 8: Bandejas Completas
+  await prisma.dish.create({
+    data: {
+      categoryId: catBandejasCompletas.id,
+      name: "Bandeja Cuarto de Pollo Apanado",
+      slug: "bandeja-cuarto-de-pollo-apanado",
+      description: "Cuarto de pollo apanado crocante acompañado de arroz blanco, frijol, tajada de maduro, ensalada, limonada y consomé del día.",
+      basePrice: 25000,
+      imageUrl: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 1,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catBandejasCompletas.id,
+      name: "Bandeja Cuarto de Pollo Asado",
+      slug: "bandeja-cuarto-de-pollo-asado",
+      description: "Cuarto de pollo asado tradicional servido con arroz blanco, frijol, tajada de maduro, ensalada, limonada y consomé del día.",
+      basePrice: 25000,
+      imageUrl: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 2,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catBandejasCompletas.id,
+      name: "Bandeja con Lomo de Cerdo",
+      slug: "bandeja-con-lomo-de-cerdo",
+      description: "Porción de lomo de cerdo a la plancha servida con arroz blanco, frijol, tajada de maduro, ensalada, limonada y consomé del día.",
+      basePrice: 20000,
+      imageUrl: "https://images.unsplash.com/photo-1432139555190-58524dae6a55?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 3,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catBandejasCompletas.id,
+      name: "Bandeja con Carne de Res",
+      slug: "bandeja-con-carne-de-res",
+      description: "Porción de carne de res a la plancha acompañada de arroz blanco, frijol, tajada de maduro, ensalada, limonada y consomé del día.",
+      basePrice: 20000,
+      imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 4,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catBandejasCompletas.id,
+      name: "Bandeja con Chicharrón Crocante",
+      slug: "bandeja-con-chicharron-crocante",
+      description: "Chicharrón carnudo y crocante servido con arroz blanco, frijol, tajada de maduro, ensalada, limonada y consomé del día.",
+      basePrice: 20000,
+      imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 5,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catBandejasCompletas.id,
+      name: "Bandeja Especial de Presa Apanada",
+      slug: "bandeja-especial-de-presa-apanada",
+      description: "Presa de pollo apanado acompañada de arroz blanco, frijol, tajada de maduro, ensalada, limonada y consomé del día.",
+      basePrice: 0,
+      imageUrl: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=800&auto=format&fit=crop",
+      isAvailable: false,
+      sortOrder: 6,
+    },
+  });
+
+  // CATEGORÍA 9: Menú Infantil
+  await prisma.dish.create({
+    data: {
+      categoryId: catMenuInfantil.id,
+      name: "Salchipapas Clásicas",
+      slug: "salchipapas-clasicas",
+      description: "Combinación de papas a la francesa crujientes con trozos de salchicha dorada y salsas al gusto.",
+      basePrice: 15000,
+      imageUrl: "https://images.unsplash.com/photo-1585109649139-366815a0d713?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
       sortOrder: 1,
     },
   });
@@ -742,60 +862,52 @@ async function main() {
   await prisma.dish.create({
     data: {
       categoryId: catMenuInfantil.id,
-      name: "Nuggets de Pollo con Papas",
-      slug: "nuggets-de-pollo",
-      description: "Nuggets de pechuga de pollo crocantes con papas a la francesa.",
-      basePrice: 12000,
+      name: "Nuggets de Pollo Crujientes",
+      slug: "nuggets-de-pollo-crujientes",
+      description: "Tiernos bocados de pechuga de pollo apanados, acompañados de papas a la francesa.",
+      basePrice: 0,
       imageUrl: "https://images.unsplash.com/photo-1562967914-608f82629710?q=80&w=800&auto=format&fit=crop",
-      isAvailable: false, // Marcado con X en el menú físico
-      badge: "NONE",
-      servings: "Para niños",
+      isAvailable: false,
       sortOrder: 2,
     },
   });
 
-  // CATEGORÍA 9: Bebidas
+  // CATEGORÍA 10: Bebidas Refrescantes
   await prisma.dish.create({
     data: {
       categoryId: catBebidas.id,
-      name: "Gaseosa Familiar 1.5L / 3L",
-      slug: "gaseosa-familiar",
-      description: "Gaseosa familiar helada para compartir en mesa.",
-      basePrice: 15000,
-      imageUrl: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "Familiar",
-      sortOrder: 1,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catBebidas.id,
-      name: "Vaso de Milo Frío Batido",
-      slug: "milo-frio",
-      description: "Bebida achocolatada Milo batida con leche bien helada.",
-      basePrice: 8000,
-      imageUrl: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "NONE",
-      servings: "Vaso",
-      sortOrder: 2,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catBebidas.id,
-      name: "Jugo Natural en Leche",
-      slug: "jugo-en-leche",
-      description: "Frutas de temporada (Mora, Mango, Lulo, Maracuyá) licuadas en leche.",
+      name: "Jugos Naturales en Leche",
+      slug: "jugos-naturales-en-leche",
+      description: "Cremosos batidos de fruta natural preparados en leche.",
       basePrice: 8000,
       imageUrl: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?q=80&w=800&auto=format&fit=crop",
       isAvailable: true,
-      badge: "POPULAR",
-      servings: "Vaso 400ml",
+      sortOrder: 1,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catBebidas.id,
+      name: "Jugos Naturales en Agua",
+      slug: "jugos-naturales-en-agua",
+      description: "Selección de frutas frescas preparadas al instante en agua.",
+      basePrice: 7000,
+      imageUrl: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 2,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catBebidas.id,
+      name: "Jugo Natural del Día",
+      slug: "jugo-natural-del-dia",
+      description: "Bebida refrescante preparada con la fruta seleccionada de la jornada.",
+      basePrice: 1500,
+      imageUrl: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
       sortOrder: 3,
     },
   });
@@ -803,15 +915,39 @@ async function main() {
   await prisma.dish.create({
     data: {
       categoryId: catBebidas.id,
-      name: "Jugo Natural en Agua",
-      slug: "jugo-en-agua",
-      description: "Frutas naturales licuadas en agua con hielo frappé.",
-      basePrice: 7000,
-      imageUrl: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=800&auto=format&fit=crop",
+      name: "Milo",
+      slug: "milo",
+      description: "Bebida achocolatada fría o caliente, energizante y cremosa.",
+      basePrice: 8000,
+      imageUrl: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=800&auto=format&fit=crop",
       isAvailable: true,
-      badge: "NONE",
-      servings: "Vaso 400ml",
       sortOrder: 4,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catBebidas.id,
+      name: "Gaseosa Mega Familiar",
+      slug: "gaseosa-mega-familiar",
+      description: "Bebida gaseosa en presentación extra grande para compartir.",
+      basePrice: 15000,
+      imageUrl: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 5,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catBebidas.id,
+      name: "Gaseosa 1.5 Litros",
+      slug: "gaseosa-1-5-litros",
+      description: "Bebida gaseosa en botella familiar de 1.5 litros.",
+      basePrice: 8000,
+      imageUrl: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=800&auto=format&fit=crop",
+      isAvailable: true,
+      sortOrder: 6,
     },
   });
 
@@ -820,43 +956,10 @@ async function main() {
       categoryId: catBebidas.id,
       name: "Gaseosa Personal",
       slug: "gaseosa-personal",
-      description: "Coca-Cola, Postobón, Colombiana, Manzana bien heladas.",
+      description: "Bebida gaseosa en presentación individual.",
       basePrice: 4000,
       imageUrl: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=800&auto=format&fit=crop",
       isAvailable: true,
-      badge: "NONE",
-      servings: "Botella personal",
-      sortOrder: 5,
-    },
-  });
-
-  await prisma.dish.create({
-    data: {
-      categoryId: catBebidas.id,
-      name: "Vaso de Jugo del Día",
-      slug: "jugo-del-dia",
-      description: "Jugo casero refrescante preparado fresco todos los días.",
-      basePrice: 1500,
-      imageUrl: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=800&auto=format&fit=crop",
-      isAvailable: true,
-      badge: "PROMO",
-      servings: "Vaso",
-      sortOrder: 6,
-    },
-  });
-
-  // Bebidas con X en el menú físico
-  await prisma.dish.create({
-    data: {
-      categoryId: catBebidas.id,
-      name: "Limonada Natural Fría",
-      slug: "limonada-natural",
-      description: "Limonada con limones frescos y hielo.",
-      basePrice: 6000,
-      imageUrl: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=800&auto=format&fit=crop",
-      isAvailable: false, // Marcado con X en el menú
-      badge: "NONE",
-      servings: "Vaso",
       sortOrder: 7,
     },
   });
@@ -864,14 +967,12 @@ async function main() {
   await prisma.dish.create({
     data: {
       categoryId: catBebidas.id,
-      name: "Limonada de Coco Especial",
-      slug: "limonada-de-coco",
-      description: "Cremosa limonada con leche de coco y hielo granizado.",
-      basePrice: 9000,
+      name: "Limonada Natural Refrescante",
+      slug: "limonada-natural-refrescante",
+      description: "Jugo de limón recién exprimido con el punto exacto de dulzor.",
+      basePrice: 0,
       imageUrl: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=800&auto=format&fit=crop",
-      isAvailable: false, // Marcado con X en el menú
-      badge: "NONE",
-      servings: "Vaso",
+      isAvailable: false,
       sortOrder: 8,
     },
   });
@@ -879,15 +980,26 @@ async function main() {
   await prisma.dish.create({
     data: {
       categoryId: catBebidas.id,
-      name: "Cerveza Michelada Parrillera",
-      slug: "michelada",
-      description: "Cerveza helada con sal marina y zumo de limón recién exprimido.",
-      basePrice: 8000,
-      imageUrl: "https://images.unsplash.com/photo-1608270199187-57ee36502392?q=80&w=800&auto=format&fit=crop",
-      isAvailable: false, // Marcado con X en el menú
-      badge: "NONE",
-      servings: "Vaso escarchado",
+      name: "Limonada Cremosa de Coco",
+      slug: "limonada-cremosa-de-coco",
+      description: "Combinación refrescante de limón natural y leche de coco.",
+      basePrice: 0,
+      imageUrl: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?q=80&w=800&auto=format&fit=crop",
+      isAvailable: false,
       sortOrder: 9,
+    },
+  });
+
+  await prisma.dish.create({
+    data: {
+      categoryId: catBebidas.id,
+      name: "Cerveza Michelada",
+      slug: "cerveza-michelada",
+      description: "Cerveza bien fría servida en vaso escarchado con sal y abundante jugo de limón.",
+      basePrice: 0,
+      imageUrl: "https://images.unsplash.com/photo-1608270199187-57ee36502392?q=80&w=800&auto=format&fit=crop",
+      isAvailable: false,
+      sortOrder: 10,
     },
   });
 
@@ -900,16 +1012,16 @@ async function main() {
       imageUrl: "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?q=80&w=800&auto=format&fit=crop",
       badgeText: "PLATO ESTRELLA",
       regularPrice: 48000,
-      promoPrice: 43000,
+      promoPrice: 45000,
       ctaText: "Ver en la Carta",
-      targetDishId: platoPolloAsado.id,
+      targetDishId: pPolloAsadoEntero.id,
       isActive: true,
       autoShowDelayMs: 800,
       showOncePerSession: true,
     },
   });
 
-  // 5. Ajustes Institucionales de Pío Pío (Persistidos en Base de Datos)
+  // 5. Ajustes Institucionales de Pío Pío
   await prisma.restaurantSettings.create({
     data: {
       id: "default",

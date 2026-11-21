@@ -941,6 +941,30 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores**.
   - `npm run build`: Compilación exitosa con **código de salida 0**.
 
+### Hito 57: Reestructuración Integral del Menú Gastronómico Oficial de Pío Pío
+- **Solicitud del usuario:** Rehacer por completo el catálogo gastronómico del restaurante según el listado real suministrado por el usuario, eliminando platos de prueba anteriores e insertando exactamente 10 categorías y 62 platos con sus precios, porciones y descripciones, garantizando cero impacto en mesas, comandas y caja.
+- **Implementación Técnica ([prisma/seed.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/prisma/seed.ts), [scripts/update-menu.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/scripts/update-menu.ts)):**
+  - Se definieron y estructuraron las **10 categorías oficiales** con sus slugs, íconos temáticos de Lucide e imágenes gastronómicas en alta resolución:
+    1. *Especialidades de Pollo*
+    2. *Combos Crocantes (Pollo Apanado)*
+    3. *Combos Asados de la Casa*
+    4. *Sopas, Arroces y Acompañamientos*
+    5. *Desayunos Tradicionales*
+    6. *Cortes y Asados a la Plancha*
+    7. *Sabores de Nuestra Tierra (Platos Típicos)*
+    8. *Bandejas Completas*
+    9. *Menú Infantil*
+    10. *Bebidas Refrescantes*
+  - Se migraron los **62 platos oficiales** respetando sus nombres, descripciones y precios en COP.
+  - Los productos sin precio fijado ($0) se configuraron de forma preventiva con `basePrice: 0` y `isAvailable: false` (mostrándose como agotados/por encargo en carta para proteger cobros en caja y salón).
+  - Se implementaron 4 porciones dinámicas (`DishPortion`) para los consomés ("Pequeño": $10.000, "Grande": $12.000).
+  - Se sincronizó el modal promocional de bienvenida (`PromotionalModal`) vinculándolo al plato insignia: *"Pollo Asado Entero"* ($45.000).
+  - Se actualizó el `seed.ts` principal y se ejecutó la actualización en vivo contra PostgreSQL en Supabase.
+- **Certificación Técnica:**
+  - Base de datos remota Supabase: **10 Categorías, 62 Platos, 4 Porciones activas**.
+  - `npx tsc --noEmit`: **0 errores**.
+  - `npm run build`: Compilación limpia con **código de salida 0** en todas las 23 páginas estáticas y rutas dinámicas.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

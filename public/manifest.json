@@ -1,17 +1,19 @@
 {
-  "name": "Asadero & Parrilla La Brasa",
-  "short_name": "La Brasa",
-  "description": "Menú digital interactivo del asadero y restaurante",
-  "start_url": "/",
+  "name": "Pío Pío Asadero y Restaurante",
+  "short_name": "Pío Pío",
+  "description": "Carta digital interactiva y plataforma de Pío Pío Asadero y Restaurante",
+  "start_url": "/menu",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0f1115",
   "theme_color": "#0f1115",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "/logo-pio-pio.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
-

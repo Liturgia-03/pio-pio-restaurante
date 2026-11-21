@@ -1,7 +1,10 @@
-const CACHE_NAME = "pio-pio-menu-v2";
+const CACHE_NAME = "pio-pio-menu-v3";
 const STATIC_ASSETS = [
   "/logo-pio-pio.png",
   "/manifest.json",
+  "/manifest-admin.json",
+  "/manifest-menu.json",
+  "/manifest-waiter.json",
   "/favicon.ico",
 ];
 

@@ -14,13 +14,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Pío Pío | Asadero y Restaurante - Carta Digital",
+  title: "Pío Pío | Asadero y Restaurante",
   description: "Carta digital interactiva de Asadero y Restaurante Pío Pío. Pollos asados, apanados, asados a la brasa, bandejas del día y platos típicos.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Pío Pío Menú",
+    title: "Pío Pío",
+  },
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/logo-pio-pio.png",
   },
 };
 

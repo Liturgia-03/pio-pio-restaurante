@@ -965,6 +965,28 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores**.
   - `npm run build`: Compilación limpia con **código de salida 0** en todas las 23 páginas estáticas y rutas dinámicas.
 
+### Hito 58: Independización de Aplicaciones Web Progresivas (PWA Multi-Rol) para Admin, Menú y Mesero
+- **Solicitud del usuario:** Al instalar la aplicación o crear accesos directos desde el menú o el mesero, siempre se abría el panel administrativo. Se solicitó que:
+  1. Si se instala desde el Admin, cree el acceso directo **"Admin Pío Pío"** y abra `/admin/dashboard`.
+  2. Si se instala desde la Carta Digital, cree el acceso directo **"Menú Pío Pío"** y abra `/menu`.
+  3. Si se instala desde la vista de Mesero, cree el acceso directo **"Mesero Pío Pío"** y abra `/waiter`.
+  4. Todos los accesos directos deben portar el logotipo oficial de Pío Pío ([public/logo-pio-pio.png](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/public/logo-pio-pio.png)).
+- **Implementación Técnica:**
+  - Se crearon 3 manifiestos web W3C específicos en `public/`:
+    - [public/manifest-admin.json](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/public/manifest-admin.json): `name: "Admin Pío Pío"`, `short_name: "Admin Pío"`, `start_url: "/admin/dashboard"`, `scope: "/admin/"`, icono oficial 192x192 / 512x512 maskable.
+    - [public/manifest-menu.json](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/public/manifest-menu.json): `name: "Menú Pío Pío"`, `short_name: "Menú Pío"`, `start_url: "/menu"`, `scope: "/menu"`, icono oficial 192x192 / 512x512 maskable.
+    - [public/manifest-waiter.json](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/public/manifest-waiter.json): `name: "Mesero Pío Pío"`, `short_name: "Mesero Pío"`, `start_url: "/waiter"`, `scope: "/waiter"`, icono oficial 192x192 / 512x512 maskable.
+  - Se actualizó el manifiesto raíz [public/manifest.json](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/public/manifest.json) con identidad de Pío Pío y fallback seguro hacia `/menu`.
+  - Se implementaron metadatos específicos por ruta en Next.js App Router:
+    - [src/app/admin/layout.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/layout.tsx): Inyección de `manifest: "/manifest-admin.json"`, `appleWebApp: { title: "Admin Pío Pío" }`, e `icons: { apple: "/logo-pio-pio.png" }`.
+    - [src/app/menu/layout.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/menu/layout.tsx): Inyección de `manifest: "/manifest-menu.json"`, `appleWebApp: { title: "Menú Pío Pío" }`, e `icons: { apple: "/logo-pio-pio.png" }`.
+    - [src/app/waiter/layout.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/layout.tsx): Inyección de `manifest: "/manifest-waiter.json"`, `appleWebApp: { title: "Mesero Pío Pío" }`, e `icons: { apple: "/logo-pio-pio.png" }`.
+    - [src/app/layout.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/layout.tsx): Inclusión global de `icons: { apple: "/logo-pio-pio.png" }`.
+  - Se actualizó [public/sw.js](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/public/sw.js) integrando los 3 manifiestos en caché estática con versión `v3`.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores**.
+  - `npm run build`: Compilación exitosa con **código de salida 0**.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

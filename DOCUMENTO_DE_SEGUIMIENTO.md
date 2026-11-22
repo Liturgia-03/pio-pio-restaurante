@@ -1031,6 +1031,27 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores**.
   - `npm run build`: Compilación exitosa con **código de salida 0** en todas las 23 rutas.
 
+### Hito 61: Adhesión de Funciones Avanzadas al Diseño Lateral de Barra (Calculadora Acumulable, Buscador Sticky y Ajustes Admin)
+- **Solicitud del usuario:** Integrar todas las nuevas características (calculadora de billetes acumulables y deseleccionables, buscador de productos siempre visible y panel de configuración de barra para el administrador) **dentro del diseño actual de la barra lateral desplegable hacia la derecha (`w-[460px]`)**, prescindiendo de la pantalla completa.
+- **Implementación Técnica:**
+  - **Componente de Cajón Lateral ([src/components/admin/AdminBarraDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraDrawer.tsx)):**
+    - **Preservación del Diseño de Cajón Lateral:** Se conserva la franja vertical táctil (`w-11`) anclada entre el sidebar de navegación y el salón de mesas con botón indicador `>`, abriendo el cajón lateral de `w-[460px]` hacia la derecha sin cubrir la totalidad de la pantalla.
+    - **Buscador de Productos Siempre Visible (Sticky Top):** Se posicionó de forma fija en la parte superior del panel con atajo rápido de limpieza, permitiendo consultar platos y agregarlos en 1 toque sin importar el scroll del cajón.
+    - **Calculadora de Billetes Acumulables y Deseleccionables:**
+      - Botones con las denominaciones colombianas oficiales ($100k, $50k, $20k, $10k, $5k, $2k) con sus colores característicos.
+      - Al seleccionar billetes (ej. $50.000 + $20.000 para una cuenta de $57.000), se van sumando automáticamente ($70.000) en una bandeja de fichas/chips interactivos.
+      - Cada billete cuenta con un botón de deselección `[✕]` para restarse de inmediato.
+      - Cálculo de vueltas/cambio en tiempo real destacado en tipografía verde fluorescente grande.
+      - Botones de 1 toque: `[Exacto]` y `[Limpiar]`.
+    - **Modal de Configuración del Administrador (⚙️):**
+      - Accesible desde el botón `[⚙️ Ajustes]` en la cabecera del cajón.
+      - Permite al administrador marcar/desmarcar qué denominaciones de billetes o monedas usar, qué métodos de pago están habilitados en barra y qué platos del menú conforman la lista rápida de "Favoritos de Mostrador".
+  - **Endpoint de Persistencia de Barra ([src/app/api/admin/barra/config/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/barra/config/route.ts)):**
+    - Endpoint RESTful (`GET` y `POST`) para guardar y sincronizar la configuración de la barra en backend y `localStorage`.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores**.
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 24 rutas del proyecto.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

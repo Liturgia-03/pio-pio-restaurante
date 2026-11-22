@@ -987,6 +987,18 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores**.
   - `npm run build`: Compilación exitosa con **código de salida 0**.
 
+### Hito 59: Desplazamiento Horizontal (Scroll y Swipe Táctil) entre Categorías en la Toma de Pedidos del Mesero
+- **Solicitud del usuario:** Permitir que los meseros al ingresar a la carta para tomar pedidos puedan hacer scroll de izquierda a derecha para desplazarse entre categorías.
+- **Implementación Técnica ([src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)):**
+  - **Gestos Táctiles de Deslizamiento (Swipe Horizontal):** Se añadieron los manejadores `handleWaiterTouchStart`, `handleWaiterTouchMove` y `handleWaiterTouchEnd` en el listado de platos del modal de toma de pedidos (`showAddDishModal`), permitiendo al mesero deslizar horizontalmente con el dedo de izquierda a derecha (retroceder categoría) o de derecha a izquierda (avanzar categoría) con respuesta elástica fluida (`dragOffset`) y transición visual animada.
+  - **Carrusel Horizontal con Controles Directos:** Se incorporaron flechas discretas (`‹` y `›`) en los laterales de la barra de categorías para saltar inmediatamente a la categoría contigua.
+  - **Arrastre Táctil y con Mouse:** Se configuraron las propiedades `touch-pan-x`, `overscroll-x-contain` y eventos `onMouseDown`/`onMouseMove`/`onMouseUp` para permitir tanto el scroll táctil móvil como el arrastre fluido con mouse en computadores o tablets.
+  - **Auto-Scroll Centrado Pixel-Perfect:** Se corrigió el cálculo de posicionamiento relativo en `categoryScrollRef` para que el chip activo se mantenga perfectamente centrado en pantalla sin importar la categoría seleccionada.
+  - **Consulta Rápida de Carta en Salón:** Se replicó el carrusel horizontal deslizable de categorías en la vista de consulta de salón (`activeBottomNav === "menu"`).
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores**.
+  - `npm run build`: Compilación exitosa con **código de salida 0**.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

@@ -113,6 +113,16 @@ export default function WaiterApp() {
   // Referencia para auto-scroll centrado de categorías
   const categoryScrollRef = useRef<HTMLDivElement>(null);
 
+  // Estados para deslizamiento táctil horizontal (Swipe entre categorías)
+  const [slideDirection, setSlideDirection] = useState<"next" | "prev" | "none">("none");
+  const [dragOffset, setDragOffset] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+  const isHorizontalSwipe = useRef<boolean | null>(null);
+  const isMouseDownRef = useRef<boolean>(false);
+  const startXRef = useRef<number>(0);
+  const scrollLeftRef = useRef<number>(0);
+
   // Estados para transferencia de mesa
   const [showTransferModal, setShowTransferModal] = useState<boolean>(false);
   const [targetTableNumber, setTargetTableNumber] = useState<string>("");
@@ -222,6 +232,108 @@ export default function WaiterApp() {
       container.scrollTo({ left: Math.max(0, targetLeft), behavior: "smooth" });
     }
   }, [selectedCategoryTab]);
+
+  // Lista secuencial de categorías para navegación táctil (Swipe)
+  const categoryTabs = useMemo(() => {
+    return [
+      { id: "all", name: "Todos los Platos" },
+      ...categories.map((c) => ({ id: c.id, name: c.name })),
+    ];
+  }, [categories]);
+
+  const currentTabIdx = useMemo(() => {
+    return categoryTabs.findIndex((t) => t.id === selectedCategoryTab);
+  }, [categoryTabs, selectedCategoryTab]);
+
+  const prevCategoryTab = currentTabIdx > 0 ? categoryTabs[currentTabIdx - 1] : null;
+  const nextCategoryTab =
+    currentTabIdx >= 0 && currentTabIdx < categoryTabs.length - 1
+      ? categoryTabs[currentTabIdx + 1]
+      : null;
+
+  const handlePrevCategoryTab = () => {
+    if (prevCategoryTab) {
+      setSlideDirection("prev");
+      setSelectedCategoryTab(prevCategoryTab.id);
+    }
+  };
+
+  const handleNextCategoryTab = () => {
+    if (nextCategoryTab) {
+      setSlideDirection("next");
+      setSelectedCategoryTab(nextCategoryTab.id);
+    }
+  };
+
+  // Gestos táctiles de deslizamiento horizontal (Swipe de izquierda a derecha y derecha a izquierda)
+  const handleWaiterTouchStart = (e: React.TouchEvent) => {
+    touchStartPos.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
+    isHorizontalSwipe.current = null;
+    setIsDragging(false);
+    setDragOffset(0);
+  };
+
+  const handleWaiterTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartPos.current) return;
+
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const deltaX = currentX - touchStartPos.current.x;
+    const deltaY = currentY - touchStartPos.current.y;
+
+    if (isHorizontalSwipe.current === null) {
+      if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) {
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+          isHorizontalSwipe.current = true;
+        } else {
+          isHorizontalSwipe.current = false;
+        }
+      }
+    }
+
+    if (isHorizontalSwipe.current === true) {
+      setIsDragging(true);
+      const dampened = deltaX * 0.4;
+      setDragOffset(Math.max(-80, Math.min(80, dampened)));
+    }
+  };
+
+  const handleWaiterTouchEnd = () => {
+    if (isHorizontalSwipe.current === true && Math.abs(dragOffset) > 28) {
+      if (dragOffset < 0 && nextCategoryTab) {
+        handleNextCategoryTab();
+      } else if (dragOffset > 0 && prevCategoryTab) {
+        handlePrevCategoryTab();
+      }
+    }
+    setIsDragging(false);
+    setDragOffset(0);
+    touchStartPos.current = null;
+    isHorizontalSwipe.current = null;
+  };
+
+  // Arrastre con mouse en computadores y tablets para la barra de categorías
+  const handleCategoryMouseDown = (e: React.MouseEvent) => {
+    if (!categoryScrollRef.current) return;
+    isMouseDownRef.current = true;
+    startXRef.current = e.pageX - categoryScrollRef.current.offsetLeft;
+    scrollLeftRef.current = categoryScrollRef.current.scrollLeft;
+  };
+
+  const handleCategoryMouseMove = (e: React.MouseEvent) => {
+    if (!isMouseDownRef.current || !categoryScrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - categoryScrollRef.current.offsetLeft;
+    const walk = (x - startXRef.current) * 1.5;
+    categoryScrollRef.current.scrollLeft = scrollLeftRef.current - walk;
+  };
+
+  const handleCategoryMouseUpOrLeave = () => {
+    isMouseDownRef.current = false;
+  };
 
   // Manejador centralizado para la barra inferior (siempre disponible para cambiar de vista)
   const handleBottomNavClick = (tab: "all" | "pending" | "order" | "active" | "menu" | "profile") => {
@@ -1110,8 +1222,41 @@ export default function WaiterApp() {
               </p>
             </div>
 
-            <div className="space-y-6">
+            {/* Carrusel Horizontal de Categorías para Desplazamiento Rápido */}
+            <div className="sticky top-0 z-10 bg-[#0f1115]/95 backdrop-blur-md py-2 border-b border-gray-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth touch-pan-x">
+              <button
+                type="button"
+                onClick={() => setSelectedCategoryTab("all")}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+                  selectedCategoryTab === "all"
+                    ? "bg-amber-500 text-black shadow-md font-black"
+                    : "bg-[#181b20] text-gray-400 hover:text-white border border-gray-800"
+                }`}
+              >
+                <Flame className="w-3.5 h-3.5" />
+                <span>Todas</span>
+              </button>
               {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedCategoryTab(cat.id)}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                    selectedCategoryTab === cat.id
+                      ? "bg-amber-500 text-black shadow-md font-black"
+                      : "bg-[#181b20] text-gray-400 hover:text-white border border-gray-800"
+                  }`}
+                >
+                  <IconRenderer name={cat.iconName} className="w-3.5 h-3.5" />
+                  <span>{cat.name}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="space-y-6">
+              {categories
+                .filter((cat) => selectedCategoryTab === "all" || selectedCategoryTab === cat.id)
+                .map((cat) => (
                 <div key={cat.id} className="space-y-2.5">
                   <div className="flex items-center gap-2 border-b border-gray-800 pb-2">
                     <IconRenderer name={cat.iconName} className="w-4 h-4 text-amber-400" />
@@ -1968,16 +2113,35 @@ export default function WaiterApp() {
             </div>
           </div>
 
-          {/* Carrusel Horizontal de Categorías (Auto-Scroll Centrado) */}
-          <div className="sticky top-[57px] z-10 bg-[#0f1115]/95 backdrop-blur-md border-b border-gray-800/80 py-2.5 px-3 shadow-md">
+          {/* Carrusel Horizontal de Categorías (Auto-Scroll Centrado + Flechas de Desplazamiento Táctil) */}
+          <div className="sticky top-[57px] z-10 bg-[#0f1115]/95 backdrop-blur-md border-b border-gray-800/80 py-2.5 px-2.5 shadow-md flex items-center gap-1.5">
+            {/* Flecha izquierda para navegar entre categorías */}
+            <button
+              type="button"
+              onClick={handlePrevCategoryTab}
+              disabled={!prevCategoryTab}
+              className="w-7 h-7 shrink-0 rounded-full bg-gray-800/80 hover:bg-gray-700 disabled:opacity-20 disabled:pointer-events-none flex items-center justify-center text-amber-400 transition-all active:scale-90"
+              title="Categoría anterior"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
             <div
               ref={categoryScrollRef}
-              className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth"
+              onMouseDown={handleCategoryMouseDown}
+              onMouseMove={handleCategoryMouseMove}
+              onMouseUp={handleCategoryMouseUpOrLeave}
+              onMouseLeave={handleCategoryMouseUpOrLeave}
+              className="relative flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth touch-pan-x select-none"
+              style={{ WebkitOverflowScrolling: "touch" }}
             >
               <button
                 type="button"
                 data-category-tab="all"
-                onClick={() => setSelectedCategoryTab("all")}
+                onClick={() => {
+                  setSlideDirection("none");
+                  setSelectedCategoryTab("all");
+                }}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-300 min-h-[36px] active:scale-95 ${
                   selectedCategoryTab === "all"
                     ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-md shadow-orange-500/25 scale-[1.02]"
@@ -1994,7 +2158,10 @@ export default function WaiterApp() {
                   <button
                     key={cat.id}
                     data-category-tab={cat.id}
-                    onClick={() => setSelectedCategoryTab(cat.id)}
+                    onClick={() => {
+                      setSlideDirection("none");
+                      setSelectedCategoryTab(cat.id);
+                    }}
                     className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-300 min-h-[36px] active:scale-95 ${
                       isActive
                         ? "bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-md shadow-orange-500/25 scale-[1.02]"
@@ -2010,10 +2177,36 @@ export default function WaiterApp() {
                 );
               })}
             </div>
+
+            {/* Flecha derecha para navegar entre categorías */}
+            <button
+              type="button"
+              onClick={handleNextCategoryTab}
+              disabled={!nextCategoryTab}
+              className="w-7 h-7 shrink-0 rounded-full bg-gray-800/80 hover:bg-gray-700 disabled:opacity-20 disabled:pointer-events-none flex items-center justify-center text-amber-400 transition-all active:scale-90"
+              title="Categoría siguiente"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
 
-          {/* Listado de Platos Resumidos con Fotos y Controles Directos de Agregar/Quitar */}
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 pb-36">
+          {/* Listado de Platos Resumidos con Soporte de Deslizamiento Horizontal Táctil (Swipe) */}
+          <div
+            onTouchStart={handleWaiterTouchStart}
+            onTouchMove={handleWaiterTouchMove}
+            onTouchEnd={handleWaiterTouchEnd}
+            style={{
+              transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
+              transition: isDragging ? "none" : "transform 0.25s ease-out",
+            }}
+            className={`flex-1 overflow-y-auto p-3 sm:p-4 pb-36 touch-pan-y ${
+              slideDirection === "next"
+                ? "animate-in fade-in slide-in-from-right-4 duration-200"
+                : slideDirection === "prev"
+                ? "animate-in fade-in slide-in-from-left-4 duration-200"
+                : ""
+            }`}
+          >
             {filteredDishes.length === 0 ? (
               <div className="text-center py-12 space-y-2">
                 <Utensils className="w-10 h-10 text-gray-600 mx-auto" />

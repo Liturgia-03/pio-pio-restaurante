@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { AdminNavSidebar } from "@/components/admin/AdminNavSidebar";
+import { AdminBarraDrawer } from "@/components/admin/AdminBarraDrawer";
 import { AdminMobileDrawer } from "@/components/admin/AdminMobileDrawer";
 import { AdminBottomBar } from "@/components/admin/AdminBottomBar";
 import { AdminHeader } from "@/components/admin/AdminHeader";
@@ -39,6 +40,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#0f1115] text-gray-100 flex flex-col md:flex-row">
       <AdminNavSidebar />
+
+      {/* Barra de Pedidos Rápidos y Mostrador anclada junto al Sidebar desplegable hacia la derecha */}
+      <AdminBarraDrawer />
 
       <AdminMobileDrawer
         isOpen={drawerOpen}

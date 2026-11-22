@@ -999,6 +999,38 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores**.
   - `npm run build`: Compilación exitosa con **código de salida 0**.
 
+### Hito 60: Franja y Cajón Desplegable hacia la Derecha "Barra & Pedidos Rápidos" (Opción 3)
+- **Solicitud del usuario:** Diseñar e integrar una barra lateral desplegable hacia la derecha (`>`), ubicada exactamente entre el sidebar de navegación izquierdo y la cuadrícula de mesas (según la foto de referencia compartida), para tomar pedidos rápidos en barra y para llevar, con soporte para:
+  1. Clientes que pagan de inmediato pero deben esperar preparación en cocina.
+  2. Clientes que piden para llevar y pagan al momento de retirar su pedido.
+  3. Pagos divididos o mixtos (ej. una parte en Efectivo y el resto por Nequi/Transferencia), con cálculo automático de cambio/vueltas en la fracción en efectivo.
+- **Implementación Técnica:**
+  - **Componente Desplegable ([src/components/admin/AdminBarraDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraDrawer.tsx)):**
+    - **Franja Vertical Fija:** Franja ámbar/naranja de `w-11` anclada a la derecha del sidebar (`left-0 md:left-64`), con texto vertical rotado *"BARRA & PEDIDOS RÁPIDOS"*, botón circular con icono indicador (`>` cuando está cerrado, `<` al desplegar), y badge numérico pulsante con la cantidad de pedidos en espera.
+    - **Panel Desplegable hacia la Derecha (`w-[440px]`):** Drawer lateral con dos pestañas de operación rápida:
+      - **Pestaña "+ Tomar Pedido":**
+        - Generador automático de tickets secuenciales del día (`#01`, `#02`, etc.) bajo el identificador `BARRA #XX`.
+        - Campo de referencia/cliente (ej. "Don Carlos", "Mostrador").
+        - Selector de modalidad de preparación: *Listo en Vitrina (Entrega Inmediata)* vs. *Enviar a Cocina (Requiere Preparación)*.
+        - Selector de momento de cobro: *Pagar Ahora* vs. *Pagar al Recibir / Entregar*.
+        - 6 botones de acceso rápido (favoritos de barra) y buscador instantáneo sobre las 10 categorías del menú.
+        - Carrito de barra con selector de porciones dinámicas y contador de unidades.
+        - Soporte para métodos de pago: **Efectivo**, **Nequi / Transferencia**, **Tarjeta (Datáfono)** y **Pago Mixto (Efectivo + Nequi)** con calculadora en tiempo real de monto restante y cambio/vueltas en efectivo.
+      - **Pestaña "Esperando Entrega" (Cola de Mostrador):**
+        - Visualización en tiempo real de todos los tickets activos en barra/llevar.
+        - Estado visual diferenciado: badge verde *"PAGADO"* vs. badge ámbar *"PENDIENTE DE PAGO"*.
+        - Botón rápido `[Entregar y Despachar]` para pedidos prepagados.
+        - Botón `[Cobrar y Entregar]` con modal integrado para registrar el pago (efectivo, Nequi, tarjeta o mixto) antes de liberar el pedido.
+  - **Endpoints API RESTful:**
+    - [src/app/api/admin/barra/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/barra/route.ts): `GET` para obtener los pedidos activos de barra y calcular el próximo consecutivo del día; `POST` para registrar pedidos con sesión `tableNumber: "BARRA #XX"`, items en cocina y cierre inmediato o apertura con seguimiento de cobro.
+    - [src/app/api/admin/barra/[sessionId]/deliver/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/barra/[sessionId]/deliver/route.ts): `PATCH` para finalizar entregas, liquidar cobros pendientes con desglose de métodos mixtos y cerrar la sesión.
+  - **Integración en el Shell y Cuadrícula de Mesas:**
+    - [src/components/admin/AdminShell.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminShell.tsx): Inclusión del `<AdminBarraDrawer />` adyacente a `<AdminNavSidebar />` asegurando disponibilidad global en todas las vistas administrativas.
+    - [src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx): Integración de escucha de eventos `refresh-tables` y renderizado de pedidos de barra cerrados en la pestaña *"Cuentas Cerradas Hoy"* con el badge distintivo `🥡 BARRA #XX • LLEVAR / BARRA` y desglose de pagos en caja.
+- **Certificación Técnica:**
+  - `npx tsc --noEmit`: **0 errores**.
+  - `npm run build`: Compilación exitosa con **código de salida 0** en todas las 23 rutas.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto
@@ -1033,6 +1065,7 @@ APP_WEB_ASADERO_RESTAURANTE/
 │   │   └── api/                      # Endpoints RESTful
 │   │       ├── admin/
 │   │       │   ├── auth/             # Login, logout y sesión
+│   │       │   ├── barra/            # Pedidos rápidos de barra, consecutivos y entrega
 │   │       │   ├── categories/       # CRUD de categorías
 │   │       │   ├── dishes/           # CRUD de platos y toggle-status
 │   │       │   ├── promo-modal/      # Configuración de modal promocional
@@ -1043,7 +1076,7 @@ APP_WEB_ASADERO_RESTAURANTE/
 │   │       │   └── settings/         # Datos públicos de contacto y Wi-Fi
 │   │       └── upload/               # Subida de imágenes a /public/uploads
 │   ├── components/
-│   │   ├── admin/                    # Componentes del dashboard
+│   │   ├── admin/                    # Componentes del dashboard (incluye AdminBarraDrawer)
 │   │   └── public/                   # Componentes de la carta digital
 │   │       ├── PublicHeader.tsx      # Cabecera con logo y buscador
 │   │       ├── PublicMenuClient.tsx  # Orquestador con las 3 tarjetas de navegación

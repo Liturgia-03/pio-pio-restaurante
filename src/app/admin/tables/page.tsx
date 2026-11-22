@@ -199,16 +199,21 @@ export default function AdminTablesCashierPage() {
       }
     }, 6000);
 
-    // Refresco inmediato al volver a la pestaña de administración
+    // Refresco inmediato al volver a la pestaña de administración o al recibir evento de barra
     const handleResume = () => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
         loadTables(true);
       }
     };
 
+    const handleCustomBarraRefresh = () => {
+      loadTables(true);
+    };
+
     if (typeof document !== "undefined") {
       document.addEventListener("visibilitychange", handleResume);
       window.addEventListener("focus", handleResume);
+      window.addEventListener("refresh-tables", handleCustomBarraRefresh);
     }
 
     return () => {
@@ -216,6 +221,7 @@ export default function AdminTablesCashierPage() {
       if (typeof document !== "undefined") {
         document.removeEventListener("visibilitychange", handleResume);
         window.removeEventListener("focus", handleResume);
+        window.removeEventListener("refresh-tables", handleCustomBarraRefresh);
       }
     };
   }, [loadTables, loadWaiters, loadMenu]);
@@ -1524,11 +1530,23 @@ export default function AdminTablesCashierPage() {
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-black text-white text-sm">
-                            Mesa #{session.tableNumber}
-                          </span>
-                          <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded-full font-bold">
-                            PAGADA
+                          {session.tableNumber.startsWith("BARRA") ? (
+                            <span className="font-black text-amber-400 text-sm flex items-center gap-1.5">
+                              <span>🥡</span> {session.tableNumber}
+                            </span>
+                          ) : (
+                            <span className="font-black text-white text-sm">
+                              Mesa #{session.tableNumber}
+                            </span>
+                          )}
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                              session.tableNumber.startsWith("BARRA")
+                                ? "bg-amber-950/80 text-amber-300 border border-amber-800"
+                                : "bg-emerald-950 text-emerald-300 border border-emerald-800"
+                            }`}
+                          >
+                            {session.tableNumber.startsWith("BARRA") ? "LLEVAR / BARRA" : "PAGADA"}
                           </span>
                           <span className="text-gray-400">🕒 {closeTime}</span>
                         </div>

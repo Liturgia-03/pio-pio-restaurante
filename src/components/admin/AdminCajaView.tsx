@@ -68,6 +68,7 @@ interface ExpenseItem {
 
 interface ReportData {
   period: string;
+  periodLabel?: string;
   startDate: string;
   endDate: string;
   summary: {
@@ -110,8 +111,12 @@ export function AdminCajaView() {
   const [selectedExpenseCat, setSelectedExpenseCat] = useState<string>("ALL");
 
   // Datos de reportes
-  const [reportPeriod, setReportPeriod] = useState<"day" | "week" | "month" | "year">("day");
+  const [reportPeriod, setReportPeriod] = useState<"day" | "week" | "month" | "year" | "custom">("day");
   const [customDate, setCustomDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [customStartDate, setCustomStartDate] = useState<string>(
+    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  );
+  const [customEndDate, setCustomEndDate] = useState<string>(new Date().toISOString().split("T")[0]);
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isReportLoading, setIsReportLoading] = useState<boolean>(false);
 
@@ -172,7 +177,13 @@ export function AdminCajaView() {
   const fetchReport = useCallback(async () => {
     setIsReportLoading(true);
     try {
-      const res = await fetch(`/api/admin/caja/reports?period=${reportPeriod}&date=${customDate}`);
+      let url = `/api/admin/caja/reports?period=${reportPeriod}`;
+      if (reportPeriod === "custom") {
+        url += `&startDate=${customStartDate}&endDate=${customEndDate}`;
+      } else {
+        url += `&date=${customDate}`;
+      }
+      const res = await fetch(url);
       const json = await res.json();
       if (json.success && json.data) {
         setReportData(json.data);
@@ -182,7 +193,7 @@ export function AdminCajaView() {
     } finally {
       setIsReportLoading(false);
     }
-  }, [reportPeriod, customDate]);
+  }, [reportPeriod, customDate, customStartDate, customEndDate]);
 
   useEffect(() => {
     fetchShiftData();
@@ -903,13 +914,13 @@ export function AdminCajaView() {
       {/* ======================================================================= */}
       {activeTab === "reports" && (
         <div className="p-4 sm:p-6 space-y-5 overflow-y-auto">
-          {/* Selector de Períodos: Día, Semana, Mes, Año */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-800">
-            <div className="flex items-center gap-1.5 bg-[#161a22] p-1 rounded-2xl border border-gray-800">
+          {/* Selector de Períodos: Día, Semana, Mes, Año y Personalizado */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-gray-800">
+            <div className="flex items-center gap-1.5 bg-[#161a22] p-1 rounded-2xl border border-gray-800 overflow-x-auto">
               <button
                 type="button"
                 onClick={() => setReportPeriod("day")}
-                className={`py-1.5 px-3.5 rounded-xl text-xs font-black transition-all ${
+                className={`py-1.5 px-3 rounded-xl text-xs font-black transition-all whitespace-nowrap ${
                   reportPeriod === "day"
                     ? "bg-amber-500 text-black shadow-md"
                     : "text-gray-400 hover:text-white"
@@ -920,7 +931,7 @@ export function AdminCajaView() {
               <button
                 type="button"
                 onClick={() => setReportPeriod("week")}
-                className={`py-1.5 px-3.5 rounded-xl text-xs font-black transition-all ${
+                className={`py-1.5 px-3 rounded-xl text-xs font-black transition-all whitespace-nowrap ${
                   reportPeriod === "week"
                     ? "bg-amber-500 text-black shadow-md"
                     : "text-gray-400 hover:text-white"
@@ -931,7 +942,7 @@ export function AdminCajaView() {
               <button
                 type="button"
                 onClick={() => setReportPeriod("month")}
-                className={`py-1.5 px-3.5 rounded-xl text-xs font-black transition-all ${
+                className={`py-1.5 px-3 rounded-xl text-xs font-black transition-all whitespace-nowrap ${
                   reportPeriod === "month"
                     ? "bg-amber-500 text-black shadow-md"
                     : "text-gray-400 hover:text-white"
@@ -942,7 +953,7 @@ export function AdminCajaView() {
               <button
                 type="button"
                 onClick={() => setReportPeriod("year")}
-                className={`py-1.5 px-3.5 rounded-xl text-xs font-black transition-all ${
+                className={`py-1.5 px-3 rounded-xl text-xs font-black transition-all whitespace-nowrap ${
                   reportPeriod === "year"
                     ? "bg-amber-500 text-black shadow-md"
                     : "text-gray-400 hover:text-white"
@@ -950,26 +961,90 @@ export function AdminCajaView() {
               >
                 Año
               </button>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400 font-bold">Fecha Base:</span>
-              <input
-                type="date"
-                value={customDate}
-                onChange={(e) => setCustomDate(e.target.value)}
-                className="bg-[#181b24] border border-gray-800 text-white text-xs px-3 py-1.5 rounded-xl outline-none focus:border-amber-500"
-              />
               <button
                 type="button"
-                onClick={fetchReport}
-                className="p-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300"
-                title="Actualizar reporte"
+                onClick={() => setReportPeriod("custom")}
+                className={`py-1.5 px-3 rounded-xl text-xs font-black transition-all whitespace-nowrap flex items-center gap-1 ${
+                  reportPeriod === "custom"
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-md"
+                    : "text-amber-400/80 hover:text-amber-300"
+                }`}
               >
-                <RefreshCw className="w-4 h-4" />
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Personalizado</span>
               </button>
             </div>
+
+            {/* Selector de Fechas Según Período */}
+            {reportPeriod === "custom" ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1.5 bg-[#181b24] border border-gray-800 rounded-xl px-2.5 py-1">
+                  <span className="text-[10px] text-gray-400 font-bold uppercase">Desde:</span>
+                  <input
+                    type="date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="bg-transparent text-white text-xs outline-none font-mono"
+                  />
+                </div>
+                <div className="flex items-center gap-1.5 bg-[#181b24] border border-gray-800 rounded-xl px-2.5 py-1">
+                  <span className="text-[10px] text-gray-400 font-bold uppercase">Hasta:</span>
+                  <input
+                    type="date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="bg-transparent text-white text-xs outline-none font-mono"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={fetchReport}
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs shadow transition-all active:scale-95"
+                >
+                  Filtrar
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400 font-bold">
+                  {reportPeriod === "day"
+                    ? "Fecha:"
+                    : reportPeriod === "month"
+                    ? "Mes de referencia:"
+                    : reportPeriod === "year"
+                    ? "Año:"
+                    : "Fecha base:"}
+                </span>
+                <input
+                  type="date"
+                  value={customDate}
+                  onChange={(e) => setCustomDate(e.target.value)}
+                  className="bg-[#181b24] border border-gray-800 text-white text-xs px-3 py-1.5 rounded-xl outline-none focus:border-amber-500"
+                />
+                <button
+                  type="button"
+                  onClick={fetchReport}
+                  className="p-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300"
+                  title="Actualizar reporte"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
+
+          {/* Subtítulo de Confirmación del Rango Activo */}
+          {reportData?.periodLabel && (
+            <div className="flex items-center justify-between text-xs text-gray-400 px-1">
+              <span className="flex items-center gap-1.5 text-amber-400 font-bold">
+                <Calendar className="w-3.5 h-3.5" />
+                <span>{reportData.periodLabel}</span>
+              </span>
+              <span className="text-[11px] text-gray-500">
+                Del {new Date(reportData.startDate).toLocaleDateString()} al {new Date(reportData.endDate).toLocaleDateString()}
+              </span>
+            </div>
+          )}
 
           {isReportLoading ? (
             <div className="py-20 text-center text-gray-500 space-y-2">

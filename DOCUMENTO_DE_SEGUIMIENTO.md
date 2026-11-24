@@ -1244,6 +1244,20 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del proyecto.
 
+### Hito 72: Filtro Personalizado por Rango Manual de Fechas (Desde - Hasta) en Reportes Contables
+- **Solicitud del usuario:** Además de filtrar por día, semana, mes y año, agregar un filtro personalizado que permita elegir el rango de fechas de forma manual (Desde / Hasta).
+- **Solución Quirúrgica Implementada:**
+  1. **Actualización del Endpoint de Reportes ([src/app/api/admin/caja/reports/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/reports/route.ts)):**
+     - Se añadió soporte para el parámetro `period=custom` junto con `startDate` y `endDate`.
+     - El endpoint procesa los límites horarios (00:00:00 para la fecha de inicio y 23:59:59 para la fecha de fin) y cuenta con auto-corrección si el usuario ingresa una fecha final anterior a la inicial.
+     - Se incorporó la propiedad `periodLabel` en la respuesta JSON para que la interfaz muestre de forma legible el rango activo (ej. *"Personalizado: 1/11/2026 al 15/11/2026"*).
+  2. **Actualización de la Interfaz ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)):**
+     - Se incorporó el botón **"Personalizado"** con icono de calendario al lado de Día, Semana, Mes y Año.
+     - Al seleccionar "Personalizado", se despliegan dos selectores de fecha (`Desde:` y `Hasta:`) con botón de acción `Filtrar`, permitiendo consultar cualquier rango arbitrario (quincenas, puentes festivos, temporadas vacacionales o semanas específicas).
+     - Se muestra un subtítulo dinámico que confirma el período consultado y las fechas exactas calculadas.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del proyecto.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

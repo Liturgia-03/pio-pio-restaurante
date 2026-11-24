@@ -8,35 +8,54 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const period = searchParams.get("period") || "day"; // "day" | "week" | "month" | "year"
+    const period = searchParams.get("period") || "day"; // "day" | "week" | "month" | "year" | "custom"
     const targetDateStr = searchParams.get("date"); // YYYY-MM-DD
+    const startParam = searchParams.get("startDate");
+    const endParam = searchParams.get("endDate");
 
-    const baseDate = targetDateStr ? new Date(targetDateStr) : new Date();
-    let startDate = new Date(baseDate);
-    let endDate = new Date(baseDate);
+    let startDate: Date;
+    let endDate: Date;
 
-    if (period === "day") {
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(23, 59, 59, 999);
-    } else if (period === "week") {
-      // Semana de Lunes a Domingo
-      const day = startDate.getDay();
-      const diffToMonday = day === 0 ? -6 : 1 - day; // domingo es 0
-      startDate.setDate(startDate.getDate() + diffToMonday);
-      startDate.setHours(0, 0, 0, 0);
+    if (period === "custom") {
+      const s = startParam ? new Date(startParam) : new Date();
+      s.setHours(0, 0, 0, 0);
+      const e = endParam ? new Date(endParam) : new Date();
+      e.setHours(23, 59, 59, 999);
+      if (s > e) {
+        startDate = e;
+        endDate = s;
+      } else {
+        startDate = s;
+        endDate = e;
+      }
+    } else {
+      const baseDate = targetDateStr ? new Date(targetDateStr) : new Date();
+      startDate = new Date(baseDate);
+      endDate = new Date(baseDate);
 
-      endDate = new Date(startDate);
-      endDate.setDate(endDate.getDate() + 6);
-      endDate.setHours(23, 59, 59, 999);
-    } else if (period === "month") {
-      startDate.setDate(1);
-      startDate.setHours(0, 0, 0, 0);
+      if (period === "day") {
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+      } else if (period === "week") {
+        // Semana de Lunes a Domingo
+        const day = startDate.getDay();
+        const diffToMonday = day === 0 ? -6 : 1 - day; // domingo es 0
+        startDate.setDate(startDate.getDate() + diffToMonday);
+        startDate.setHours(0, 0, 0, 0);
 
-      endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
-      endDate.setHours(23, 59, 59, 999);
-    } else if (period === "year") {
-      startDate = new Date(baseDate.getFullYear(), 0, 1, 0, 0, 0, 0);
-      endDate = new Date(baseDate.getFullYear(), 11, 31, 23, 59, 59, 999);
+        endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + 6);
+        endDate.setHours(23, 59, 59, 999);
+      } else if (period === "month") {
+        startDate.setDate(1);
+        startDate.setHours(0, 0, 0, 0);
+
+        endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+        endDate.setHours(23, 59, 59, 999);
+      } else if (period === "year") {
+        startDate = new Date(baseDate.getFullYear(), 0, 1, 0, 0, 0, 0);
+        endDate = new Date(baseDate.getFullYear(), 11, 31, 23, 59, 59, 999);
+      }
     }
 
     // 1. Consultar ventas cerradas en el rango
@@ -156,10 +175,22 @@ export async function GET(request: Request) {
     const netProfit = totalSales - totalExpenses;
     const averageTicket = sessions.length > 0 ? Math.round(totalSales / sessions.length) : 0;
 
+    const periodLabel =
+      period === "custom"
+        ? `Personalizado: ${startDate.toLocaleDateString()} al ${endDate.toLocaleDateString()}`
+        : period === "day"
+        ? `Día: ${startDate.toLocaleDateString()}`
+        : period === "week"
+        ? `Semana: ${startDate.toLocaleDateString()} al ${endDate.toLocaleDateString()}`
+        : period === "month"
+        ? `Mes: ${startDate.toLocaleString("es-ES", { month: "long", year: "numeric" })}`
+        : `Año: ${startDate.getFullYear()}`;
+
     return NextResponse.json({
       success: true,
       data: {
         period,
+        periodLabel,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
         summary: {

@@ -1055,6 +1055,24 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores**.
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 24 rutas del proyecto.
 
+### Hito 62: Diagnóstico y Corrección del Bucle de Parpadeos (Video 03.mp4)
+- **Solicitud del usuario:** Analizar video adjunto (`03.mp4`) donde la interfaz entra en un bucle continuo de parpadeos entre la pantalla del panel y la pantalla de carga negra con spinner central, identificar la causa raíz y corregirla.
+- **Análisis Forense Cuadro a Cuadro (Video 03.mp4):**
+  1. Extracción y análisis de fotogramas del video (`03.mp4`, 245 frames a 30fps).
+  2. Se identificó un patrón de oscilación exacto cada 1.5 a 2.0 segundos: la vista `/admin/tables` alternaba entre el contenido renderizado y la pantalla de carga de `ClientOnly` (`<div className="min-h-screen bg-[#0f1115] flex items-center justify-center">...spinner...</div>`) con el indicador `• Compiling...` de Next.js en la esquina inferior derecha.
+  3. **Causa Raíz Principal:** Turbopack en Next.js 16 en entorno Windows/OneDrive detectaba el archivo `package-lock.json` presente en el directorio superior de usuario `C:\Users\liber` (fuera del repositorio git). Al no tener especificado `turbopack.root`, el compilador observaba cambios en todo el directorio del perfil del sistema, disparando eventos continuos de recompilación y recarga en caliente (Fast Refresh) por sincronizaciones de OneDrive y aplicaciones en segundo plano.
+  4. **Causa Secundaria en el Componente:** El disparador de la franja táctil de la barra, el panel y el telón de fondo oscuro (`backdrop`) carecían de `e.stopPropagation()`, permitiendo que eventos de clic y desplazamientos interactivos se propagaran a capas superpuestas. Asimismo, las funciones asíncronas de carga de datos en `AdminBarraDrawer.tsx` requerían estabilización con `useCallback`.
+- **Solución Quirúrgica Implementada:**
+  1. **Configuración de Raíz de Turbopack ([next.config.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/next.config.ts)):** Se delimitó estrictamente el workspace de Turbopack a la carpeta raíz del proyecto mediante `root: path.resolve(__dirname)`, eliminando completamente la advertencia del compilador y el monitoreo involuntario de carpetas del sistema.
+  2. **Aislamiento de Eventos Táctiles y Clics ([src/components/admin/AdminBarraDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraDrawer.tsx)):**
+     - Franja táctil: Adición de `e.stopPropagation()` al hacer clic en abrir/cerrar.
+     - Panel desplegado: Adición de `onClick={(e) => e.stopPropagation()}` para evitar cierre inadvertido por propagación.
+     - Telón de fondo (Backdrop): Adición de `e.stopPropagation()` al hacer clic para cerrar.
+  3. **Estabilización de Hooks React:** Envoltura de `loadConfig`, `fetchBarraData` y `fetchMenuDishes` en `useCallback` para evitar ciclos de renderizado en cascada.
+  4. **Prevención de Errores de Metadatos 404:** Copia de `favicon.ico` a `/public/favicon.ico`.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa sin advertencias de Turbopack, con **código de salida 0** en las 24 rutas estáticas y dinámicas.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

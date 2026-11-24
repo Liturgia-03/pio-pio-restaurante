@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Zap,
   Search,
@@ -163,7 +163,7 @@ export function AdminBarraDrawer() {
   }, [totalCashReceived, cartTotal, paymentMethod, mixedCash]);
 
   // Cargar configuración de barra, platos y pedidos activos
-  const loadConfig = async () => {
+  const loadConfig = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/barra/config");
       const json = await res.json();
@@ -176,9 +176,9 @@ export function AdminBarraDrawer() {
         if (local) setBarraConfig(JSON.parse(local));
       } catch {}
     }
-  };
+  }, []);
 
-  const fetchBarraData = async () => {
+  const fetchBarraData = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/barra");
       const json = await res.json();
@@ -189,9 +189,9 @@ export function AdminBarraDrawer() {
         }
       }
     } catch {}
-  };
+  }, []);
 
-  const fetchMenuDishes = async () => {
+  const fetchMenuDishes = useCallback(async () => {
     try {
       const res = await fetch("/api/public/menu");
       const json = await res.json();
@@ -219,7 +219,7 @@ export function AdminBarraDrawer() {
         setAllDishes(dishList);
       }
     } catch {}
-  };
+  }, []);
 
   useEffect(() => {
     loadConfig();
@@ -227,7 +227,7 @@ export function AdminBarraDrawer() {
     fetchMenuDishes();
     const interval = setInterval(fetchBarraData, 12000);
     return () => clearInterval(interval);
-  }, []);
+  }, [loadConfig, fetchBarraData, fetchMenuDishes]);
 
   // Ajustar valores de pago mixto cuando cambia el total
   useEffect(() => {
@@ -447,6 +447,7 @@ export function AdminBarraDrawer() {
         {/* PANEL DESPLEGADO HACIA LA DERECHA (IMAGEN 02)                           */}
         {/* ======================================================================= */}
         <div
+          onClick={(e) => e.stopPropagation()}
           className={`pointer-events-auto h-full bg-[#101217] border-r border-gray-800/80 flex shadow-2xl transition-all duration-300 overflow-hidden ${
             isOpen
               ? "w-[960px] max-w-[calc(100vw-54px)] opacity-100"
@@ -967,7 +968,10 @@ export function AdminBarraDrawer() {
         {/* FRANJA VERTICAL TÁCTIL (DISEÑO EXACTO DE IMÁGENES 01 Y 02)              */}
         {/* ======================================================================= */}
         <div
-          onClick={() => setIsOpen((prev) => !prev)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen((prev) => !prev);
+          }}
           className="pointer-events-auto w-12 bg-gradient-to-b from-[#f59e0b] via-[#f97316] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f97316] text-black cursor-pointer flex flex-col items-center justify-between py-6 shadow-2xl rounded-r-3xl border-r-2 border-amber-300/40 transition-all active:scale-98 group"
           title={isOpen ? "Ocultar barra" : "Desplegar Barra Rápida hacia la derecha"}
         >
@@ -1011,7 +1015,10 @@ export function AdminBarraDrawer() {
       {/* Backdrop oscuro cuando el drawer está expandido */}
       {isOpen && (
         <div
-          onClick={() => setIsOpen(false)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsOpen(false);
+          }}
           className="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-30 transition-opacity"
         />
       )}

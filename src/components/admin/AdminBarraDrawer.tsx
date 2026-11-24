@@ -82,15 +82,11 @@ export function AdminBarraDrawer() {
             e.stopPropagation();
             handleToggle();
           }}
-          className={`pointer-events-auto w-12 bg-gradient-to-b from-[#f59e0b] via-[#f97316] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f97316] text-black cursor-pointer flex flex-col items-center justify-between py-6 rounded-r-3xl border-r-2 border-amber-300/40 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-98 group ${
-            isOpen
-              ? "shadow-[0_0_35px_rgba(249,115,22,0.35)]"
-              : "shadow-2xl hover:shadow-[0_0_20px_rgba(245,158,11,0.25)]"
-          }`}
+          className="pointer-events-auto w-12 bg-gradient-to-b from-[#f59e0b] via-[#f97316] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f97316] text-black cursor-pointer flex flex-col items-center justify-between py-6 rounded-r-3xl border-r-2 border-amber-300/40 shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-98 group"
           title={isOpen ? "Ocultar barra" : "Desplegar Barra Rápida hacia la derecha"}
         >
           {/* Badge superior: contador de pedidos pendientes */}
-          <div className="w-6 h-6 rounded-full bg-[#7c2d12] text-amber-300 border border-amber-400/80 font-black text-[11px] flex items-center justify-center shadow transition-transform duration-300 group-hover:scale-105">
+          <div className="w-6 h-6 rounded-full bg-[#7c2d12] text-amber-300 border border-amber-400/80 font-black text-[11px] flex items-center justify-center shadow">
             {pendingOrdersCount}
           </div>
 
@@ -122,8 +118,8 @@ export function AdminBarraDrawer() {
             <span>A</span>
           </div>
 
-          {/* Icono inferior: Rayo ⚡ con animación de brillo suave */}
-          <div className="w-6 h-6 rounded-full bg-black/25 flex items-center justify-center font-black text-xs shadow-inner transition-transform duration-300 group-hover:scale-110">
+          {/* Icono inferior: Rayo ⚡ */}
+          <div className="w-6 h-6 rounded-full bg-black/25 flex items-center justify-center font-black text-xs shadow-inner">
             <Zap className="w-3.5 h-3.5 fill-black" />
           </div>
         </div>

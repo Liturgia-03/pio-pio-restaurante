@@ -1157,6 +1157,15 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 25 rutas del proyecto.
 
+### Hito 68: Retiro del Efecto de Resplandor en Hover de la Franja
+- **Solicitud del usuario:** Quitar el efecto de resplandor / brillo que se activaba al pasar el puntero sobre la franja vertical de Barra Rápida.
+- **Solución Quirúrgica Implementada:**
+  1. **Ajuste Estético ([src/components/admin/AdminBarraDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraDrawer.tsx)):**
+     - Se eliminaron las sombras de resplandor de color (`hover:shadow-[0_0_20px_rgba(245,158,11,0.25)]` y `shadow-[0_0_35px_rgba(249,115,22,0.35)]`), retornando a la sombra estándar y limpia `shadow-2xl`.
+     - Se retiró el escalado del icono de rayo y del badge, manteniendo la franja sobria y exactamente fiel al diseño de las imágenes 01 y 02.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 25 rutas del proyecto.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

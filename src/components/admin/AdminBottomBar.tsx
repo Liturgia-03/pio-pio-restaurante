@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, UtensilsCrossed, Utensils, FolderTree, Sparkles, Plus } from "lucide-react";
+import { LayoutDashboard, UtensilsCrossed, Utensils, FolderTree, Sparkles, Plus, Zap } from "lucide-react";
 
 export function AdminBottomBar() {
   const pathname = usePathname();
 
   const navItems = [
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-    { label: "Mesas/Caja", href: "/admin/tables", icon: Utensils },
+    { label: "Barra", href: "/admin/barra", icon: Zap },
+    { label: "Mesas", href: "/admin/tables", icon: Utensils },
     { label: "Platos", href: "/admin/dishes", icon: UtensilsCrossed },
-    { label: "Categorías", href: "/admin/categories", icon: FolderTree },
   ];
 
   return (

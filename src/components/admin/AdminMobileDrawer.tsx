@@ -13,6 +13,7 @@ import {
   PlusCircle,
   QrCode,
   Settings,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -104,6 +105,7 @@ export function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawerProps) {
 
   const menuItems = [
     { label: "Dashboard Resumen", href: "/admin/dashboard", icon: LayoutDashboard },
+    { label: "Barra Rápida", href: "/admin/barra", icon: Zap },
     { label: "Control de Mesas & Caja", href: "/admin/tables", icon: UtensilsCrossed },
     { label: "Gestión de Platos", href: "/admin/dishes", icon: UtensilsCrossed },
     { label: "Nuevo Plato", href: "/admin/dishes/new", icon: PlusCircle },

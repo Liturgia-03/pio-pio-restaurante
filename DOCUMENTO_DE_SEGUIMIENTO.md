@@ -1095,6 +1095,27 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 24 rutas del proyecto.
 
+### Hito 64: Integración de Barra Rápida como Sección Nativa de Navegación Móvil (Menú Lateral y Menú Inferior)
+- **Solicitud del usuario:** Descartar la franja lateral flotante en dispositivos móviles y, en su lugar, agregar la Barra Rápida como una sección más dentro del menú móvil (`AdminMobileDrawer`) ubicada inmediatamente arriba del botón de "Control de Mesas", además de incorporarla en la barra de navegación inferior móvil (`AdminBottomBar`).
+- **Solución Quirúrgica Implementada:**
+  1. **Eliminación Total de la Franja Móvil Flotante ([src/components/admin/AdminBarraDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraDrawer.tsx)):**
+     - La franja vertical y el cajón deslizante quedaron restringidos con `hidden md:flex`, eliminando por completo cualquier elemento flotante sobre la vista móvil. En móviles la pantalla queda 100% limpia y sin solapamientos.
+     - En escritorio (`md:`), la franja y el cajón de 960px continúan funcionando con normalidad tal cual las Imágenes de Referencia 01 y 02.
+  2. **Restablecimiento del Shell sin Márgenes Fantasma ([src/components/admin/AdminShell.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminShell.tsx)):**
+     - Se eliminó el padding `pl-11` en móvil, regresando a `flex-1 md:pl-64 flex flex-col min-h-screen pb-20 md:pb-6`.
+     - Se agregó el soporte del título dinámico en cabecera: cuando `pathname.includes('/admin/barra')`, el título muestra `Barra Rápida & Mostrador`.
+  3. **Inclusión en el Menú Lateral Móvil ([src/components/admin/AdminMobileDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminMobileDrawer.tsx)):**
+     - Se posicionó la sección `{ label: "Barra Rápida", href: "/admin/barra", icon: Zap }` exactamente arriba de `Control de Mesas & Caja`, cumpliendo con la captura de referencia enviada por el usuario (`media_1795497305866_89221d52.png`).
+  4. **Inclusión en el Menú Inferior Móvil ([src/components/admin/AdminBottomBar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBottomBar.tsx)):**
+     - Se incorporó la opción `{ label: "Barra", href: "/admin/barra", icon: Zap }` en la botonera fija inferior, quedando una distribución simétrica y ergonómica: `Dashboard` y `Barra` a la izquierda del botón flotante `(+)`, y `Mesas` y `Platos` a la derecha.
+  5. **Inclusión en el Sidebar de Escritorio ([src/components/admin/AdminNavSidebar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminNavSidebar.tsx)):**
+     - Se sumó la opción `Barra Rápida` arriba de `Mesas & Caja` para coherencia total del sistema de navegación tanto en móvil como en escritorio.
+  6. **Página Dedicada y Vista Reutilizable ([src/app/admin/barra/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/barra/page.tsx) y [src/components/admin/AdminBarraView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraView.tsx)):**
+     - Se estructuró `AdminBarraView` como componente unificado y responsivo: en móvil permite navegar cómodamente entre el catálogo táctil de 2 columnas y el módulo de cobro/caja con autosuma de billetes y cálculo de cambio, y en escritorio ofrece la distribución de 2 columnas lado a lado.
+     - `AdminBarraDrawer` consume `AdminBarraView` para el cajón deslizante de escritorio, garantizando cero duplicación de código.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 25 rutas del proyecto (incorporando estáticamente `/admin/barra`).
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

@@ -1,0 +1,35 @@
+{
+  "activeBills": [
+    100000,
+    50000,
+    20000,
+    10000,
+    5000,
+    2000
+  ],
+  "paymentMethods": {
+    "cash": true,
+    "nequi": true,
+    "daviplata": true,
+    "card": true,
+    "mixed": true
+  },
+  "favoriteDishNames": [
+    "Pollo Apanado Entero",
+    "Porción de Papa Salada",
+    "Porción de Yuca al Vapor",
+    "Gaseosa 1.5 Litros",
+    "Gaseosa Personal",
+    "Pollo Asado Entero",
+    "Medio Pollo Asado",
+    "Cuarto de Pollo Asado",
+    "Muslo Apanado Individual",
+    "Contramuslo Apanado Individual",
+    "Cuarto de Pollo Apanado",
+    "Ala Apanada Individual",
+    "Arroz Mixto Especial",
+    "Medio Pollo Apanado",
+    "Pechuga Apanada Individual",
+    "Gaseosa Mega Familiar"
+  ]
+}

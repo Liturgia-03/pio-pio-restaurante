@@ -36,6 +36,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   else if (pathname.includes("/admin/promo-modal")) pageTitle = "Ajustes Menú";
   else if (pathname.includes("/admin/qr")) pageTitle = "Códigos QR Mesas";
   else if (pathname.includes("/admin/settings")) pageTitle = "Ajustes Asadero";
+  else if (pathname.includes("/admin/barra")) pageTitle = "Barra Rápida & Mostrador";
+  else if (pathname.includes("/admin/tables")) pageTitle = "Control de Mesas & Caja";
 
   return (
     <div className="min-h-screen bg-[#0f1115] text-gray-100 flex flex-col md:flex-row">
@@ -49,7 +51,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         onClose={() => setDrawerOpen(false)}
       />
 
-      <div className="flex-1 pl-11 md:pl-64 flex flex-col min-h-screen pb-20 md:pb-6">
+      <div className="flex-1 md:pl-64 flex flex-col min-h-screen pb-20 md:pb-6">
         <AdminHeader
           title={pageTitle}
           onOpenDrawer={handleOpenDrawer}

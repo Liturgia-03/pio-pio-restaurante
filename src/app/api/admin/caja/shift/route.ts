@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { parseSessionPayment } from "@/lib/caja-helpers";
+import { formatDateTime } from "@/lib/formatters";
 
 export const dynamic = "force-dynamic";
 
@@ -230,7 +231,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: `Ya existe un turno de caja abierto iniciado por ${existing.openedBy} el ${new Date(existing.openedAt).toLocaleTimeString()}`,
+          message: `Ya existe un turno de caja abierto iniciado por ${existing.openedBy} el ${formatDateTime(existing.openedAt)}`,
         },
         { status: 400 }
       );

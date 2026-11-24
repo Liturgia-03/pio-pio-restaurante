@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { IconRenderer } from "@/components/common/IconRenderer";
 import { toast } from "sonner";
+import { formatTime } from "@/lib/formatters";
 import { TableCardData, TableStatus } from "@/types";
 
 interface WaiterUser {
@@ -832,7 +833,7 @@ export default function WaiterApp() {
                 <UserCheck className="w-3 h-3 text-emerald-400" />
                 <span className="text-white font-bold">{waiter.name}</span>
                 <span className="text-[10px] text-gray-500 ml-1">
-                  • {lastUpdated.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  • {formatTime(lastUpdated)}
                 </span>
               </div>
             </div>

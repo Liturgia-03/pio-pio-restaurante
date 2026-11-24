@@ -23,7 +23,7 @@ import {
   User,
 } from "lucide-react";
 import { toast } from "sonner";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatTime } from "@/lib/formatters";
 
 interface MenuItem {
   id: string;
@@ -1208,7 +1208,7 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
                           {order.tableNumber}
                         </span>
                         <span className="text-[10px] text-gray-400">
-                          {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          {formatTime(order.createdAt)}
                         </span>
                       </div>
 

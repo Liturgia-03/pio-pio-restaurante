@@ -33,6 +33,7 @@ import {
   Layers,
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatTime } from "@/lib/formatters";
 import { TableCardData, TableSessionData, WaiterItem } from "@/types";
 import { AdminAuthModal } from "@/components/admin/AdminAuthModal";
 
@@ -1524,10 +1525,7 @@ export default function AdminTablesCashierPage() {
                     <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
                       {selectedTable.session.items.map((item) => {
                         const isCancelled = item.status === "CANCELLED";
-                        const itemDate = new Date(item.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        });
+                        const itemDate = formatTime(item.createdAt);
 
                         return (
                           <div
@@ -2063,10 +2061,7 @@ export default function AdminTablesCashierPage() {
               <div className="divide-y divide-gray-800">
                 {todaySessions.map((session) => {
                   const closeTime = session.closedAt
-                    ? new Date(session.closedAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
+                    ? formatTime(session.closedAt)
                     : "--:--";
 
                   return (

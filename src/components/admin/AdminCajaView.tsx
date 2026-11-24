@@ -41,7 +41,7 @@ import {
   ArrowDownRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { formatPrice } from "@/lib/formatters";
+import { formatPrice, formatDateTime, formatTime, formatDate } from "@/lib/formatters";
 import { EXPENSE_CATEGORIES } from "@/lib/caja-helpers";
 import { AdminAuthModal } from "@/components/admin/AdminAuthModal";
 
@@ -212,9 +212,9 @@ export function AdminCajaView() {
     (shift: CashShiftData): string => {
       const expenses = getShiftExpenses(shift);
       const closeDateStr = shift.closedAt
-        ? new Date(shift.closedAt).toLocaleString()
-        : new Date().toLocaleString();
-      const openDateStr = new Date(shift.openedAt).toLocaleString();
+        ? formatDateTime(shift.closedAt)
+        : formatDateTime(new Date());
+      const openDateStr = formatDateTime(shift.openedAt);
 
       const diffVal = shift.difference || 0;
       const diffStr =
@@ -316,7 +316,7 @@ export function AdminCajaView() {
   const handleShareTicket = useCallback(
     async (shift: CashShiftData) => {
       const text = generateTicketText(shift);
-      const title = `Tirilla de Liquidación - Pío Pío (${shift.closedAt ? new Date(shift.closedAt).toLocaleDateString() : "Hoy"})`;
+      const title = `Tirilla de Liquidación - Pío Pío (${shift.closedAt ? formatDate(shift.closedAt) : "Hoy"})`;
 
       if (typeof navigator !== "undefined" && navigator.share) {
         try {
@@ -460,7 +460,7 @@ export function AdminCajaView() {
     setAuthModalConfig({
       isOpen: true,
       title: "Reabrir Turno de Caja Liquidado",
-      description: `El turno del ${new Date(shift.openedAt).toLocaleDateString()} volverá a estar ABIERTO. Podrás continuar registrando ventas y gastos en este turno.`,
+      description: `El turno del ${formatDateTime(shift.openedAt)} volverá a estar ABIERTO. Podrás continuar registrando ventas y gastos en este turno.`,
       actionType: "REOPEN_SHIFT",
       payload: { shiftId: shift.id },
       confirmButtonText: "Autorizar y Reabrir Turno",
@@ -671,7 +671,7 @@ export function AdminCajaView() {
             </div>
             <p className="text-[11px] text-gray-400">
               {activeShift
-                ? `Abierto por ${activeShift.openedBy} • Base inicial: ${formatPrice(activeShift.initialCash)}`
+                ? `Abierto por ${activeShift.openedBy} a las ${formatTime(activeShift.openedAt)} (${formatDate(activeShift.openedAt)}) • Base inicial: ${formatPrice(activeShift.initialCash)}`
                 : "No hay un turno de caja activo en este momento"}
             </p>
           </div>
@@ -973,7 +973,7 @@ export function AdminCajaView() {
                                 {s.tableNumber}
                               </span>
                               <span className="text-[10px] text-gray-400">
-                                {new Date(s.closedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                {formatTime(s.closedAt)}
                               </span>
                             </div>
                             <p className="text-[10px] text-gray-400 line-clamp-1 truncate">
@@ -1045,7 +1045,7 @@ export function AdminCajaView() {
                                 -{formatPrice(e.amount)}
                               </span>
                               <span className="text-[9px] text-gray-500">
-                                {new Date(e.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                {formatTime(e.date)}
                               </span>
                             </div>
                           </div>
@@ -1079,10 +1079,10 @@ export function AdminCajaView() {
                       <div className="flex justify-between items-start">
                         <div>
                           <span className="text-[11px] font-black text-white block">
-                            {new Date(s.openedAt).toLocaleDateString()}
+                            {formatDate(s.openedAt)}
                           </span>
                           <span className="text-[10px] text-gray-400">
-                            {new Date(s.openedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} a {s.closedAt ? new Date(s.closedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
+                            {formatTime(s.openedAt)} a {s.closedAt ? formatTime(s.closedAt) : "—"}
                           </span>
                         </div>
                         {diff === 0 ? (
@@ -1237,7 +1237,7 @@ export function AdminCajaView() {
                         {exp.description}
                       </h4>
                       <p className="text-[10px] text-gray-400 mt-1">
-                        {new Date(exp.date).toLocaleDateString()} • {new Date(exp.date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        {formatDate(exp.date)} • {formatTime(exp.date)}
                       </p>
                     </div>
 
@@ -1393,8 +1393,8 @@ export function AdminCajaView() {
                 <Calendar className="w-3.5 h-3.5" />
                 <span>{reportData.periodLabel}</span>
                 <span className="text-[11px] text-gray-500 font-normal">
-                  (Del {new Date(reportData.startDate).toLocaleDateString()} al{" "}
-                  {new Date(reportData.endDate).toLocaleDateString()})
+                  (Del {formatDate(reportData.startDate)} al{" "}
+                  {formatDate(reportData.endDate)})
                 </span>
               </span>
 
@@ -1688,7 +1688,7 @@ export function AdminCajaView() {
                           {log.description}
                         </span>
                         <span className="text-[10px] text-gray-500">
-                          🕒 {new Date(log.createdAt).toLocaleString()}
+                          🕒 {formatDateTime(log.createdAt)}
                         </span>
                       </div>
                       <p className="text-[11px] text-gray-300">
@@ -2259,10 +2259,10 @@ export function AdminCajaView() {
                 </p>
                 <div className="text-[10px] text-gray-600 space-y-0.5 pt-1">
                   <p>
-                    Apertura: {new Date(printShift.openedAt).toLocaleString()} ({printShift.openedBy})
+                    Apertura: {formatDateTime(printShift.openedAt)} ({printShift.openedBy})
                   </p>
                   <p>
-                    Cierre: {printShift.closedAt ? new Date(printShift.closedAt).toLocaleString() : new Date().toLocaleString()}
+                    Cierre: {printShift.closedAt ? formatDateTime(printShift.closedAt) : formatDateTime(new Date())}
                   </p>
                   <p className="font-bold text-gray-800">
                     Liquidado por: {printShift.closedBy || printShift.openedBy}

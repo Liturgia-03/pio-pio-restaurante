@@ -1336,6 +1336,28 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas estáticas y dinámicas.
 
+### Hito 81: Unificación y Sincronización Estricta de la Zona Horaria de Colombia (America/Bogota, UTC-5)
+- **Diagnóstico del Desfase Horario:**
+  1. El usuario abrió caja a las 11:28 a.m. (hora local Colombia), y en la base de datos Supabase el timestamp UTC se guardó correctamente como `16:28:33.636Z`.
+  2. Sin embargo, en el frontend se utilizaban métodos como `.toLocaleString()` y `.toLocaleTimeString()` sin especificar `timeZone: "America/Bogota"`, provocando que en navegadores o dispositivos configurados con otra zona horaria se mostraran desfases de hasta 5 horas.
+  3. Adicionalmente, el turno activo de caja aún no había sido liquidado, por lo que el botón "Tirilla" en la sección de historial abría el turno previo (cerrado durante la madrugada).
+  4. En la cabecera principal de la caja no se informaba explícitamente la hora de apertura del turno activo.
+- **Solución Implementada:**
+  1. **Utilidades Centralizadas de Fecha y Hora ([src/lib/formatters.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/lib/formatters.ts)):**
+     - Constante `BOGOTA_TIMEZONE = "America/Bogota"`.
+     - `formatDateTime(date)`: Formato completo en español colombiano (ej: `24/11/2026, 11:28 a. m.`).
+     - `formatTime(date)`: Formato de hora en 12h con indicador am/pm (ej: `11:28 a. m.`).
+     - `formatDate(date)`: Formato de fecha estándar (ej: `24/11/2026`).
+     - `getBogotaDayBounds(dateStr)`: Calcula con exactitud matemática el inicio (`05:00:00 UTC`) y fin (`04:59:59.999 UTC del día siguiente`) del día en Colombia, protegiendo las ventas nocturnas en los reportes de Vercel.
+  2. **Actualización Integral de Módulos ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx), [src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx), [src/components/admin/AdminBarraView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraView.tsx), [src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)):**
+     - Cabecera de Caja: Muestra claramente `Abierto por LUIS MARTINEZ a las 11:28 a. m. (24/11/2026) • Base inicial: $262.000`.
+     - Tirilla de Cierre y Liquidación (pantalla, archivo `.txt`, WhatsApp): Fechas y horas de apertura y cierre fijadas estrictamente en horario de Colombia.
+     - Historial de turnos liquidados, ventas de mesas, comandas de barra y bitácora de auditoría 100% sincronizados con `America/Bogota`.
+  3. **Backend de Reportes Contables ([src/app/api/admin/caja/reports/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/reports/route.ts)):**
+     - Filtros de reportes por día y personalizados adaptados al ciclo de 24 horas de Colombia.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
+
 ### Hito 77: Suite Integral de Pruebas de Rendimiento, Estrés y Concurrencia Multimodular
 - **Fecha:** 24 de Noviembre de 2026
 - **Archivos Modificados:**
@@ -1441,6 +1463,28 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
        - Tarjetas históricas de turnos cerrados con etiquetas visibles de base dejada y dinero retirado.
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas estáticas y dinámicas.
+
+### Hito 81: Unificación y Sincronización Estricta de la Zona Horaria de Colombia (America/Bogota, UTC-5)
+- **Diagnóstico del Desfase Horario:**
+  1. El usuario abrió caja a las 11:28 a.m. (hora local Colombia), y en la base de datos Supabase el timestamp UTC se guardó correctamente como `16:28:33.636Z`.
+  2. Sin embargo, en el frontend se utilizaban métodos como `.toLocaleString()` y `.toLocaleTimeString()` sin especificar `timeZone: "America/Bogota"`, provocando que en navegadores o dispositivos configurados con otra zona horaria se mostraran desfases de hasta 5 horas.
+  3. Adicionalmente, el turno activo de caja aún no había sido liquidado, por lo que el botón "Tirilla" en la sección de historial abría el turno previo (cerrado durante la madrugada).
+  4. En la cabecera principal de la caja no se informaba explícitamente la hora de apertura del turno activo.
+- **Solución Implementada:**
+  1. **Utilidades Centralizadas de Fecha y Hora ([src/lib/formatters.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/lib/formatters.ts)):**
+     - Constante `BOGOTA_TIMEZONE = "America/Bogota"`.
+     - `formatDateTime(date)`: Formato completo en español colombiano (ej: `24/11/2026, 11:28 a. m.`).
+     - `formatTime(date)`: Formato de hora en 12h con indicador am/pm (ej: `11:28 a. m.`).
+     - `formatDate(date)`: Formato de fecha estándar (ej: `24/11/2026`).
+     - `getBogotaDayBounds(dateStr)`: Calcula con exactitud matemática el inicio (`05:00:00 UTC`) y fin (`04:59:59.999 UTC del día siguiente`) del día en Colombia, protegiendo las ventas nocturnas en los reportes de Vercel.
+  2. **Actualización Integral de Módulos ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx), [src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx), [src/components/admin/AdminBarraView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraView.tsx), [src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)):**
+     - Cabecera de Caja: Muestra claramente `Abierto por LUIS MARTINEZ a las 11:28 a. m. (24/11/2026) • Base inicial: $262.000`.
+     - Tirilla de Cierre y Liquidación (pantalla, archivo `.txt`, WhatsApp): Fechas y horas de apertura y cierre fijadas estrictamente en horario de Colombia.
+     - Historial de turnos liquidados, ventas de mesas, comandas de barra y bitácora de auditoría 100% sincronizados con `America/Bogota`.
+  3. **Backend de Reportes Contables ([src/app/api/admin/caja/reports/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/reports/route.ts)):**
+     - Filtros de reportes por día y personalizados adaptados al ciclo de 24 horas de Colombia.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
 
 
 ### Hito 76: Rediseño del Panel de Cobro y Comanda de Mesas en Disposición de Dos Columnas (Fiel a Referencia Visual)
@@ -1472,6 +1516,28 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas estáticas y dinámicas.
 
+### Hito 81: Unificación y Sincronización Estricta de la Zona Horaria de Colombia (America/Bogota, UTC-5)
+- **Diagnóstico del Desfase Horario:**
+  1. El usuario abrió caja a las 11:28 a.m. (hora local Colombia), y en la base de datos Supabase el timestamp UTC se guardó correctamente como `16:28:33.636Z`.
+  2. Sin embargo, en el frontend se utilizaban métodos como `.toLocaleString()` y `.toLocaleTimeString()` sin especificar `timeZone: "America/Bogota"`, provocando que en navegadores o dispositivos configurados con otra zona horaria se mostraran desfases de hasta 5 horas.
+  3. Adicionalmente, el turno activo de caja aún no había sido liquidado, por lo que el botón "Tirilla" en la sección de historial abría el turno previo (cerrado durante la madrugada).
+  4. En la cabecera principal de la caja no se informaba explícitamente la hora de apertura del turno activo.
+- **Solución Implementada:**
+  1. **Utilidades Centralizadas de Fecha y Hora ([src/lib/formatters.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/lib/formatters.ts)):**
+     - Constante `BOGOTA_TIMEZONE = "America/Bogota"`.
+     - `formatDateTime(date)`: Formato completo en español colombiano (ej: `24/11/2026, 11:28 a. m.`).
+     - `formatTime(date)`: Formato de hora en 12h con indicador am/pm (ej: `11:28 a. m.`).
+     - `formatDate(date)`: Formato de fecha estándar (ej: `24/11/2026`).
+     - `getBogotaDayBounds(dateStr)`: Calcula con exactitud matemática el inicio (`05:00:00 UTC`) y fin (`04:59:59.999 UTC del día siguiente`) del día en Colombia, protegiendo las ventas nocturnas en los reportes de Vercel.
+  2. **Actualización Integral de Módulos ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx), [src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx), [src/components/admin/AdminBarraView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraView.tsx), [src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)):**
+     - Cabecera de Caja: Muestra claramente `Abierto por LUIS MARTINEZ a las 11:28 a. m. (24/11/2026) • Base inicial: $262.000`.
+     - Tirilla de Cierre y Liquidación (pantalla, archivo `.txt`, WhatsApp): Fechas y horas de apertura y cierre fijadas estrictamente en horario de Colombia.
+     - Historial de turnos liquidados, ventas de mesas, comandas de barra y bitácora de auditoría 100% sincronizados con `America/Bogota`.
+  3. **Backend de Reportes Contables ([src/app/api/admin/caja/reports/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/reports/route.ts)):**
+     - Filtros de reportes por día y personalizados adaptados al ciclo de 24 horas de Colombia.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
+
 ### Hito 77: Suite Integral de Pruebas de Rendimiento, Estrés y Concurrencia Multimodular
 - **Fecha:** 24 de Noviembre de 2026
 - **Archivos Modificados:**
@@ -1577,6 +1643,28 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
        - Tarjetas históricas de turnos cerrados con etiquetas visibles de base dejada y dinero retirado.
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas estáticas y dinámicas.
+
+### Hito 81: Unificación y Sincronización Estricta de la Zona Horaria de Colombia (America/Bogota, UTC-5)
+- **Diagnóstico del Desfase Horario:**
+  1. El usuario abrió caja a las 11:28 a.m. (hora local Colombia), y en la base de datos Supabase el timestamp UTC se guardó correctamente como `16:28:33.636Z`.
+  2. Sin embargo, en el frontend se utilizaban métodos como `.toLocaleString()` y `.toLocaleTimeString()` sin especificar `timeZone: "America/Bogota"`, provocando que en navegadores o dispositivos configurados con otra zona horaria se mostraran desfases de hasta 5 horas.
+  3. Adicionalmente, el turno activo de caja aún no había sido liquidado, por lo que el botón "Tirilla" en la sección de historial abría el turno previo (cerrado durante la madrugada).
+  4. En la cabecera principal de la caja no se informaba explícitamente la hora de apertura del turno activo.
+- **Solución Implementada:**
+  1. **Utilidades Centralizadas de Fecha y Hora ([src/lib/formatters.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/lib/formatters.ts)):**
+     - Constante `BOGOTA_TIMEZONE = "America/Bogota"`.
+     - `formatDateTime(date)`: Formato completo en español colombiano (ej: `24/11/2026, 11:28 a. m.`).
+     - `formatTime(date)`: Formato de hora en 12h con indicador am/pm (ej: `11:28 a. m.`).
+     - `formatDate(date)`: Formato de fecha estándar (ej: `24/11/2026`).
+     - `getBogotaDayBounds(dateStr)`: Calcula con exactitud matemática el inicio (`05:00:00 UTC`) y fin (`04:59:59.999 UTC del día siguiente`) del día en Colombia, protegiendo las ventas nocturnas en los reportes de Vercel.
+  2. **Actualización Integral de Módulos ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx), [src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx), [src/components/admin/AdminBarraView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraView.tsx), [src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)):**
+     - Cabecera de Caja: Muestra claramente `Abierto por LUIS MARTINEZ a las 11:28 a. m. (24/11/2026) • Base inicial: $262.000`.
+     - Tirilla de Cierre y Liquidación (pantalla, archivo `.txt`, WhatsApp): Fechas y horas de apertura y cierre fijadas estrictamente en horario de Colombia.
+     - Historial de turnos liquidados, ventas de mesas, comandas de barra y bitácora de auditoría 100% sincronizados con `America/Bogota`.
+  3. **Backend de Reportes Contables ([src/app/api/admin/caja/reports/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/reports/route.ts)):**
+     - Filtros de reportes por día y personalizados adaptados al ciclo de 24 horas de Colombia.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
 
 
 ---

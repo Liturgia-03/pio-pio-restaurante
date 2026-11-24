@@ -27,6 +27,8 @@ import {
   Wallet,
   KeyRound,
   ShieldCheck,
+  ChevronDown,
+  SlidersHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TableCardData, TableSessionData, WaiterItem } from "@/types";
@@ -163,6 +165,9 @@ export default function AdminTablesCashierPage() {
   const [selectedNewPaymentMethod, setSelectedNewPaymentMethod] = useState<"CASH" | "NEQUI" | "CARD" | "MIXED">("CASH");
   const [mixedCashAmount, setMixedCashAmount] = useState<number>(0);
   const [mixedTransferAmount, setMixedTransferAmount] = useState<number>(0);
+
+  // Estado para el menú desplegable de acciones por cuenta
+  const [activeActionsMenuSessionId, setActiveActionsMenuSessionId] = useState<string | null>(null);
 
   // Handlers de autorización administrativa
   const handleRequestReactivateSession = (session: TableSessionData) => {
@@ -1607,7 +1612,7 @@ export default function AdminTablesCashierPage() {
             </span>
           </div>
 
-          <div className="bg-[#14161a] border border-gray-800 rounded-3xl overflow-hidden">
+          <div className="bg-[#14161a] border border-gray-800 rounded-3xl">
             {todaySessions.length === 0 ? (
               <p className="p-8 text-center text-xs text-gray-500">
                 No se han registrado pagos de mesas el día de hoy.
@@ -1625,7 +1630,7 @@ export default function AdminTablesCashierPage() {
                   return (
                     <div
                       key={session.id}
-                      className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3 hover:bg-gray-900/30 transition-all text-xs"
+                      className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3 hover:bg-gray-900/30 transition-all text-xs first:rounded-t-3xl last:rounded-b-3xl"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -1676,52 +1681,118 @@ export default function AdminTablesCashierPage() {
                           </span>
                         </div>
 
-                        {/* Botones de Gestión con Seguridad y Auditoría */}
-                        <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                          {/* 1. Reactivar Cuenta Cobrada */}
+                        {/* Botón Único de Opciones con Menú Desplegable */}
+                        <div className="relative">
                           <button
                             type="button"
-                            onClick={() => handleRequestReactivateSession(session)}
-                            title="Reactivar cuenta cobrada por error (Vuelve a estado ABIERTA)"
-                            className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-bold text-[11px] flex items-center gap-1.5 transition-all border border-amber-500/20"
+                            onClick={() =>
+                              setActiveActionsMenuSessionId(
+                                activeActionsMenuSessionId === session.id ? null : session.id
+                              )
+                            }
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all border shadow-sm active:scale-95 ${
+                              activeActionsMenuSessionId === session.id
+                                ? "bg-amber-500/20 border-amber-500/50 text-amber-300"
+                                : "bg-gray-800 hover:bg-gray-700 border-gray-700/80 text-gray-200 hover:text-white"
+                            }`}
                           >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                            <span>Reactivar</span>
+                            <SlidersHorizontal className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Opciones</span>
+                            <ChevronDown
+                              className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${
+                                activeActionsMenuSessionId === session.id ? "rotate-180 text-amber-400" : ""
+                              }`}
+                            />
                           </button>
 
-                          {/* 2. Cambiar Método de Pago */}
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEditPaymentModal(session)}
-                            title="Cambiar forma de pago (Efectivo / Nequi / Tarjeta / Mixto)"
-                            className="px-2.5 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-bold text-[11px] flex items-center gap-1.5 transition-all border border-blue-500/20"
-                          >
-                            <CreditCard className="w-3.5 h-3.5" />
-                            <span>Pago</span>
-                          </button>
+                          {/* Menú Desplegable con las 4 Opciones: Reactivar, Pago, Anular y Eliminar */}
+                          {activeActionsMenuSessionId === session.id && (
+                            <>
+                              {/* Backdrop transparente para cerrar al hacer clic afuera */}
+                              <div
+                                className="fixed inset-0 z-30"
+                                onClick={() => setActiveActionsMenuSessionId(null)}
+                              />
 
-                          {/* 3. Anular Venta Formalmente */}
-                          {session.status !== "CANCELLED" && (
-                            <button
-                              type="button"
-                              onClick={() => handleRequestCancelSession(session)}
-                              title="Anular venta formalmente (No sumará a caja)"
-                              className="px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-bold text-[11px] flex items-center gap-1.5 transition-all border border-rose-500/20"
-                            >
-                              <Ban className="w-3.5 h-3.5" />
-                              <span>Anular</span>
-                            </button>
+                              <div className="absolute right-0 top-full mt-1.5 z-40 w-56 bg-[#161922] border border-gray-700/90 rounded-2xl shadow-2xl p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+                                {/* 1. Reactivar Cuenta */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveActionsMenuSessionId(null);
+                                    handleRequestReactivateSession(session);
+                                  }}
+                                  className="w-full px-3 py-2 rounded-xl text-left text-xs font-bold text-amber-300 hover:bg-amber-500/10 flex items-center gap-2.5 transition-all"
+                                >
+                                  <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+                                    <RotateCcw className="w-3.5 h-3.5" />
+                                  </div>
+                                  <div>
+                                    <span className="block font-black leading-tight">Reactivar Cuenta</span>
+                                    <span className="text-[10px] text-gray-400 font-normal">Volver a abrir mesa</span>
+                                  </div>
+                                </button>
+
+                                {/* 2. Cambiar Método de Pago */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveActionsMenuSessionId(null);
+                                    handleOpenEditPaymentModal(session);
+                                  }}
+                                  className="w-full px-3 py-2 rounded-xl text-left text-xs font-bold text-blue-300 hover:bg-blue-500/10 flex items-center gap-2.5 transition-all"
+                                >
+                                  <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+                                    <CreditCard className="w-3.5 h-3.5" />
+                                  </div>
+                                  <div>
+                                    <span className="block font-black leading-tight">Cambiar Pago</span>
+                                    <span className="text-[10px] text-gray-400 font-normal">Efectivo, Nequi, Tarjeta</span>
+                                  </div>
+                                </button>
+
+                                {/* 3. Anular Venta */}
+                                {session.status !== "CANCELLED" && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setActiveActionsMenuSessionId(null);
+                                      handleRequestCancelSession(session);
+                                    }}
+                                    className="w-full px-3 py-2 rounded-xl text-left text-xs font-bold text-rose-300 hover:bg-rose-500/10 flex items-center gap-2.5 transition-all"
+                                  >
+                                    <div className="w-7 h-7 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 shrink-0">
+                                      <Ban className="w-3.5 h-3.5" />
+                                    </div>
+                                    <div>
+                                      <span className="block font-black leading-tight">Anular Venta</span>
+                                      <span className="text-[10px] text-gray-400 font-normal">Marcar venta nula</span>
+                                    </div>
+                                  </button>
+                                )}
+
+                                <div className="border-t border-gray-800 my-1" />
+
+                                {/* 4. Eliminar Registro */}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveActionsMenuSessionId(null);
+                                    handleRequestDeleteSession(session);
+                                  }}
+                                  className="w-full px-3 py-2 rounded-xl text-left text-xs font-bold text-red-400 hover:bg-red-500/10 flex items-center gap-2.5 transition-all"
+                                >
+                                  <div className="w-7 h-7 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 shrink-0">
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </div>
+                                  <div>
+                                    <span className="block font-black leading-tight">Eliminar Registro</span>
+                                    <span className="text-[10px] text-gray-400 font-normal">Borrar definitivamente</span>
+                                  </div>
+                                </button>
+                              </div>
+                            </>
                           )}
-
-                          {/* 4. Eliminar Definitivamente */}
-                          <button
-                            type="button"
-                            onClick={() => handleRequestDeleteSession(session)}
-                            title="Eliminar cuenta definitivamente del sistema"
-                            className="p-1.5 rounded-xl bg-gray-800 hover:bg-rose-950/60 text-gray-400 hover:text-rose-300 font-bold text-[11px] transition-all border border-gray-700/50"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
                         </div>
                       </div>
                     </div>

@@ -1291,6 +1291,24 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del proyecto.
 
+### Hito 74: Unificación de Acciones en Menú Desplegable Ergonómico para Cuentas Hoy
+- **Solicitud del usuario:** Crear un solo botón o tarjeta para las opciones (Reactivar, Pago, Anular y Eliminar), y que estas se desplieguen al tocar el botón.
+- **Solución Quirúrgica Implementada:**
+  1. **Reemplazo de los 4 botones dispersos por un botón único de "Opciones" ([src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+     - Se eliminó el grupo horizontal de 4 botones que provocaba saltos de línea y desbordamiento visual en pantallas medianas y móviles.
+     - Se implementó un botón compacto y elegante `[ ⚙️ Opciones ▾ ]` con icono de controles deslizantes (`SlidersHorizontal`) y flecha animada (`ChevronDown`).
+  2. **Menú Desplegable / Popover Flotante:**
+     - Al tocar el botón, se despliega una tarjeta flotante (`z-40`, fondo oscuro `#161922`, bordes suaves y sombra profunda) con las 4 acciones claramente diferenciadas:
+       - 🔄 **Reactivar Cuenta:** Con icono ámbar y subtítulo *"Volver a abrir mesa"*.
+       - 💳 **Cambiar Pago:** Con icono azul y subtítulo *"Efectivo, Nequi, Tarjeta"*.
+       - 🚫 **Anular Venta:** Con icono rosado y subtítulo *"Marcar venta nula"* (solo si no está ya anulada).
+       - 🗑️ **Eliminar Registro:** Con icono rojo y subtítulo *"Borrar definitivamente"*.
+  3. **Ergonomía Táctil y Cierre Inteligente:**
+     - Incorporado backdrop invisible para cerrar el menú inmediatamente al tocar cualquier punto fuera de la tarjeta.
+     - Ajustado el contenedor del historial sin recorte forzado (`overflow`) para evitar que el menú flotante quede cortado en las cuentas inferiores.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación limpia con **código de salida 0** en las 26 rutas.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

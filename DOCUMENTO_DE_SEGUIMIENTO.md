@@ -1996,6 +1996,26 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas.
 
+### Hito 85: Rediseño Compacto Tipo Cuadrícula 2x2 para las Tarjetas Financieras del Dueño
+- **Requerimiento:**
+  1. Las 4 tarjetas KPI principales de finanzas del Panel del Dueño (Ventas Hoy, Efectivo en Cajón, Gastos Hoy, Utilidad Neta) ocupaban demasiado espacio vertical en dispositivos móviles al estar apiladas en una sola columna, forzando un scroll excesivo.
+  2. Reorganizar su diseño en una cuadrícula compacta e intuitiva de 2x2 en móviles para visualizarlas todas de un vistazo sin necesidad de scroll vertical prolongado.
+- **Solución Implementada:**
+  1. **Disposición de Cuadrícula ([src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx)):**
+     - Se actualizó el contenedor de `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` a `grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5`.
+     - En pantallas de celulares ahora se disponen exactamente en 2 filas de 2 tarjetas cada una:
+       - Fila 1: **Ventas Hoy** | **En Cajón**
+       - Fila 2: **Gastos Hoy** | **Utilidad Neta**
+  2. **Optimización de Espaciados y Tipografía Ergonómica:**
+     - Padding ajustado a `p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl` con estructura vertical `flex flex-col justify-between`.
+     - Títulos adaptables: `VENTAS HOY`, `EN CAJÓN`, `GASTOS HOY`, `UTILIDAD NETA` en móvil y títulos expandidos en pantallas medianas/grandes.
+     - Cifras principales legibles y compactas (`text-base sm:text-2xl font-black truncate`).
+     - Desgloses internos optimizados en etiquetas compactas (`Ef:`, `Digital:`, `Base:`, `+Ventas:`, `-Gastos:`, `Transf:`) con líneas divisorias discretas.
+  3. **Resultado:**
+     - Reducción de más del 55% en la altura vertical requerida en móviles, permitiendo al usuario ver simultáneamente las 4 métricas financieras y el estado del salón sin scroll.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

@@ -474,109 +474,134 @@ export function OwnerDashboardView() {
       {/* ======================================================================= */}
       {activeTab === "live" && (
         <div className="space-y-4 animate-in fade-in">
-          {/* 4 Tarjetas Maestras de Finanzas */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* 4 Tarjetas Maestras de Finanzas: Cuadrícula compacta 2x2 en móvil y 4 cols en escritorio */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
             {/* 1. VENTAS TOTALES HOY */}
-            <div className="bg-[#161a24] border border-amber-500/30 p-4 rounded-3xl space-y-2 shadow-lg">
-              <div className="flex justify-between items-start">
-                <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider block">
-                  VENTAS TOTALES HOY
-                </span>
-                <span className="p-1.5 rounded-xl bg-amber-500/20 text-amber-300">
-                  <DollarSign className="w-4 h-4" />
-                </span>
-              </div>
-              <div className="text-2xl font-black text-white">
-                {formatPrice(stats?.kpis.salesTotal || 0)}
-              </div>
-              <div className="text-[10px] text-gray-400 pt-1 border-t border-gray-800 space-y-0.5">
-                <div className="flex justify-between">
-                  <span>Efectivo:</span>
-                  <span className="text-emerald-400 font-bold">{formatPrice(stats?.kpis.salesCash || 0)}</span>
+            <div className="bg-[#161a24] border border-amber-500/30 p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl flex flex-col justify-between shadow-lg">
+              <div>
+                <div className="flex justify-between items-center mb-1 sm:mb-1.5">
+                  <span className="text-[9px] sm:text-[10px] font-black text-amber-400 uppercase tracking-wider block truncate">
+                    <span className="hidden sm:inline">VENTAS TOTALES HOY</span>
+                    <span className="sm:hidden">VENTAS HOY</span>
+                  </span>
+                  <span className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-amber-500/20 text-amber-300 flex-shrink-0">
+                    <DollarSign className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Nequi / Digital:</span>
-                  <span className="text-indigo-300 font-bold">{formatPrice(stats?.kpis.salesDigital || 0)}</span>
+                <div className="text-base sm:text-2xl font-black text-white truncate">
+                  {formatPrice(stats?.kpis.salesTotal || 0)}
                 </div>
-                <div className="flex justify-between text-[9px] text-gray-500 pt-0.5">
-                  <span>{stats?.kpis.salesCount || 0} pedidos cobrados hoy</span>
+              </div>
+              <div className="text-[9px] sm:text-[10px] text-gray-400 pt-1.5 sm:pt-2 mt-1 sm:mt-2 border-t border-gray-800 space-y-0.5">
+                <div className="flex justify-between items-center">
+                  <span className="truncate">Ef:</span>
+                  <span className="text-emerald-400 font-bold ml-1">{formatPrice(stats?.kpis.salesCash || 0)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="truncate">Digital:</span>
+                  <span className="text-indigo-300 font-bold ml-1">{formatPrice(stats?.kpis.salesDigital || 0)}</span>
+                </div>
+                <div className="text-[8px] sm:text-[9px] text-gray-500 pt-0.5 truncate">
+                  <span className="hidden sm:inline">{stats?.kpis.salesCount || 0} pedidos cobrados hoy</span>
+                  <span className="sm:hidden">{stats?.kpis.salesCount || 0} cobros hoy</span>
                 </div>
               </div>
             </div>
 
             {/* 2. EFECTIVO EN CAJÓN */}
-            <div className="bg-[#161a24] border border-emerald-500/30 p-4 rounded-3xl space-y-2 shadow-lg">
-              <div className="flex justify-between items-start">
-                <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider block">
-                  EFECTIVO FÍSICO EN CAJÓN
-                </span>
-                <span className="p-1.5 rounded-xl bg-emerald-500/20 text-emerald-300">
-                  <WalletCards className="w-4 h-4" />
-                </span>
-              </div>
-              <div className="text-2xl font-black text-emerald-300">
-                {formatPrice(stats?.kpis.expectedCashInDrawer || 0)}
-              </div>
-              <div className="text-[10px] text-gray-400 pt-1 border-t border-gray-800 space-y-0.5">
-                <div className="flex justify-between">
-                  <span>Base Inicial:</span>
-                  <span className="text-white font-bold">{formatPrice(stats?.shift?.initialCash || 0)}</span>
+            <div className="bg-[#161a24] border border-emerald-500/30 p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl flex flex-col justify-between shadow-lg">
+              <div>
+                <div className="flex justify-between items-center mb-1 sm:mb-1.5">
+                  <span className="text-[9px] sm:text-[10px] font-black text-emerald-400 uppercase tracking-wider block truncate">
+                    <span className="hidden sm:inline">EFECTIVO EN CAJÓN</span>
+                    <span className="sm:hidden">EN CAJÓN</span>
+                  </span>
+                  <span className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-emerald-500/20 text-emerald-300 flex-shrink-0">
+                    <WalletCards className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span>+ Ventas Efectivo:</span>
-                  <span className="text-emerald-400 font-bold">+{formatPrice(stats?.kpis.salesCash || 0)}</span>
+                <div className="text-base sm:text-2xl font-black text-emerald-300 truncate">
+                  {formatPrice(stats?.kpis.expectedCashInDrawer || 0)}
                 </div>
-                <div className="flex justify-between">
-                  <span>- Gastos Efectivo:</span>
-                  <span className="text-rose-400 font-bold">-{formatPrice(stats?.kpis.expensesCash || 0)}</span>
+              </div>
+              <div className="text-[9px] sm:text-[10px] text-gray-400 pt-1.5 sm:pt-2 mt-1 sm:mt-2 border-t border-gray-800 space-y-0.5">
+                <div className="flex justify-between items-center">
+                  <span className="truncate">Base:</span>
+                  <span className="text-white font-bold ml-1">{formatPrice(stats?.shift?.initialCash || 0)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="truncate">+Ventas:</span>
+                  <span className="text-emerald-400 font-bold ml-1">+{formatPrice(stats?.kpis.salesCash || 0)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="truncate">-Gastos:</span>
+                  <span className="text-rose-400 font-bold ml-1">-{formatPrice(stats?.kpis.expensesCash || 0)}</span>
                 </div>
               </div>
             </div>
 
             {/* 3. GASTOS OPERATIVOS */}
-            <div className="bg-[#161a24] border border-rose-500/30 p-4 rounded-3xl space-y-2 shadow-lg">
-              <div className="flex justify-between items-start">
-                <span className="text-[10px] font-black text-rose-400 uppercase tracking-wider block">
-                  GASTOS OPERATIVOS HOY
-                </span>
-                <span className="p-1.5 rounded-xl bg-rose-500/20 text-rose-300">
-                  <TrendingDown className="w-4 h-4" />
-                </span>
-              </div>
-              <div className="text-2xl font-black text-rose-300">
-                {formatPrice(stats?.kpis.expensesTotal || 0)}
-              </div>
-              <div className="text-[10px] text-gray-400 pt-1 border-t border-gray-800 space-y-0.5">
-                <div className="flex justify-between">
-                  <span>Salidas en Efectivo:</span>
-                  <span className="text-white font-bold">{formatPrice(stats?.kpis.expensesCash || 0)}</span>
+            <div className="bg-[#161a24] border border-rose-500/30 p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl flex flex-col justify-between shadow-lg">
+              <div>
+                <div className="flex justify-between items-center mb-1 sm:mb-1.5">
+                  <span className="text-[9px] sm:text-[10px] font-black text-rose-400 uppercase tracking-wider block truncate">
+                    <span className="hidden sm:inline">GASTOS OPERATIVOS HOY</span>
+                    <span className="sm:hidden">GASTOS HOY</span>
+                  </span>
+                  <span className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-rose-500/20 text-rose-300 flex-shrink-0">
+                    <TrendingDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Por Transferencia:</span>
-                  <span className="text-white font-bold">{formatPrice(stats?.kpis.expensesDigital || 0)}</span>
+                <div className="text-base sm:text-2xl font-black text-rose-300 truncate">
+                  {formatPrice(stats?.kpis.expensesTotal || 0)}
                 </div>
-                <div className="flex justify-between text-[9px] text-gray-500 pt-0.5">
-                  <span>{stats?.kpis.expensesCount || 0} salidas registradas</span>
+              </div>
+              <div className="text-[9px] sm:text-[10px] text-gray-400 pt-1.5 sm:pt-2 mt-1 sm:mt-2 border-t border-gray-800 space-y-0.5">
+                <div className="flex justify-between items-center">
+                  <span className="truncate">Efectivo:</span>
+                  <span className="text-white font-bold ml-1">{formatPrice(stats?.kpis.expensesCash || 0)}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="truncate">Transf:</span>
+                  <span className="text-white font-bold ml-1">{formatPrice(stats?.kpis.expensesDigital || 0)}</span>
+                </div>
+                <div className="text-[8px] sm:text-[9px] text-gray-500 pt-0.5 truncate">
+                  <span className="hidden sm:inline">{stats?.kpis.expensesCount || 0} salidas registradas</span>
+                  <span className="sm:hidden">{stats?.kpis.expensesCount || 0} egresos</span>
                 </div>
               </div>
             </div>
 
             {/* 4. UTILIDAD NETA OPERATIVA */}
-            <div className="bg-gradient-to-br from-[#121c18] to-[#161a24] border border-emerald-500/50 p-4 rounded-3xl space-y-2 shadow-lg">
-              <div className="flex justify-between items-start">
-                <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider block">
-                  UTILIDAD NETA HOY
-                </span>
-                <span className="p-1.5 rounded-xl bg-emerald-500/20 text-emerald-300">
-                  <Sparkles className="w-4 h-4" />
-                </span>
+            <div className="bg-gradient-to-br from-[#121c18] to-[#161a24] border border-emerald-500/50 p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl flex flex-col justify-between shadow-lg">
+              <div>
+                <div className="flex justify-between items-center mb-1 sm:mb-1.5">
+                  <span className="text-[9px] sm:text-[10px] font-black text-emerald-400 uppercase tracking-wider block truncate">
+                    <span className="hidden sm:inline">UTILIDAD NETA HOY</span>
+                    <span className="sm:hidden">UTILIDAD NETA</span>
+                  </span>
+                  <span className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-emerald-500/20 text-emerald-300 flex-shrink-0">
+                    <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </span>
+                </div>
+                <div className="text-base sm:text-2xl font-black text-emerald-300 truncate">
+                  {formatPrice(stats?.kpis.netProfitToday || 0)}
+                </div>
               </div>
-              <div className="text-2xl font-black text-emerald-300">
-                {formatPrice(stats?.kpis.netProfitToday || 0)}
+              <div className="text-[9px] sm:text-[10px] text-gray-400 pt-1.5 sm:pt-2 mt-1 sm:mt-2 border-t border-gray-800 space-y-0.5">
+                <div className="flex justify-between items-center">
+                  <span className="truncate">Margen:</span>
+                  <span className={`font-bold ml-1 ${((stats?.kpis.netProfitToday || 0) >= 0) ? "text-emerald-400" : "text-rose-400"}`}>
+                    {((stats?.kpis.netProfitToday || 0) >= 0) ? "+ Ganancia" : "- Pérdida"}
+                  </span>
+                </div>
+                <div className="text-[8px] sm:text-[9px] text-gray-500 pt-0.5 truncate">
+                  Ventas – Gastos
+                </div>
+                <div className="text-[8px] sm:text-[9px] text-gray-500 pt-0.5 truncate hidden sm:block">
+                  Ganancia neta del día
+                </div>
               </div>
-              <p className="text-[10px] text-gray-400 pt-1 border-t border-gray-800">
-                Ganancia neta del día (Ventas Totales – Gastos Totales)
-              </p>
             </div>
           </div>
 

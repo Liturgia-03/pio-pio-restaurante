@@ -1336,6 +1336,27 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas estáticas y dinámicas.
 
+### Hito 77: Suite Integral de Pruebas de Rendimiento, Estrés y Concurrencia Multimodular
+- **Fecha:** 24 de Noviembre de 2026
+- **Archivos Modificados:**
+  - [scripts/stress-test.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/scripts/stress-test.ts)
+  - [DOCUMENTO_DE_SEGUIMIENTO.md](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/DOCUMENTO_DE_SEGUIMIENTO.md)
+- **Alcance y Ejecución:**
+  1. **Actualización de la Suite de Pruebas de Estrés:**
+     - Incorporación de métricas de alta precisión: percentiles P50 (mediana), P95, Throughput (req/s), tiempos mínimos, máximos y promedios.
+     - Cobertura de autenticación JWT segura con `jose` para evaluar endpoints privados administrativos (`/api/admin/barra` y `/api/admin/caja/reports`).
+  2. **Escenarios de Prueba Evaluados y Resultados Obtenidos:**
+     - **Escenario 1 (Carta Digital - `/api/public/menu`):** 50 clientes concurrentes. Tasa de éxito: **100% (50/50)**. Promedio: 3.524 ms, P95: 3.527 ms, Throughput: **14.1 req/s**.
+     - **Escenario 2 (Salón de Mesas - `/api/tables`):** 30 consultas concurrentes del estado de mesas y sesiones activas. Tasa de éxito: **100% (30/30)**. Promedio: 7.474 ms, P95: 8.289 ms, Throughput: **3.6 req/s**.
+     - **Escenario 3 (Barra Rápida - `/api/admin/barra`):** 30 peticiones concurrentes de colas de mostrador y pedidos rápidos. Tasa de éxito: **100% (30/30)**. Promedio: 3.481 ms, P95: 5.643 ms, Throughput: **5.3 req/s**.
+     - **Escenario 4 (Caja & Contabilidad - `/api/admin/caja/reports`):** 20 consultas concurrentes de arqueo, balances, ingresos y gastos. Tasa de éxito: **100% (20/20)**. Promedio: 4.425 ms, P95: 5.483 ms, Throughput: **3.6 req/s**.
+     - **Escenario 5 (Race Condition Mesa #7):** 5 comensales simultáneos enviando pedidos por QR en el mismo instante. Tasa de éxito: **100% (5/5)**. Integridad en base de datos: 1 sola cuenta creada (0 duplicadas), 5 ítems registrados, total en comanda $54.000 COP 100% exacto.
+     - **Escenario 6 (Ciclo Completo de Hora Pico - 15 Mesas Simultáneas):** Ciclo completo (Pedido QR -> Confirmación -> Adición -> Cobro multiforma Efectivo/Nequi/Tarjeta/Mixto -> Liberación). Tasa de éxito: **100% (15/15)**. Promedio por ciclo completo: 10.145 ms.
+     - **Escenario 7 (Limpieza y Consistencia):** Base de datos restaurada con 0 sesiones residuales y todas las mesas libres.
+- **Certificación Técnica:**
+  - `npm run test:stress`: Ejecución con **código de salida 0** y 100% de éxito en todas las pruebas.
+  - `npm run build`: Compilación limpia de 26 rutas estáticas y dinámicas.
+
 ### Hito 76: Rediseño del Panel de Cobro y Comanda de Mesas en Disposición de Dos Columnas (Fiel a Referencia Visual)
 - **Fecha:** 24 de Noviembre de 2026
 - **Archivos Modificados:**
@@ -1364,6 +1385,27 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
      - En dispositivos móviles o pantallas estrechas se apila elegantemente en una columna sin desbordamiento ni recorte.
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas estáticas y dinámicas.
+
+### Hito 77: Suite Integral de Pruebas de Rendimiento, Estrés y Concurrencia Multimodular
+- **Fecha:** 24 de Noviembre de 2026
+- **Archivos Modificados:**
+  - [scripts/stress-test.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/scripts/stress-test.ts)
+  - [DOCUMENTO_DE_SEGUIMIENTO.md](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/DOCUMENTO_DE_SEGUIMIENTO.md)
+- **Alcance y Ejecución:**
+  1. **Actualización de la Suite de Pruebas de Estrés:**
+     - Incorporación de métricas de alta precisión: percentiles P50 (mediana), P95, Throughput (req/s), tiempos mínimos, máximos y promedios.
+     - Cobertura de autenticación JWT segura con `jose` para evaluar endpoints privados administrativos (`/api/admin/barra` y `/api/admin/caja/reports`).
+  2. **Escenarios de Prueba Evaluados y Resultados Obtenidos:**
+     - **Escenario 1 (Carta Digital - `/api/public/menu`):** 50 clientes concurrentes. Tasa de éxito: **100% (50/50)**. Promedio: 3.524 ms, P95: 3.527 ms, Throughput: **14.1 req/s**.
+     - **Escenario 2 (Salón de Mesas - `/api/tables`):** 30 consultas concurrentes del estado de mesas y sesiones activas. Tasa de éxito: **100% (30/30)**. Promedio: 7.474 ms, P95: 8.289 ms, Throughput: **3.6 req/s**.
+     - **Escenario 3 (Barra Rápida - `/api/admin/barra`):** 30 peticiones concurrentes de colas de mostrador y pedidos rápidos. Tasa de éxito: **100% (30/30)**. Promedio: 3.481 ms, P95: 5.643 ms, Throughput: **5.3 req/s**.
+     - **Escenario 4 (Caja & Contabilidad - `/api/admin/caja/reports`):** 20 consultas concurrentes de arqueo, balances, ingresos y gastos. Tasa de éxito: **100% (20/20)**. Promedio: 4.425 ms, P95: 5.483 ms, Throughput: **3.6 req/s**.
+     - **Escenario 5 (Race Condition Mesa #7):** 5 comensales simultáneos enviando pedidos por QR en el mismo instante. Tasa de éxito: **100% (5/5)**. Integridad en base de datos: 1 sola cuenta creada (0 duplicadas), 5 ítems registrados, total en comanda $54.000 COP 100% exacto.
+     - **Escenario 6 (Ciclo Completo de Hora Pico - 15 Mesas Simultáneas):** Ciclo completo (Pedido QR -> Confirmación -> Adición -> Cobro multiforma Efectivo/Nequi/Tarjeta/Mixto -> Liberación). Tasa de éxito: **100% (15/15)**. Promedio por ciclo completo: 10.145 ms.
+     - **Escenario 7 (Limpieza y Consistencia):** Base de datos restaurada con 0 sesiones residuales y todas las mesas libres.
+- **Certificación Técnica:**
+  - `npm run test:stress`: Ejecución con **código de salida 0** y 100% de éxito en todas las pruebas.
+  - `npm run build`: Compilación limpia de 26 rutas estáticas y dinámicas.
 
 ---
 

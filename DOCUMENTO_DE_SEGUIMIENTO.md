@@ -1166,6 +1166,21 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 25 rutas del proyecto.
 
+### Hito 69: Corrección de Estiramiento en Tarjetas de Platos y Brillo Sólido en Botones de Acción
+- **Solicitud del usuario:** En la captura compartida (`media_1795500721799_218ae3eb.jpg`), se evidenció que las tarjetas de los platos se estiraban verticalmente generando un espacio vacío negro entre la imagen y el precio, y los botones inferiores de `[Cobrar Vitrina]` y `[Enviar a Cocina]` se mostraban opacos / apagados en comparación con el resto de la interfaz. Corregir ambos detalles.
+- **Solución Quirúrgica Implementada ([src/components/admin/AdminBarraView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraView.tsx)):**
+  1. **Prevención de Deformación y Estiramiento de Tarjetas:**
+     - En la cuadrícula de platos se añadieron las propiedades de alineación `content-start` y `auto-rows-max`.
+     - En cada tarjeta de plato se retiró `justify-between` y se fijó `h-auto shrink-0`, manteniendo una altura fija y proporcional en la foto (`h-18` a `h-20`) y en el pie de precio (`p-1.5 shrink-0`).
+     - Con esto, al filtrar por categorías con pocos productos (como "Bebidas Varias" de 8 platos), las tarjetas mantienen siempre su tamaño compacto natural sin estirarse verticalmente por la pantalla.
+  2. **Corrección de Opacidad y Realce de Botones Maestros:**
+     - Se eliminó la clase de atenuación `disabled:opacity-50`, permitiendo que los botones conserven su color sólido y vibrante en todo momento.
+     - `Cobrar Vitrina`: Se vistió con un verde esmeralda sólido de alto contraste `bg-[#059669] hover:bg-[#10b981]` con borde `border border-emerald-400/30`.
+     - `Enviar a Cocina`: Se vistió con un degradado ámbar-naranja cálido y llamativo `bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500` con borde `border border-amber-400/30`.
+     - Si el cajero pulsa los botones con la comanda vacía, el sistema informa con un toast amigable `toast.error("Agrega al menos un plato a la comanda")`, manteniendo la estética limpia y visible de un POS profesional.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 25 rutas del proyecto.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

@@ -617,8 +617,8 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
                 </span>
               </div>
 
-              {/* Cuadrícula Táctil: 2 columnas en móvil, 4 en desktop */}
-              <div className="flex-1 overflow-y-auto pr-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2.5 custom-scrollbar">
+              {/* Cuadrícula Táctil: 2 columnas en móvil, 4 en desktop (content-start y auto-rows-max para evitar deformaciones o estiramientos) */}
+              <div className="flex-1 overflow-y-auto pr-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2.5 content-start auto-rows-max custom-scrollbar">
                 {displayedDishes.map((dish) => {
                   const countInCart = cart
                     .filter((c) => c.dishName === dish.name)
@@ -628,7 +628,7 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
                     <div
                       key={dish.id}
                       onClick={() => addToCart(dish.name, dish.basePrice, dish.id)}
-                      className="bg-[#181b22] border border-gray-800 hover:border-amber-500/60 rounded-xl overflow-hidden cursor-pointer transition-all active:scale-95 group relative shadow-md flex flex-col justify-between"
+                      className="bg-[#181b22] border border-gray-800 hover:border-amber-500/60 rounded-xl overflow-hidden cursor-pointer transition-all active:scale-95 group relative shadow-md flex flex-col h-auto"
                     >
                       {countInCart > 0 && (
                         <span className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-[#8b5cf6] text-white font-black text-[10px] flex items-center justify-center shadow-lg z-10 animate-scale-in">
@@ -636,7 +636,7 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
                         </span>
                       )}
 
-                      <div className="h-20 sm:h-20 md:h-16 w-full bg-[#101216] overflow-hidden relative">
+                      <div className="h-20 sm:h-20 md:h-18 w-full bg-[#101216] overflow-hidden relative shrink-0">
                         <img
                           src={dish.imageUrl || "/logo-pio-pio.png"}
                           alt={dish.name}
@@ -647,11 +647,11 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
                         />
                       </div>
 
-                      <div className="p-1.5 md:p-1 bg-[#14161d] text-center border-t border-gray-800/80">
+                      <div className="p-1.5 md:p-1.5 bg-[#14161d] text-center border-t border-gray-800/80 shrink-0">
                         <p className="text-[11px] md:text-[10px] font-bold text-white group-hover:text-amber-400 truncate leading-tight">
                           {dish.name}
                         </p>
-                        <p className="text-xs md:text-[10px] font-black text-amber-400">
+                        <p className="text-xs md:text-[10px] font-black text-amber-400 mt-0.5">
                           {formatPrice(dish.basePrice)}
                         </p>
                       </div>
@@ -958,21 +958,21 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  disabled={isSubmitting || cart.length === 0}
+                  disabled={isSubmitting}
                   onClick={() => handleCreateOrder(true)}
-                  className="py-3 px-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black text-xs rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                  className="py-3.5 px-2 bg-[#059669] hover:bg-[#10b981] text-white font-black text-xs rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 border border-emerald-400/30"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
+                  <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
                   <span>Cobrar Vitrina</span>
                 </button>
 
                 <button
                   type="button"
-                  disabled={isSubmitting || cart.length === 0}
+                  disabled={isSubmitting}
                   onClick={() => handleCreateOrder(false)}
-                  className="py-3 px-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-white font-black text-xs rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                  className="py-3.5 px-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-black text-xs rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5 border border-amber-400/30"
                 >
-                  <Flame className="w-4 h-4" />
+                  <Flame className="w-4 h-4 fill-white" />
                   <span>Enviar a Cocina</span>
                 </button>
               </div>

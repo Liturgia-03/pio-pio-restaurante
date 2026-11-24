@@ -27,16 +27,18 @@ export function AdminNavSidebar({ userRole }: AdminNavSidebarProps) {
 
   const handleLogout = async () => {
     try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("pio_user_role");
+      }
       await fetch("/api/admin/auth/logout", { method: "POST" });
       toast.success("Sesión cerrada");
-      router.push("/admin/login");
-      router.refresh();
+      window.location.href = "/admin/login";
     } catch {
       toast.error("Error al cerrar sesión");
     }
   };
 
-  const isSuperAdmin = userRole === "SUPER_ADMIN";
+  const isSuperAdmin = userRole === "SUPER_ADMIN" || pathname.startsWith("/admin/owner");
 
   // Si es Super Admin, SOLO ve las 3 pestañas solicitadas:
   // 1. Panel Ejecutivo del Dueño (/admin/owner)

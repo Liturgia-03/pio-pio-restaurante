@@ -11,19 +11,49 @@ import { AdminHeader } from "@/components/admin/AdminHeader";
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("pio_user_role") || null;
+    }
+    return null;
+  });
 
-  // Consultar el rol del usuario autenticado actual
+  // Consultar el rol del usuario autenticado actual y refrescar ante cambios de ruta
   useEffect(() => {
-    fetch("/api/admin/auth/me")
+    if (pathname === "/admin/login") {
+      setUserRole(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("pio_user_role");
+      }
+      return;
+    }
+
+    let isMounted = true;
+    fetch("/api/admin/auth/me", { cache: "no-store" })
       .then((res) => res.json())
       .then((json) => {
-        if (json.success && json.data) {
+        if (!isMounted) return;
+        if (json.success && json.data?.role) {
           setUserRole(json.data.role);
+          if (typeof window !== "undefined") {
+            localStorage.setItem("pio_user_role", json.data.role);
+          }
+        } else {
+          setUserRole(null);
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("pio_user_role");
+          }
         }
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {
+        if (!isMounted) return;
+        setUserRole(null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [pathname]);
 
   // Cerrar el drawer automáticamente cada vez que cambia la ruta
   useEffect(() => {
@@ -54,11 +84,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   else if (pathname.includes("/admin/barra")) pageTitle = "BARRA RÁPIDA & MOSTRADOR";
   else if (pathname.includes("/admin/tables")) pageTitle = "CONTROL DE MESAS Y CAJA";
 
-  const isSuperAdmin = userRole === "SUPER_ADMIN";
+  const isSuperAdmin = userRole === "SUPER_ADMIN" || pathname.startsWith("/admin/owner");
+  const effectiveRole = isSuperAdmin ? "SUPER_ADMIN" : userRole;
 
   return (
     <div className="min-h-screen bg-[#0f1115] text-gray-100 flex flex-col md:flex-row">
-      <AdminNavSidebar userRole={userRole} />
+      <AdminNavSidebar userRole={effectiveRole} />
 
       {/* Barra de Pedidos Rápidos y Mostrador: solo para personal operativo (no Super Admin) */}
       {!isSuperAdmin && <AdminBarraDrawer />}
@@ -66,7 +97,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <AdminMobileDrawer
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        userRole={userRole}
+        userRole={effectiveRole}
       />
 
       <div className="flex-1 md:pl-64 flex flex-col min-h-screen pb-20 md:pb-6">
@@ -82,7 +113,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
-      <AdminBottomBar userRole={userRole} />
+      <AdminBottomBar userRole={effectiveRole} />
     </div>
   );
 }

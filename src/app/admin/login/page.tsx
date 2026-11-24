@@ -41,14 +41,18 @@ export default function AdminLoginPage() {
       }
 
       const userRole = data?.data?.user?.role;
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("pio_user_role", userRole || "");
+      }
+
       if (userRole === "SUPER_ADMIN") {
         toast.success("👑 ¡Bienvenido, Super Admin!");
-        router.push("/admin/owner");
+        window.location.href = "/admin/owner";
       } else {
         toast.success("¡Bienvenido al panel de Pío Pío!");
-        router.push("/admin/dashboard");
+        window.location.href = "/admin/dashboard";
       }
-      router.refresh();
     } catch {
       toast.error("Error de conexión al iniciar sesión");
       setLoading(false);

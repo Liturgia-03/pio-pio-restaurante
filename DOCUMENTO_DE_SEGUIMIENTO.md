@@ -1972,6 +1972,30 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas.
 
+### Hito 84: Separación Estricta de Roles en Middleware y Reactividad Inmediata Sin F5
+- **Requerimiento:**
+  1. Los roles de Super Admin (`SUPER_ADMIN`) y de Administrador de Caja (`ADMIN`) deben estar completamente separados e incomunicados en cuanto a permisos y vistas.
+  2. Corregir el problema por el cual al iniciar sesión como `Superadmin`, se seguían viendo las opciones operativas del `ADMIN` (platos, barra rápida, etc.) y se requería refrescar la pantalla manualmente con F5 para que se ajustara al Super Admin, y viceversa.
+- **Causa Raíz:**
+  1. En `AdminLoginPage.tsx`, tras autenticarse se ejecutaba `router.push(...)` dentro de Next.js SPA. Como `AdminLayout` / `AdminShell` ya estaban montados, no se desmontaban ni volvían a consultar `/api/admin/auth/me` (cuyo `useEffect` sólo se ejecutaba una vez al montar).
+  2. Al cerrar sesión, `router.push('/admin/login')` mantenía en memoria del cliente el rol anterior.
+  3. `middleware.ts` redirigía a usuarios con sesión activa que visitaban `/admin/login` siempre a `/admin/dashboard` sin verificar si su rol era `SUPER_ADMIN`.
+- **Solución Quirúrgica Implementada:**
+  1. **Separación Estricta en Middleware ([src/middleware.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/middleware.ts)):**
+     - Si un usuario autenticado con `SUPER_ADMIN` intenta acceder a rutas operativas (`/admin/dashboard`, `/admin/tables`, `/admin/dishes`, etc.) o a `/admin/login`, es redirigido de forma automática e inmediata a `/admin/owner`.
+     - Si un usuario con `ADMIN` intenta acceder a `/admin/owner`, es redirigido a `/admin/dashboard`.
+  2. **Transición Limpia y Purga de Caché en Login y Logout:**
+     - En [src/app/admin/login/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/login/page.tsx), se guarda el rol en `localStorage.setItem('pio_user_role', userRole)` y se usa `window.location.href`, garantizando una navegación limpia que purga cualquier estado residual en memoria de React y recarga los componentes con las cookies de sesión actuales.
+     - En [src/components/admin/AdminNavSidebar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminNavSidebar.tsx) y [src/components/admin/AdminMobileDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminMobileDrawer.tsx), el logout elimina `pio_user_role` y redirige con `window.location.href = '/admin/login'`.
+  3. **Reactividad Inmediata en el Shell ([src/components/admin/AdminShell.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminShell.tsx)):**
+     - Inicializa el estado `userRole` sincrónicamente desde `localStorage` para evitar cualquier parpadeo de interfaz durante el primer tick de render.
+     - Reactiva la consulta a `/api/admin/auth/me` con `no-store` cada vez que cambia la ruta (`[pathname]`).
+     - Infiere `isSuperAdmin = userRole === 'SUPER_ADMIN' || pathname.startsWith('/admin/owner')`, garantizando que en el panel del dueño jamás se muestre el menú del cajero.
+  4. **API /api/admin/auth/me:**
+     - Marcada con `export const dynamic = 'force-dynamic'` y cabecera `Cache-Control: no-store` para que ningún proxy ni navegador devuelva sesiones cacheadas.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

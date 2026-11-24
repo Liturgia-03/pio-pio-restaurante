@@ -10,10 +10,12 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get(COOKIE_NAME)?.value;
 
   let isValid = false;
+  let userRole: string | null = null;
   if (token) {
     try {
-      await jwtVerify(token, key);
+      const { payload } = await jwtVerify(token, key);
       isValid = true;
+      userRole = (payload.role as string) || null;
     } catch {
       isValid = false;
     }
@@ -45,8 +47,32 @@ export async function middleware(request: NextRequest) {
 
     if (isValid && isLoginPage) {
       const url = request.nextUrl.clone();
-      url.pathname = "/admin/dashboard";
+      url.pathname = userRole === "SUPER_ADMIN" ? "/admin/owner" : "/admin/dashboard";
       return NextResponse.redirect(url);
+    }
+
+    // Separación estricta de rutas por rol
+    if (isValid) {
+      // 1. Si es SUPER_ADMIN: únicamente tiene acceso a /admin/owner, /admin/caja y /admin/settings.
+      // Si intenta ingresar a /admin/dashboard o a rutas operativas, redirigir de inmediato al panel del dueño
+      if (userRole === "SUPER_ADMIN") {
+        const allowedOwnerPaths = ["/admin/owner", "/admin/caja", "/admin/settings"];
+        const isAllowed = allowedOwnerPaths.some(
+          (p) => pathname === p || pathname.startsWith(p + "/")
+        );
+        if (!isAllowed) {
+          const url = request.nextUrl.clone();
+          url.pathname = "/admin/owner";
+          return NextResponse.redirect(url);
+        }
+      }
+
+      // 2. Si es ADMIN operativo (caja): no puede ingresar a /admin/owner
+      if (userRole === "ADMIN" && pathname.startsWith("/admin/owner")) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/admin/dashboard";
+        return NextResponse.redirect(url);
+      }
     }
   }
 

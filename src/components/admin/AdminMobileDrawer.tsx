@@ -95,18 +95,20 @@ export function AdminMobileDrawer({ isOpen, onClose, userRole }: AdminMobileDraw
     if (typeof window !== "undefined" && window.history.state?.pioAdminDrawer) {
       window.history.replaceState(null, "");
     }
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("pio_user_role");
+    }
     onClose();
     try {
       await fetch("/api/admin/auth/logout", { method: "POST" });
       toast.success("Sesión cerrada");
-      router.push("/admin/login");
-      router.refresh();
+      window.location.href = "/admin/login";
     } catch {
       toast.error("Error al cerrar sesión");
     }
   };
 
-  const isSuperAdmin = userRole === "SUPER_ADMIN";
+  const isSuperAdmin = userRole === "SUPER_ADMIN" || pathname.startsWith("/admin/owner");
 
   const menuItems = isSuperAdmin
     ? [

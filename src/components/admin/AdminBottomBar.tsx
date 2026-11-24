@@ -11,7 +11,7 @@ interface AdminBottomBarProps {
 export function AdminBottomBar({ userRole }: AdminBottomBarProps) {
   const pathname = usePathname();
 
-  const isSuperAdmin = userRole === "SUPER_ADMIN";
+  const isSuperAdmin = userRole === "SUPER_ADMIN" || pathname.startsWith("/admin/owner");
 
   // Si es Super Admin, barra inferior exclusiva con las 3 pestañas solicitadas
   if (isSuperAdmin) {

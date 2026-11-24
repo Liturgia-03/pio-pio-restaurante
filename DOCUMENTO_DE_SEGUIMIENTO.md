@@ -1031,23 +1031,26 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npx tsc --noEmit`: **0 errores**.
   - `npm run build`: Compilación exitosa con **código de salida 0** en todas las 23 rutas.
 
-### Hito 61: Adhesión de Funciones Avanzadas al Diseño Lateral de Barra (Calculadora Acumulable, Buscador Sticky y Ajustes Admin)
-- **Solicitud del usuario:** Integrar todas las nuevas características (calculadora de billetes acumulables y deseleccionables, buscador de productos siempre visible y panel de configuración de barra para el administrador) **dentro del diseño actual de la barra lateral desplegable hacia la derecha (`w-[460px]`)**, prescindiendo de la pantalla completa.
+### Hito 61: Reestructuración Visual Exacta de Barra Rápida según Especificación de Diseño (Imágenes 01 y 02)
+- **Solicitud del usuario:** Reestructurar por completo el diseño visual de la barra del mostrador siguiendo dos imágenes de referencia:
+  - **Imagen 01 (Estado Escondido):** Franja vertical anclada entre el sidebar de navegación y el área de mesas, con degradado cálido amarillo-naranja-rojo (`#f59e0b` a `#ea580c`), badge circular de pedidos en espera, tipografía vertical `B A R R A` (arriba), botón central circular negro con flecha `>` y borde naranja, tipografía vertical `R A P I D A` (abajo), e icono inferior de rayo ⚡.
+  - **Imagen 02 (Estado Desplegado):** Panel organizado en dos columnas principales y franja derecha con botón `<` para replegar:
+    1. **Columna Izquierda (Catálogo y Productos):**
+       - Buscador compacto con lupa `🔍` a la izquierda.
+       - Carrusel horizontal de categorías (*"categorias del menu"*).
+       - Botón circular morado `+` para configuración de favoritos de mostrador.
+       - Título de sección *"favoritos mostrador"*.
+       - Cuadrícula táctil de 4 columnas de platos con fotos de alta calidad, nombres centrados en pastilla oscura, precios y badge morado contador de unidades agregadas.
+    2. **Columna Derecha (Caja, Arqueo y Despacho):**
+       - **MOMENTO DEL PAGO:** Botones tipo pastilla `[🔥 Paga Ahora]` (naranja vibrante) y `[⏳ Paga al Entregar]`.
+       - **FORMA DE PAGO:** Botones `[💵 Efectivo]` (activo amarillo), `[🟣 Nequi]`, `[💳 Tarjeta]`, `[🔀 Mixto]`.
+       - **Billetes Entregados (Auto-Suma):** Enlaces rápidos `Exacto` y `Limpiar`, botonera de 6 billetes táctiles ($100k, $50k, $20k, $10k, $5k, $2k) con sus fondos y badges distintivos (🟣, 🟢, 🟠, 🔵, 🟤, 🔘), bandeja interactiva de billetes entregados con deselección individual `[✕]`, y desglose en vivo de `Total Recibido` y `VUELTAS / CAMBIO` en verde fluorescente grande.
+       - Resumen compacto de comanda con cantidades `+` / `-` y eliminación.
+       - `TOTAL A COBRAR:` con tipografía grande dorada.
+       - Botones maestros inferiores: `[✓ Cobrar Vitrina]` (verde esmeralda) y `[🔥 Enviar a Cocina]` (naranja tostado).
 - **Implementación Técnica:**
-  - **Componente de Cajón Lateral ([src/components/admin/AdminBarraDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraDrawer.tsx)):**
-    - **Preservación del Diseño de Cajón Lateral:** Se conserva la franja vertical táctil (`w-11`) anclada entre el sidebar de navegación y el salón de mesas con botón indicador `>`, abriendo el cajón lateral de `w-[460px]` hacia la derecha sin cubrir la totalidad de la pantalla.
-    - **Buscador de Productos Siempre Visible (Sticky Top):** Se posicionó de forma fija en la parte superior del panel con atajo rápido de limpieza, permitiendo consultar platos y agregarlos en 1 toque sin importar el scroll del cajón.
-    - **Calculadora de Billetes Acumulables y Deseleccionables:**
-      - Botones con las denominaciones colombianas oficiales ($100k, $50k, $20k, $10k, $5k, $2k) con sus colores característicos.
-      - Al seleccionar billetes (ej. $50.000 + $20.000 para una cuenta de $57.000), se van sumando automáticamente ($70.000) en una bandeja de fichas/chips interactivos.
-      - Cada billete cuenta con un botón de deselección `[✕]` para restarse de inmediato.
-      - Cálculo de vueltas/cambio en tiempo real destacado en tipografía verde fluorescente grande.
-      - Botones de 1 toque: `[Exacto]` y `[Limpiar]`.
-    - **Modal de Configuración del Administrador (⚙️):**
-      - Accesible desde el botón `[⚙️ Ajustes]` en la cabecera del cajón.
-      - Permite al administrador marcar/desmarcar qué denominaciones de billetes o monedas usar, qué métodos de pago están habilitados en barra y qué platos del menú conforman la lista rápida de "Favoritos de Mostrador".
-  - **Endpoint de Persistencia de Barra ([src/app/api/admin/barra/config/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/barra/config/route.ts)):**
-    - Endpoint RESTful (`GET` y `POST`) para guardar y sincronizar la configuración de la barra en backend y `localStorage`.
+  - Componente: [src/components/admin/AdminBarraDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraDrawer.tsx).
+  - Endpoint de ajustes: [src/app/api/admin/barra/config/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/barra/config/route.ts).
 - **Certificación Técnica:**
   - `npx tsc --noEmit`: **0 errores**.
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 24 rutas del proyecto.

@@ -15,6 +15,7 @@ import {
   Settings,
   Zap,
   WalletCards,
+  Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -105,6 +106,7 @@ export function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawerProps) {
   };
 
   const menuItems = [
+    { label: "👑 Panel del Dueño", href: "/admin/owner", icon: Crown },
     { label: "Dashboard Resumen", href: "/admin/dashboard", icon: LayoutDashboard },
     { label: "Barra Rápida", href: "/admin/barra", icon: Zap },
     { label: "Control de Mesas & Caja", href: "/admin/tables", icon: UtensilsCrossed },

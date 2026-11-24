@@ -13,6 +13,7 @@ import {
   QrCode,
   Settings,
   WalletCards,
+  Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -32,6 +33,7 @@ export function AdminNavSidebar() {
   };
 
   const navItems = [
+    { label: "👑 Panel del Dueño", href: "/admin/owner", icon: Crown },
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { label: "Mesas & Caja", href: "/admin/tables", icon: UtensilsCrossed },
     { label: "Caja & Contabilidad", href: "/admin/caja", icon: WalletCards },

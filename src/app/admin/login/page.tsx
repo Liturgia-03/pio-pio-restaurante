@@ -40,8 +40,14 @@ export default function AdminLoginPage() {
         return;
       }
 
-      toast.success("¡Bienvenido al panel de Pío Pío!");
-      router.push("/admin/dashboard");
+      const userRole = data?.data?.user?.role;
+      if (userRole === "SUPER_ADMIN") {
+        toast.success("👑 ¡Bienvenido, Super Admin!");
+        router.push("/admin/owner");
+      } else {
+        toast.success("¡Bienvenido al panel de Pío Pío!");
+        router.push("/admin/dashboard");
+      }
       router.refresh();
     } catch {
       toast.error("Error de conexión al iniciar sesión");

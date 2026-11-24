@@ -1358,6 +1358,30 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
 
+### Hito 82: Implementación del Rol Super Admin (Dueño) y Dashboard Ejecutivo Móvil
+- **Requerimiento:**
+  1. Estructurar un nuevo rol `SUPER_ADMIN` exclusivo para el dueño del negocio con credenciales dedicadas (`Superadmin` / `123456`).
+  2. Al iniciar sesión con dicho rol, redirigir automáticamente al nuevo Dashboard Ejecutivo Móvil (`/admin/owner`).
+  3. Proporcionar monitoreo financiero y operativo en tiempo real desde el celular (modo seguro de solo lectura sin riesgo de alterar la caja física).
+  4. Proveer módulo exclusivo de gestión de personal (cajeros, meseros, PINes de 4 dígitos y clave maestra de auditoría) y consulta de bitácora forense de seguridad.
+- **Solución Implementada:**
+  1. **Usuario y Rol en Supabase PostgreSQL:**
+     - Usuario `Superadmin` registrado con `role: "SUPER_ADMIN"` y contraseña cifrada con bcrypt.
+     - Separación de responsabilidades: el cajero operativo mantiene rol `ADMIN` (opera la caja física y mesas), mientras que el dueño tiene `SUPER_ADMIN` (supervisión ejecutiva remota y administración de personal).
+  2. **APIs RESTful de Backend:**
+     - `GET /api/admin/owner/stats`: Consolida en tiempo real las ventas de hoy (efectivo, digital, total), gastos operativos (efectivo, digital, total), arqueo de efectivo en cajón, utilidad neta en vivo, mesas ocupadas/libres, total en comensales y feeds de últimos cobros y egresos.
+     - `GET / POST / PATCH / DELETE /api/admin/owner/staff`: CRUD completo para creación de cajeros, cambio de contraseñas de usuarios, activación/desactivación de meseros, cambio de PIN de meseros y actualización del PIN maestro de auditoría de 4 dígitos.
+  3. **Dashboard Ejecutivo Móvil ([src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx), [src/app/admin/owner/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/owner/page.tsx)):**
+     - **Pestaña 1 (Finanzas & En Vivo):** Tarjetas KPI maestras (Ventas hoy, Efectivo en cajón, Gastos hoy, Utilidad Neta en vivo), tarjeta del estado del salón en tiempo real y feeds cronológicos de cobros y gastos con actualización cada 20 segundos y botón manual de refresco.
+     - **Pestaña 2 (Personal & Accesos):** Gestión de cuentas de cajeros, meseros de salón con sus PINes y PIN maestro de auditoría con modales interactivos.
+     - **Pestaña 3 (Auditoría & Seguridad):** Visualización de la bitácora inmutable de eventos críticos.
+  4. **Navegación y Autenticación:**
+     - `src/app/admin/login/page.tsx`: Redirección inteligente. Al iniciar sesión con `SUPER_ADMIN` abre directamente `/admin/owner`. Si es `ADMIN` abre `/admin/dashboard`.
+     - `AdminNavSidebar.tsx` y `AdminMobileDrawer.tsx`: Enlace destacado `👑 Panel del Dueño` (`/admin/owner`).
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas estáticas y dinámicas.
+
+
 ### Hito 77: Suite Integral de Pruebas de Rendimiento, Estrés y Concurrencia Multimodular
 - **Fecha:** 24 de Noviembre de 2026
 - **Archivos Modificados:**
@@ -1432,6 +1456,30 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
 
+### Hito 82: Implementación del Rol Super Admin (Dueño) y Dashboard Ejecutivo Móvil
+- **Requerimiento:**
+  1. Estructurar un nuevo rol `SUPER_ADMIN` exclusivo para el dueño del negocio con credenciales dedicadas (`Superadmin` / `123456`).
+  2. Al iniciar sesión con dicho rol, redirigir automáticamente al nuevo Dashboard Ejecutivo Móvil (`/admin/owner`).
+  3. Proporcionar monitoreo financiero y operativo en tiempo real desde el celular (modo seguro de solo lectura sin riesgo de alterar la caja física).
+  4. Proveer módulo exclusivo de gestión de personal (cajeros, meseros, PINes de 4 dígitos y clave maestra de auditoría) y consulta de bitácora forense de seguridad.
+- **Solución Implementada:**
+  1. **Usuario y Rol en Supabase PostgreSQL:**
+     - Usuario `Superadmin` registrado con `role: "SUPER_ADMIN"` y contraseña cifrada con bcrypt.
+     - Separación de responsabilidades: el cajero operativo mantiene rol `ADMIN` (opera la caja física y mesas), mientras que el dueño tiene `SUPER_ADMIN` (supervisión ejecutiva remota y administración de personal).
+  2. **APIs RESTful de Backend:**
+     - `GET /api/admin/owner/stats`: Consolida en tiempo real las ventas de hoy (efectivo, digital, total), gastos operativos (efectivo, digital, total), arqueo de efectivo en cajón, utilidad neta en vivo, mesas ocupadas/libres, total en comensales y feeds de últimos cobros y egresos.
+     - `GET / POST / PATCH / DELETE /api/admin/owner/staff`: CRUD completo para creación de cajeros, cambio de contraseñas de usuarios, activación/desactivación de meseros, cambio de PIN de meseros y actualización del PIN maestro de auditoría de 4 dígitos.
+  3. **Dashboard Ejecutivo Móvil ([src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx), [src/app/admin/owner/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/owner/page.tsx)):**
+     - **Pestaña 1 (Finanzas & En Vivo):** Tarjetas KPI maestras (Ventas hoy, Efectivo en cajón, Gastos hoy, Utilidad Neta en vivo), tarjeta del estado del salón en tiempo real y feeds cronológicos de cobros y gastos con actualización cada 20 segundos y botón manual de refresco.
+     - **Pestaña 2 (Personal & Accesos):** Gestión de cuentas de cajeros, meseros de salón con sus PINes y PIN maestro de auditoría con modales interactivos.
+     - **Pestaña 3 (Auditoría & Seguridad):** Visualización de la bitácora inmutable de eventos críticos.
+  4. **Navegación y Autenticación:**
+     - `src/app/admin/login/page.tsx`: Redirección inteligente. Al iniciar sesión con `SUPER_ADMIN` abre directamente `/admin/owner`. Si es `ADMIN` abre `/admin/dashboard`.
+     - `AdminNavSidebar.tsx` y `AdminMobileDrawer.tsx`: Enlace destacado `👑 Panel del Dueño` (`/admin/owner`).
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas estáticas y dinámicas.
+
+
 ### Hito 80: Registro de Base Dejada para Próximo Turno, Efectivo Retirado y Cálculo Automático de Base con Caja Cerrada
 - **Requerimiento:**
   1. Permitir que el sistema opere ventas y gastos incluso cuando la caja se encuentre cerrada.
@@ -1485,6 +1533,30 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
      - Filtros de reportes por día y personalizados adaptados al ciclo de 24 horas de Colombia.
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
+
+### Hito 82: Implementación del Rol Super Admin (Dueño) y Dashboard Ejecutivo Móvil
+- **Requerimiento:**
+  1. Estructurar un nuevo rol `SUPER_ADMIN` exclusivo para el dueño del negocio con credenciales dedicadas (`Superadmin` / `123456`).
+  2. Al iniciar sesión con dicho rol, redirigir automáticamente al nuevo Dashboard Ejecutivo Móvil (`/admin/owner`).
+  3. Proporcionar monitoreo financiero y operativo en tiempo real desde el celular (modo seguro de solo lectura sin riesgo de alterar la caja física).
+  4. Proveer módulo exclusivo de gestión de personal (cajeros, meseros, PINes de 4 dígitos y clave maestra de auditoría) y consulta de bitácora forense de seguridad.
+- **Solución Implementada:**
+  1. **Usuario y Rol en Supabase PostgreSQL:**
+     - Usuario `Superadmin` registrado con `role: "SUPER_ADMIN"` y contraseña cifrada con bcrypt.
+     - Separación de responsabilidades: el cajero operativo mantiene rol `ADMIN` (opera la caja física y mesas), mientras que el dueño tiene `SUPER_ADMIN` (supervisión ejecutiva remota y administración de personal).
+  2. **APIs RESTful de Backend:**
+     - `GET /api/admin/owner/stats`: Consolida en tiempo real las ventas de hoy (efectivo, digital, total), gastos operativos (efectivo, digital, total), arqueo de efectivo en cajón, utilidad neta en vivo, mesas ocupadas/libres, total en comensales y feeds de últimos cobros y egresos.
+     - `GET / POST / PATCH / DELETE /api/admin/owner/staff`: CRUD completo para creación de cajeros, cambio de contraseñas de usuarios, activación/desactivación de meseros, cambio de PIN de meseros y actualización del PIN maestro de auditoría de 4 dígitos.
+  3. **Dashboard Ejecutivo Móvil ([src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx), [src/app/admin/owner/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/owner/page.tsx)):**
+     - **Pestaña 1 (Finanzas & En Vivo):** Tarjetas KPI maestras (Ventas hoy, Efectivo en cajón, Gastos hoy, Utilidad Neta en vivo), tarjeta del estado del salón en tiempo real y feeds cronológicos de cobros y gastos con actualización cada 20 segundos y botón manual de refresco.
+     - **Pestaña 2 (Personal & Accesos):** Gestión de cuentas de cajeros, meseros de salón con sus PINes y PIN maestro de auditoría con modales interactivos.
+     - **Pestaña 3 (Auditoría & Seguridad):** Visualización de la bitácora inmutable de eventos críticos.
+  4. **Navegación y Autenticación:**
+     - `src/app/admin/login/page.tsx`: Redirección inteligente. Al iniciar sesión con `SUPER_ADMIN` abre directamente `/admin/owner`. Si es `ADMIN` abre `/admin/dashboard`.
+     - `AdminNavSidebar.tsx` y `AdminMobileDrawer.tsx`: Enlace destacado `👑 Panel del Dueño` (`/admin/owner`).
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas estáticas y dinámicas.
+
 
 
 ### Hito 76: Rediseño del Panel de Cobro y Comanda de Mesas en Disposición de Dos Columnas (Fiel a Referencia Visual)
@@ -1538,6 +1610,30 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
 
+### Hito 82: Implementación del Rol Super Admin (Dueño) y Dashboard Ejecutivo Móvil
+- **Requerimiento:**
+  1. Estructurar un nuevo rol `SUPER_ADMIN` exclusivo para el dueño del negocio con credenciales dedicadas (`Superadmin` / `123456`).
+  2. Al iniciar sesión con dicho rol, redirigir automáticamente al nuevo Dashboard Ejecutivo Móvil (`/admin/owner`).
+  3. Proporcionar monitoreo financiero y operativo en tiempo real desde el celular (modo seguro de solo lectura sin riesgo de alterar la caja física).
+  4. Proveer módulo exclusivo de gestión de personal (cajeros, meseros, PINes de 4 dígitos y clave maestra de auditoría) y consulta de bitácora forense de seguridad.
+- **Solución Implementada:**
+  1. **Usuario y Rol en Supabase PostgreSQL:**
+     - Usuario `Superadmin` registrado con `role: "SUPER_ADMIN"` y contraseña cifrada con bcrypt.
+     - Separación de responsabilidades: el cajero operativo mantiene rol `ADMIN` (opera la caja física y mesas), mientras que el dueño tiene `SUPER_ADMIN` (supervisión ejecutiva remota y administración de personal).
+  2. **APIs RESTful de Backend:**
+     - `GET /api/admin/owner/stats`: Consolida en tiempo real las ventas de hoy (efectivo, digital, total), gastos operativos (efectivo, digital, total), arqueo de efectivo en cajón, utilidad neta en vivo, mesas ocupadas/libres, total en comensales y feeds de últimos cobros y egresos.
+     - `GET / POST / PATCH / DELETE /api/admin/owner/staff`: CRUD completo para creación de cajeros, cambio de contraseñas de usuarios, activación/desactivación de meseros, cambio de PIN de meseros y actualización del PIN maestro de auditoría de 4 dígitos.
+  3. **Dashboard Ejecutivo Móvil ([src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx), [src/app/admin/owner/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/owner/page.tsx)):**
+     - **Pestaña 1 (Finanzas & En Vivo):** Tarjetas KPI maestras (Ventas hoy, Efectivo en cajón, Gastos hoy, Utilidad Neta en vivo), tarjeta del estado del salón en tiempo real y feeds cronológicos de cobros y gastos con actualización cada 20 segundos y botón manual de refresco.
+     - **Pestaña 2 (Personal & Accesos):** Gestión de cuentas de cajeros, meseros de salón con sus PINes y PIN maestro de auditoría con modales interactivos.
+     - **Pestaña 3 (Auditoría & Seguridad):** Visualización de la bitácora inmutable de eventos críticos.
+  4. **Navegación y Autenticación:**
+     - `src/app/admin/login/page.tsx`: Redirección inteligente. Al iniciar sesión con `SUPER_ADMIN` abre directamente `/admin/owner`. Si es `ADMIN` abre `/admin/dashboard`.
+     - `AdminNavSidebar.tsx` y `AdminMobileDrawer.tsx`: Enlace destacado `👑 Panel del Dueño` (`/admin/owner`).
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas estáticas y dinámicas.
+
+
 ### Hito 77: Suite Integral de Pruebas de Rendimiento, Estrés y Concurrencia Multimodular
 - **Fecha:** 24 de Noviembre de 2026
 - **Archivos Modificados:**
@@ -1612,6 +1708,30 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
 
+### Hito 82: Implementación del Rol Super Admin (Dueño) y Dashboard Ejecutivo Móvil
+- **Requerimiento:**
+  1. Estructurar un nuevo rol `SUPER_ADMIN` exclusivo para el dueño del negocio con credenciales dedicadas (`Superadmin` / `123456`).
+  2. Al iniciar sesión con dicho rol, redirigir automáticamente al nuevo Dashboard Ejecutivo Móvil (`/admin/owner`).
+  3. Proporcionar monitoreo financiero y operativo en tiempo real desde el celular (modo seguro de solo lectura sin riesgo de alterar la caja física).
+  4. Proveer módulo exclusivo de gestión de personal (cajeros, meseros, PINes de 4 dígitos y clave maestra de auditoría) y consulta de bitácora forense de seguridad.
+- **Solución Implementada:**
+  1. **Usuario y Rol en Supabase PostgreSQL:**
+     - Usuario `Superadmin` registrado con `role: "SUPER_ADMIN"` y contraseña cifrada con bcrypt.
+     - Separación de responsabilidades: el cajero operativo mantiene rol `ADMIN` (opera la caja física y mesas), mientras que el dueño tiene `SUPER_ADMIN` (supervisión ejecutiva remota y administración de personal).
+  2. **APIs RESTful de Backend:**
+     - `GET /api/admin/owner/stats`: Consolida en tiempo real las ventas de hoy (efectivo, digital, total), gastos operativos (efectivo, digital, total), arqueo de efectivo en cajón, utilidad neta en vivo, mesas ocupadas/libres, total en comensales y feeds de últimos cobros y egresos.
+     - `GET / POST / PATCH / DELETE /api/admin/owner/staff`: CRUD completo para creación de cajeros, cambio de contraseñas de usuarios, activación/desactivación de meseros, cambio de PIN de meseros y actualización del PIN maestro de auditoría de 4 dígitos.
+  3. **Dashboard Ejecutivo Móvil ([src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx), [src/app/admin/owner/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/owner/page.tsx)):**
+     - **Pestaña 1 (Finanzas & En Vivo):** Tarjetas KPI maestras (Ventas hoy, Efectivo en cajón, Gastos hoy, Utilidad Neta en vivo), tarjeta del estado del salón en tiempo real y feeds cronológicos de cobros y gastos con actualización cada 20 segundos y botón manual de refresco.
+     - **Pestaña 2 (Personal & Accesos):** Gestión de cuentas de cajeros, meseros de salón con sus PINes y PIN maestro de auditoría con modales interactivos.
+     - **Pestaña 3 (Auditoría & Seguridad):** Visualización de la bitácora inmutable de eventos críticos.
+  4. **Navegación y Autenticación:**
+     - `src/app/admin/login/page.tsx`: Redirección inteligente. Al iniciar sesión con `SUPER_ADMIN` abre directamente `/admin/owner`. Si es `ADMIN` abre `/admin/dashboard`.
+     - `AdminNavSidebar.tsx` y `AdminMobileDrawer.tsx`: Enlace destacado `👑 Panel del Dueño` (`/admin/owner`).
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas estáticas y dinámicas.
+
+
 ### Hito 80: Registro de Base Dejada para Próximo Turno, Efectivo Retirado y Cálculo Automático de Base con Caja Cerrada
 - **Requerimiento:**
   1. Permitir que el sistema opere ventas y gastos incluso cuando la caja se encuentre cerrada.
@@ -1665,6 +1785,30 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
      - Filtros de reportes por día y personalizados adaptados al ciclo de 24 horas de Colombia.
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
+
+### Hito 82: Implementación del Rol Super Admin (Dueño) y Dashboard Ejecutivo Móvil
+- **Requerimiento:**
+  1. Estructurar un nuevo rol `SUPER_ADMIN` exclusivo para el dueño del negocio con credenciales dedicadas (`Superadmin` / `123456`).
+  2. Al iniciar sesión con dicho rol, redirigir automáticamente al nuevo Dashboard Ejecutivo Móvil (`/admin/owner`).
+  3. Proporcionar monitoreo financiero y operativo en tiempo real desde el celular (modo seguro de solo lectura sin riesgo de alterar la caja física).
+  4. Proveer módulo exclusivo de gestión de personal (cajeros, meseros, PINes de 4 dígitos y clave maestra de auditoría) y consulta de bitácora forense de seguridad.
+- **Solución Implementada:**
+  1. **Usuario y Rol en Supabase PostgreSQL:**
+     - Usuario `Superadmin` registrado con `role: "SUPER_ADMIN"` y contraseña cifrada con bcrypt.
+     - Separación de responsabilidades: el cajero operativo mantiene rol `ADMIN` (opera la caja física y mesas), mientras que el dueño tiene `SUPER_ADMIN` (supervisión ejecutiva remota y administración de personal).
+  2. **APIs RESTful de Backend:**
+     - `GET /api/admin/owner/stats`: Consolida en tiempo real las ventas de hoy (efectivo, digital, total), gastos operativos (efectivo, digital, total), arqueo de efectivo en cajón, utilidad neta en vivo, mesas ocupadas/libres, total en comensales y feeds de últimos cobros y egresos.
+     - `GET / POST / PATCH / DELETE /api/admin/owner/staff`: CRUD completo para creación de cajeros, cambio de contraseñas de usuarios, activación/desactivación de meseros, cambio de PIN de meseros y actualización del PIN maestro de auditoría de 4 dígitos.
+  3. **Dashboard Ejecutivo Móvil ([src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx), [src/app/admin/owner/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/owner/page.tsx)):**
+     - **Pestaña 1 (Finanzas & En Vivo):** Tarjetas KPI maestras (Ventas hoy, Efectivo en cajón, Gastos hoy, Utilidad Neta en vivo), tarjeta del estado del salón en tiempo real y feeds cronológicos de cobros y gastos con actualización cada 20 segundos y botón manual de refresco.
+     - **Pestaña 2 (Personal & Accesos):** Gestión de cuentas de cajeros, meseros de salón con sus PINes y PIN maestro de auditoría con modales interactivos.
+     - **Pestaña 3 (Auditoría & Seguridad):** Visualización de la bitácora inmutable de eventos críticos.
+  4. **Navegación y Autenticación:**
+     - `src/app/admin/login/page.tsx`: Redirección inteligente. Al iniciar sesión con `SUPER_ADMIN` abre directamente `/admin/owner`. Si es `ADMIN` abre `/admin/dashboard`.
+     - `AdminNavSidebar.tsx` y `AdminMobileDrawer.tsx`: Enlace destacado `👑 Panel del Dueño` (`/admin/owner`).
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas estáticas y dinámicas.
+
 
 
 ---

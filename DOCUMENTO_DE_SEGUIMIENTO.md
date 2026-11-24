@@ -21,7 +21,7 @@
 | **Framework Full-Stack** | **Next.js 16.4.6** (App Router con motor **Turbopack**) |
 | **Librería UI** | **React 19** + **Tailwind CSS** |
 | **Lenguaje** | **TypeScript 5.x** (Tipado estricto end-to-end) |
-| **Base de Datos** | **PostgreSQL en la Nube (Neon Serverless)** gestionado mediante **Prisma ORM 6.19.3** |
+| **Base de Datos** | **PostgreSQL en la Nube (Supabase)** gestionado mediante **Prisma ORM 6.19.3** |
 | **Gestión de Estado** | **TanStack Query (React Query v5)** con invalidación reactiva y actualizaciones optimistas |
 | **Iconografía** | **Lucide Icons** |
 | **Notificaciones** | **Sonner** (Toasts táctiles de alta visibilidad) |
@@ -1370,7 +1370,7 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
      - **Mesas:** 19 mesas del restaurante listas y libres (🟢 Libre).
      - **Meseros:** 2 meseros con sus PINs registrados intactos.
      - **Usuarios administradores:** Cuenta principal y credenciales preservadas.
-  2. **Purga Transaccional Completa (Puesta a Ceros en PostgreSQL Neon Serverless):**
+  2. **Purga Transaccional Completa (Puesta a Ceros en PostgreSQL Supabase):**
      - Eliminadas 22 sesiones históricas de mesas y barra rápida (`TableSession`).
      - Eliminados 66 ítems de comandas de prueba (`OrderItem`).
      - Eliminados turnos históricos y activos de caja (`CashShift`).
@@ -1449,7 +1449,7 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
      - **Mesas:** 19 mesas del restaurante listas y libres (🟢 Libre).
      - **Meseros:** 2 meseros con sus PINs registrados intactos.
      - **Usuarios administradores:** Cuenta principal y credenciales preservadas.
-  2. **Purga Transaccional Completa (Puesta a Ceros en PostgreSQL Neon Serverless):**
+  2. **Purga Transaccional Completa (Puesta a Ceros en PostgreSQL Supabase):**
      - Eliminadas 22 sesiones históricas de mesas y barra rápida (`TableSession`).
      - Eliminados 66 ítems de comandas de prueba (`OrderItem`).
      - Eliminados turnos históricos y activos de caja (`CashShift`).

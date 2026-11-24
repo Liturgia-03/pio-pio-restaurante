@@ -59,15 +59,15 @@ const TABLE_ACTIVE_BILLS = [100000, 50000, 20000, 10000, 5000, 2000];
 
 const TABLE_BILL_CONFIG: Record<
   number,
-  { bg: string; border: string; text: string; badgeBg: string; badgeColor: string; emoji: string }
+  { bg: string; border: string; text: string; badgeBg: string; badgeColor: string; emoji: string; dotColor: string }
 > = {
-  100000: { bg: "bg-[#181c2e]", border: "border-indigo-500/50", text: "text-indigo-300", badgeBg: "bg-indigo-950", badgeColor: "text-indigo-200 border-indigo-500", emoji: "🟣" },
-  50000: { bg: "bg-[#12261e]", border: "border-emerald-500/50", text: "text-emerald-300", badgeBg: "bg-emerald-950", badgeColor: "text-emerald-200 border-emerald-500", emoji: "🟢" },
-  20000: { bg: "bg-[#2b1b11]", border: "border-orange-500/50", text: "text-orange-300", badgeBg: "bg-orange-950", badgeColor: "text-orange-200 border-orange-500", emoji: "🟠" },
-  10000: { bg: "bg-[#11232e]", border: "border-cyan-500/50", text: "text-cyan-300", badgeBg: "bg-cyan-950", badgeColor: "text-cyan-200 border-cyan-500", emoji: "🔵" },
-  5000: { bg: "bg-[#261e14]", border: "border-amber-600/50", text: "text-amber-300", badgeBg: "bg-amber-950", badgeColor: "text-amber-200 border-amber-600", emoji: "🟤" },
-  2000: { bg: "bg-[#1a1e24]", border: "border-gray-600/50", text: "text-gray-300", badgeBg: "bg-gray-900", badgeColor: "text-gray-200 border-gray-600", emoji: "🔘" },
-  1000: { bg: "bg-[#161a20]", border: "border-gray-700/50", text: "text-gray-400", badgeBg: "bg-gray-900", badgeColor: "text-gray-300 border-gray-700", emoji: "🪙" },
+  100000: { bg: "bg-[#141624]", border: "border-indigo-500/40 hover:border-indigo-400", text: "text-indigo-200", badgeBg: "bg-indigo-950", badgeColor: "text-indigo-200 border-indigo-500", emoji: "🟣", dotColor: "bg-purple-500" },
+  50000: { bg: "bg-[#0f1f1a]", border: "border-emerald-500/40 hover:border-emerald-400", text: "text-emerald-200", badgeBg: "bg-emerald-950", badgeColor: "text-emerald-200 border-emerald-500", emoji: "🟢", dotColor: "bg-emerald-500" },
+  20000: { bg: "bg-[#24170f]", border: "border-orange-500/40 hover:border-orange-400", text: "text-orange-200", badgeBg: "bg-orange-950", badgeColor: "text-orange-200 border-orange-500", emoji: "🟠", dotColor: "bg-orange-500" },
+  10000: { bg: "bg-[#0e1d26]", border: "border-cyan-500/40 hover:border-cyan-400", text: "text-cyan-200", badgeBg: "bg-cyan-950", badgeColor: "text-cyan-200 border-cyan-500", emoji: "🔵", dotColor: "bg-cyan-500" },
+  5000: { bg: "bg-[#211a10]", border: "border-amber-600/40 hover:border-amber-400", text: "text-amber-200", badgeBg: "bg-amber-950", badgeColor: "text-amber-200 border-amber-600", emoji: "🟤", dotColor: "bg-amber-600" },
+  2000: { bg: "bg-[#181a20]", border: "border-gray-600/40 hover:border-gray-400", text: "text-gray-200", badgeBg: "bg-gray-900", badgeColor: "text-gray-200 border-gray-600", emoji: "🔘", dotColor: "bg-gray-400" },
+  1000: { bg: "bg-[#14161a]", border: "border-gray-700/40 hover:border-gray-500", text: "text-gray-300", badgeBg: "bg-gray-900", badgeColor: "text-gray-300 border-gray-700", emoji: "🪙", dotColor: "bg-gray-500" },
 };
 
 export default function AdminTablesCashierPage() {
@@ -1234,357 +1234,423 @@ export default function AdminTablesCashierPage() {
           onClick={() => setSelectedTable(null)}
         >
           <div
-            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[#14161a] border border-gray-800 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4"
+            className={`w-full ${
+              selectedTable.session ? "max-w-5xl" : "max-w-xl"
+            } max-h-[92vh] overflow-y-auto bg-[#111319] border border-gray-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header del Modal de Mesa */}
-            <div className="flex items-center justify-between border-b border-gray-800 pb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center font-black text-xl shadow-md shadow-amber-500/10">
-                  #{selectedTable.tableNumber}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base sm:text-lg font-black text-white">
-                      Mesa #{selectedTable.tableNumber}
-                    </h3>
-                    <span
-                      className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                        selectedTable.status === "FREE"
-                          ? "bg-emerald-950 text-emerald-300 border border-emerald-700"
-                          : selectedTable.status === "PENDING_CONFIRMATION"
-                          ? "bg-amber-950 text-amber-300 border border-amber-600 animate-pulse"
-                          : selectedTable.status === "BILL_REQUESTED"
-                          ? "bg-purple-950 text-purple-300 border border-purple-600"
-                          : "bg-blue-950 text-blue-300 border border-blue-600"
-                      }`}
-                    >
-                      {selectedTable.status === "FREE"
-                        ? "LIBRE"
-                        : selectedTable.status === "PENDING_CONFIRMATION"
-                        ? "QR POR CONFIRMAR"
-                        : selectedTable.status === "BILL_REQUESTED"
-                        ? "PIDIENDO CUENTA"
-                        : "OCUPADA"}
-                    </span>
-                  </div>
-                  <span className="text-xs text-gray-400">
-                    {selectedTable.session
-                      ? `Atendido por: ${selectedTable.session.waiter?.name || "Sin asignar"}${
-                          selectedTable.minutesOpen !== null ? ` • Abierta hace ${selectedTable.minutesOpen} min` : ""
-                        }`
-                      : "Mesa disponible sin comanda"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingTable(selectedTable);
-                    setEditTableNumber(selectedTable.tableNumber);
-                    setEditTableLabel(selectedTable.label || "");
-                  }}
-                  title="Editar número o nombre de esta mesa"
-                  className="p-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-all active:scale-95 flex items-center gap-1.5 text-xs font-bold"
-                >
-                  <Edit2 className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="hidden sm:inline">Editar Mesa</span>
-                </button>
-
-                {selectedTable.status === "FREE" && selectedTable.id && (
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteTable(selectedTable)}
-                    title="Eliminar esta mesa permanentemente"
-                    className="p-2 rounded-xl bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 text-red-400 transition-all active:scale-95 flex items-center gap-1.5 text-xs font-bold"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Eliminar</span>
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedTable(null)}
-                  className="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center transition-colors"
-                  title="Cerrar y volver al salón"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* CASO 1: MESA LIBRE */}
+            {/* CASO 1: MESA LIBRE (SIN COMANDA) */}
             {selectedTable.status === "FREE" && (
-              <div className="py-8 text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 flex items-center justify-center mx-auto text-2xl font-black">
-                  🟢
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-sm font-black text-white">Esta mesa está libre</h4>
-                  <p className="text-xs text-gray-400 max-w-sm mx-auto">
-                    Puedes abrirla y comenzar a cargar productos directamente desde la caja.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStagedItems([]);
-                    setShowAddProductModal(true);
-                  }}
-                  className="px-6 py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-amber-500/25 active:scale-95 transition-all mx-auto"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>+ Abrir Mesa y Tomar Comanda</span>
-                </button>
-              </div>
-            )}
-
-            {/* CASO 2: PEDIDO QR POR CONFIRMAR */}
-            {selectedTable.status === "PENDING_CONFIRMATION" && selectedTable.session && (
-              <div className="p-4 bg-amber-500/15 border border-amber-500/50 rounded-2xl space-y-3">
-                <div className="flex items-center gap-2 text-xs text-amber-200 font-bold">
-                  <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 animate-bounce" />
-                  <span>
-                    El cliente envió este pedido por código QR desde la mesa y está a la espera de confirmación.
-                  </span>
-                </div>
-
-                {/* Mesero Asignado / Selector Rápido */}
-                <div className="flex items-center justify-between text-xs bg-black/30 p-2.5 rounded-xl border border-amber-500/30">
-                  <span className="text-gray-300 text-[11px]">
-                    Mesero: <strong className="text-white">{selectedTable.session.waiter?.name ? `👤 ${selectedTable.session.waiter.name}` : "Sin asignar"}</strong>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setShowAssignWaiterModal(true)}
-                    className="text-amber-400 hover:text-amber-300 font-black text-[11px] flex items-center gap-1 transition-colors"
-                  >
-                    <span>{selectedTable.session.waiter ? "Transferir" : "Asignar Mesero"}</span>
-                    <ChevronRight className="w-3 h-3" />
-                  </button>
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleConfirmOrder(selectedTable.session!.id, "CONFIRM")}
-                    disabled={isActionLoading}
-                    className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-lg transition-all"
-                  >
-                    Confirmar y Marchar a Cocina
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleConfirmOrder(selectedTable.session!.id, "REJECT")}
-                    disabled={isActionLoading}
-                    className="px-4 py-3 bg-red-950 hover:bg-red-900 text-red-300 font-bold text-xs rounded-xl border border-red-800 transition-all"
-                  >
-                    Rechazar
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* CASO 3: MESA CON COMANDA ACTIVA (OCUPADA / PIDIENDO CUENTA / POR CONFIRMAR) */}
-            {selectedTable.session && (
               <div className="space-y-4">
-                {/* Indicador de Mesero a cargo con botón de transferencia directa */}
-                <div className="p-3 bg-[#181b20] border border-gray-800/80 rounded-2xl flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 flex-shrink-0">
-                      <UserCheck className="w-4 h-4" />
+                {/* Header Mesa Libre */}
+                <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center font-black text-xl shadow-md">
+                      #{selectedTable.tableNumber}
                     </div>
-                    <div className="min-w-0">
-                      <span className="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">
-                        Mesero Responsable
-                      </span>
-                      <span className="text-xs font-black text-white truncate block">
-                        {selectedTable.session.waiter?.name
-                          ? `👤 ${selectedTable.session.waiter.name}`
-                          : "⚠️ Sin mesero asignado (Atendido en Caja)"}
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base sm:text-lg font-black text-white">
+                          Mesa #{selectedTable.tableNumber}
+                        </h3>
+                        <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-700">
+                          LIBRE
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-400">
+                        Mesa disponible sin comanda activa
                       </span>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowAssignWaiterModal(true)}
-                    className="px-3 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1 flex-shrink-0 active:scale-95"
-                  >
-                    <span>{selectedTable.session.waiter ? "Transferir" : "Asignar"}</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingTable(selectedTable);
+                        setEditTableNumber(selectedTable.tableNumber);
+                        setEditTableLabel(selectedTable.label || "");
+                      }}
+                      title="Editar número o nombre de esta mesa"
+                      className="p-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-all active:scale-95 flex items-center gap-1.5 text-xs font-bold"
+                    >
+                      <Edit2 className="w-3.5 h-3.5 text-amber-400" />
+                      <span className="hidden sm:inline">Editar Mesa</span>
+                    </button>
+
+                    {selectedTable.id && (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTable(selectedTable)}
+                        title="Eliminar esta mesa permanentemente"
+                        className="p-2 rounded-xl bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 text-red-400 transition-all active:scale-95 flex items-center gap-1.5 text-xs font-bold"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Eliminar</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTable(null)}
+                      className="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center transition-colors"
+                      title="Cerrar y volver al salón"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
-                {/* Botones de Operación de la Mesa */}
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="py-8 text-center space-y-4">
+                  <div className="w-16 h-16 rounded-full bg-emerald-950/40 border border-emerald-800/60 text-emerald-400 flex items-center justify-center mx-auto text-2xl font-black">
+                    🟢
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-black text-white">Esta mesa está libre</h4>
+                    <p className="text-xs text-gray-400 max-w-sm mx-auto">
+                      Puedes abrirla y comenzar a cargar productos directamente desde la caja.
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
                       setStagedItems([]);
                       setShowAddProductModal(true);
                     }}
-                    className="flex-1 min-w-[120px] py-2.5 px-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-95"
+                    className="px-6 py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white font-extrabold text-xs rounded-2xl flex items-center justify-center gap-2 shadow-xl shadow-amber-500/25 active:scale-95 transition-all mx-auto"
                   >
-                    <Plus className="w-3.5 h-3.5 text-amber-400" />
-                    <span>+ Agregar Productos</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowAssignWaiterModal(true)}
-                    className="flex-1 min-w-[140px] py-2.5 px-3 bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-700/50 text-emerald-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-95"
-                  >
-                    <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>{selectedTable.session.waiter ? "Transferir Mesero" : "Asignar Mesero"}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowTransferModal(true)}
-                    className="py-2.5 px-3 bg-[#181b20] hover:bg-gray-800 border border-gray-700/60 text-gray-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-95"
-                  >
-                    <ArrowRightLeft className="w-3.5 h-3.5 text-blue-400" />
-                    <span>Cambiar Mesa</span>
+                    <Plus className="w-4 h-4" />
+                    <span>+ Abrir Mesa y Tomar Comanda</span>
                   </button>
                 </div>
+              </div>
+            )}
 
-                {/* Detalle de Ítems de la Comanda por Ronda */}
-                <div className="space-y-2">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">
-                    Productos en la Comanda ({selectedTable.session.items.filter((i) => i.status !== "CANCELLED").length}):
-                  </span>
-
-                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                    {selectedTable.session.items.map((item) => {
-                      const isCancelled = item.status === "CANCELLED";
-                      const itemDate = new Date(item.createdAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      });
-
-                      return (
-                        <div
-                          key={item.id}
-                          className={`p-3 rounded-2xl border flex items-center justify-between gap-3 text-xs ${
-                            isCancelled
-                              ? "bg-red-950/20 border-red-900/30 opacity-60 line-through"
-                              : "bg-[#181b20] border-gray-800"
-                          }`}
-                        >
-                          <div className="space-y-0.5 flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="font-black text-white text-sm">
-                                {item.quantity}x {item.dishName}
-                              </span>
-                              {item.portionLabel && (
-                                <span className="text-[10px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 rounded font-bold">
-                                  {item.portionLabel}
-                                </span>
-                              )}
-                              {isCancelled && (
-                                <span className="text-[10px] text-red-400 font-bold no-underline">
-                                  [ANULADO: {item.cancelledReason || "Sin motivo"}]
-                                </span>
-                              )}
-                            </div>
-
-                            {item.notes && (
-                              <span className="text-[10px] text-gray-400 italic block">
-                                Nota: "{item.notes}"
-                              </span>
-                            )}
-
-                            <div className="flex items-center gap-2 text-[10px] text-gray-500">
-                              <span>🕒 {itemDate}</span>
-                              <span>•</span>
-                              <span>Ronda {item.round}</span>
-                              <span>•</span>
-                              <span>Origen: {item.addedByName || item.addedBy}</span>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-3">
-                            <span
-                              className={`text-sm font-black ${
-                                isCancelled ? "text-gray-500" : "text-amber-400"
-                              }`}
-                            >
-                              {formatPrice(item.subtotal)}
-                            </span>
-
-                            {/* Botón de anular exclusivo de caja */}
-                            {!isCancelled && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setItemToCancel({ id: item.id, name: item.dishName })
-                                }
-                                title="Anular este ítem de la comanda"
-                                className="w-7 h-7 rounded-lg bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 text-red-300 flex items-center justify-center transition-all"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Banner y Botón de Marcar como Entregado en Mesa desde Caja */}
-                {selectedTable.hasPendingDelivery && (
-                  <div className="p-3.5 bg-amber-950/40 border border-amber-500/40 rounded-2xl flex items-center justify-between gap-3 shadow-sm">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <Clock className="w-4 h-4 text-amber-400 flex-shrink-0 animate-pulse" />
-                      <div className="min-w-0">
-                        <span className="text-xs font-bold text-amber-200 block truncate">
-                          {selectedTable.deliveryState === "PENDING_ADDITION"
-                            ? "Adición pendiente por entregar"
-                            : "Pedido pendiente por entregar"}
+            {/* CASO 2: PEDIDO QR POR CONFIRMAR SIN SESION PREVIA */}
+            {selectedTable.status === "PENDING_CONFIRMATION" && !selectedTable.session && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center font-black text-xl shadow-md">
+                      #{selectedTable.tableNumber}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base sm:text-lg font-black text-white">
+                          Mesa #{selectedTable.tableNumber}
+                        </h3>
+                        <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-950 text-amber-300 border border-amber-600 animate-pulse">
+                          QR POR CONFIRMAR
                         </span>
-                        <span className="text-[10px] text-gray-400 block">
-                          En preparación en cocina hace {selectedTable.pendingWaitMinutes || 0} min
-                          {(selectedTable.pendingWaitMinutes || 0) >= 5 && (
-                            <strong className="text-amber-400 font-bold ml-1">
-                              (Demorado &gt; 5m)
-                            </strong>
-                          )}
+                      </div>
+                      <span className="text-xs text-gray-400">
+                        Pedido de cliente esperando confirmación
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTable(null)}
+                    className="w-8 h-8 rounded-full bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* CASO 3: MESA CON COMANDA ACTIVA - DISEÑO A DOS COLUMNAS FIEL A REFERENCIA */}
+            {selectedTable.session && (
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                {/* COLUMNA IZQUIERDA: INFORMACIÓN, MESERO Y LISTA DE COMANDA (7 COLS) */}
+                <div className="lg:col-span-7 space-y-3.5">
+                  {/* Header de la Mesa */}
+                  <div className="flex items-center justify-between border-b border-gray-800/80 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-black flex items-center justify-center font-black text-xl shadow-lg shadow-amber-500/20 flex-shrink-0">
+                        #{selectedTable.tableNumber}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base sm:text-lg font-black text-white">
+                            Mesa #{selectedTable.tableNumber}
+                          </h3>
+                          <span
+                            className={`text-[10px] font-black px-2.5 py-0.5 rounded-full ${
+                              selectedTable.status === "PENDING_CONFIRMATION"
+                                ? "bg-amber-950 text-amber-300 border border-amber-600 animate-pulse"
+                                : selectedTable.status === "BILL_REQUESTED"
+                                ? "bg-purple-950 text-purple-300 border border-purple-600"
+                                : "bg-blue-950 text-blue-300 border border-blue-600"
+                            }`}
+                          >
+                            {selectedTable.status === "PENDING_CONFIRMATION"
+                              ? "QR POR CONFIRMAR"
+                              : selectedTable.status === "BILL_REQUESTED"
+                              ? "PIDIENDO CUENTA"
+                              : "OCUPADA"}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-400 block">
+                          Atendido por: {selectedTable.session.waiter?.name || "Sin asignar"}
+                          {selectedTable.minutesOpen !== null
+                            ? ` • Abierta hace ${selectedTable.minutesOpen} min`
+                            : ""}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingTable(selectedTable);
+                          setEditTableNumber(selectedTable.tableNumber);
+                          setEditTableLabel(selectedTable.label || "");
+                        }}
+                        title="Editar número o nombre de esta mesa"
+                        className="p-2 rounded-xl bg-gray-800/90 hover:bg-gray-700 text-gray-300 hover:text-white transition-all active:scale-95 flex items-center gap-1.5 text-xs font-bold border border-gray-700/60"
+                      >
+                        <Edit2 className="w-3.5 h-3.5 text-amber-400" />
+                        <span className="hidden sm:inline">Editar Mesa</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTable(null)}
+                        className="w-8 h-8 rounded-full bg-gray-800/90 hover:bg-gray-700 text-gray-400 hover:text-white flex items-center justify-center transition-colors border border-gray-700/60"
+                        title="Cerrar y volver al salón"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Banner QR si está pendiente de confirmación */}
+                  {selectedTable.status === "PENDING_CONFIRMATION" && (
+                    <div className="p-3 bg-amber-500/15 border border-amber-500/50 rounded-2xl space-y-2">
+                      <div className="flex items-center gap-2 text-xs text-amber-200 font-bold">
+                        <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 animate-bounce" />
+                        <span>Pedido enviado por cliente desde QR pendiente por marchar a cocina.</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleConfirmOrder(selectedTable.session!.id, "CONFIRM")}
+                          disabled={isActionLoading}
+                          className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-lg transition-all"
+                        >
+                          Confirmar y Marchar a Cocina
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleConfirmOrder(selectedTable.session!.id, "REJECT")}
+                          disabled={isActionLoading}
+                          className="px-3 py-2 bg-red-950 hover:bg-red-900 text-red-300 font-bold text-xs rounded-xl border border-red-800 transition-all"
+                        >
+                          Rechazar
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tarjeta Mesero Responsable */}
+                  <div className="p-3 bg-[#151821] border border-gray-800 rounded-2xl flex items-center justify-between gap-3 shadow-sm">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 flex-shrink-0">
+                        <UserCheck className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[10px] uppercase font-bold text-gray-400 block tracking-wider">
+                          MESERO RESPONSABLE
+                        </span>
+                        <span className="text-xs font-black text-white truncate block">
+                          {selectedTable.session.waiter?.name
+                            ? `👤 ${selectedTable.session.waiter.name}`
+                            : "⚠️ Sin mesero asignado (Atendido en Caja)"}
                         </span>
                       </div>
                     </div>
                     <button
                       type="button"
-                      onClick={() => handleMarkDelivered(selectedTable.session!.id)}
-                      disabled={isActionLoading}
-                      className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-1.5 flex-shrink-0"
+                      onClick={() => setShowAssignWaiterModal(true)}
+                      className="px-3 py-1.5 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 text-xs font-bold rounded-xl transition-all flex items-center gap-1 flex-shrink-0 active:scale-95"
                     >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Marcar Entregado</span>
+                      <span>{selectedTable.session.waiter ? "Transferir >" : "Asignar >"}</span>
                     </button>
                   </div>
-                )}
 
-                {/* Sección de Liquidación y Cobro de la Mesa con Múltiples Formas de Pago */}
-                <div className="p-4 bg-[#181b20] border border-gray-800 rounded-3xl space-y-3.5">
-                  <div className="flex items-center justify-between pb-2 border-b border-gray-800">
+                  {/* 3 Botones de Operación de la Mesa */}
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStagedItems([]);
+                        setShowAddProductModal(true);
+                      }}
+                      className="py-2.5 px-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-95 text-center"
+                    >
+                      <Plus className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                      <span className="truncate">+ Agregar Productos</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowAssignWaiterModal(true)}
+                      className="py-2.5 px-2 bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-700/50 text-emerald-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-95 text-center"
+                    >
+                      <UserCheck className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                      <span className="truncate">
+                        {selectedTable.session.waiter ? "Transferir Mesero" : "Asignar Mesero"}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowTransferModal(true)}
+                      className="py-2.5 px-2 bg-[#181b20] hover:bg-gray-800 border border-gray-700/60 text-gray-300 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all active:scale-95 text-center"
+                    >
+                      <ArrowRightLeft className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+                      <span className="truncate">Cambiar Mesa</span>
+                    </button>
+                  </div>
+
+                  {/* Detalle de Productos en la Comanda */}
+                  <div className="space-y-2">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">
+                      PRODUCTOS EN LA COMANDA ({selectedTable.session.items.filter((i) => i.status !== "CANCELLED").length}):
+                    </span>
+
+                    <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
+                      {selectedTable.session.items.map((item) => {
+                        const isCancelled = item.status === "CANCELLED";
+                        const itemDate = new Date(item.createdAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        });
+
+                        return (
+                          <div
+                            key={item.id}
+                            className={`p-3 rounded-2xl border flex items-center justify-between gap-3 text-xs ${
+                              isCancelled
+                                ? "bg-red-950/20 border-red-900/30 opacity-60 line-through"
+                                : "bg-[#151821] border-gray-800"
+                            }`}
+                          >
+                            <div className="space-y-0.5 flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="font-black text-white text-sm">
+                                  {item.quantity}x {item.dishName}
+                                </span>
+                                {item.portionLabel && (
+                                  <span className="text-[10px] px-1.5 py-0.2 bg-amber-500/20 text-amber-300 rounded font-bold">
+                                    {item.portionLabel}
+                                  </span>
+                                )}
+                                {isCancelled && (
+                                  <span className="text-[10px] text-red-400 font-bold no-underline">
+                                    [ANULADO: {item.cancelledReason || "Sin motivo"}]
+                                  </span>
+                                )}
+                              </div>
+
+                              {item.notes && (
+                                <span className="text-[10px] text-gray-400 italic block">
+                                  Nota: "{item.notes}"
+                                </span>
+                              )}
+
+                              <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                                <span>🕒 {itemDate}</span>
+                                <span>•</span>
+                                <span>Ronda {item.round}</span>
+                                <span>•</span>
+                                <span>Origen: {item.addedByName || item.addedBy}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <span
+                                className={`text-sm font-black ${
+                                  isCancelled ? "text-gray-500" : "text-amber-400"
+                                }`}
+                              >
+                                {formatPrice(item.subtotal)}
+                              </span>
+
+                              {/* Botón de anular exclusivo de caja */}
+                              {!isCancelled && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setItemToCancel({ id: item.id, name: item.dishName })
+                                  }
+                                  title="Anular este ítem de la comanda"
+                                  className="w-7 h-7 rounded-lg bg-red-950/40 hover:bg-red-900/60 border border-red-800/40 text-red-300 flex items-center justify-center transition-all"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Banner y Botón de Marcar como Entregado en Mesa si hay adición */}
+                  {selectedTable.hasPendingDelivery && (
+                    <div className="p-3 bg-amber-950/40 border border-amber-500/40 rounded-2xl flex items-center justify-between gap-3 shadow-sm">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Clock className="w-4 h-4 text-amber-400 flex-shrink-0 animate-pulse" />
+                        <div className="min-w-0">
+                          <span className="text-xs font-bold text-amber-200 block truncate">
+                            {selectedTable.deliveryState === "PENDING_ADDITION"
+                              ? "Adición pendiente por entregar"
+                              : "Pedido pendiente por entregar"}
+                          </span>
+                          <span className="text-[10px] text-gray-400 block">
+                            En preparación en cocina hace {selectedTable.pendingWaitMinutes || 0} min
+                            {(selectedTable.pendingWaitMinutes || 0) >= 5 && (
+                              <strong className="text-amber-400 font-bold ml-1">
+                                (Demorado &gt; 5m)
+                              </strong>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleMarkDelivered(selectedTable.session!.id)}
+                        disabled={isActionLoading}
+                        className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-1.5 flex-shrink-0"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Marcar Entregado</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* COLUMNA DERECHA: PANEL DEDICADO DE COBRO (5 COLS - IDÉNTICO A LA IMAGEN) */}
+                <div className="lg:col-span-5 bg-[#0e1118] border border-gray-800 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col justify-between space-y-4">
+                  {/* Encabezado: TOTAL A COBRAR + Precio Ámbar Grande + Badge Mesa */}
+                  <div className="flex items-center justify-between pb-3 border-b border-gray-800/80">
                     <div>
-                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">
+                      <span className="text-[11px] font-black text-gray-400 uppercase tracking-wider block">
                         TOTAL A COBRAR
                       </span>
-                      <span className="text-2xl font-black text-amber-400">
+                      <span className="text-3xl sm:text-4xl font-black text-[#ffb703] tracking-tight">
                         {formatPrice(selectedTable.session.total)}
                       </span>
                     </div>
-                    <span className="text-[11px] font-bold text-gray-400 bg-gray-800/80 px-2.5 py-1 rounded-xl">
+                    <span className="text-xs font-bold text-blue-300 bg-[#162032] border border-blue-500/30 px-3 py-1 rounded-full shadow-sm">
                       Mesa #{selectedTable.tableNumber}
                     </span>
                   </div>
 
-                  {/* 1. Selector de 4 Formas de Pago (Idéntico a Barra Rápida) */}
+                  {/* Selector de 4 Formas de Pago */}
                   <div className="space-y-1.5">
                     <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 block">
                       FORMA DE PAGO:
@@ -1593,10 +1659,10 @@ export default function AdminTablesCashierPage() {
                       <button
                         type="button"
                         onClick={() => setCheckoutPaymentMethod("CASH")}
-                        className={`py-2 px-1 rounded-xl text-xs font-black flex items-center justify-center gap-1 transition-all ${
+                        className={`py-2 px-1 rounded-2xl text-xs flex items-center justify-center gap-1 transition-all ${
                           checkoutPaymentMethod === "CASH"
-                            ? "bg-amber-500 text-black shadow-md shadow-amber-500/20"
-                            : "bg-[#14161a] text-gray-400 hover:text-white border border-gray-800"
+                            ? "bg-[#ff8a00] text-black font-black shadow-lg shadow-amber-500/20"
+                            : "bg-[#181b22] text-gray-400 hover:text-white border border-gray-800 font-bold"
                         }`}
                       >
                         <DollarSign className="w-3.5 h-3.5" />
@@ -1606,10 +1672,10 @@ export default function AdminTablesCashierPage() {
                       <button
                         type="button"
                         onClick={() => setCheckoutPaymentMethod("NEQUI")}
-                        className={`py-2 px-1 rounded-xl text-xs font-black flex items-center justify-center gap-1 transition-all ${
+                        className={`py-2 px-1 rounded-2xl text-xs flex items-center justify-center gap-1 transition-all ${
                           checkoutPaymentMethod === "NEQUI"
-                            ? "bg-purple-600 text-white shadow-md shadow-purple-600/20"
-                            : "bg-[#14161a] text-gray-400 hover:text-white border border-gray-800"
+                            ? "bg-purple-600 text-white font-black shadow-lg shadow-purple-600/20"
+                            : "bg-[#181b22] text-gray-400 hover:text-white border border-gray-800 font-bold"
                         }`}
                       >
                         <Smartphone className="w-3.5 h-3.5" />
@@ -1619,10 +1685,10 @@ export default function AdminTablesCashierPage() {
                       <button
                         type="button"
                         onClick={() => setCheckoutPaymentMethod("CARD")}
-                        className={`py-2 px-1 rounded-xl text-xs font-black flex items-center justify-center gap-1 transition-all ${
+                        className={`py-2 px-1 rounded-2xl text-xs flex items-center justify-center gap-1 transition-all ${
                           checkoutPaymentMethod === "CARD"
-                            ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
-                            : "bg-[#14161a] text-gray-400 hover:text-white border border-gray-800"
+                            ? "bg-blue-600 text-white font-black shadow-lg shadow-blue-600/20"
+                            : "bg-[#181b22] text-gray-400 hover:text-white border border-gray-800 font-bold"
                         }`}
                       >
                         <CreditCard className="w-3.5 h-3.5" />
@@ -1632,10 +1698,10 @@ export default function AdminTablesCashierPage() {
                       <button
                         type="button"
                         onClick={() => setCheckoutPaymentMethod("MIXED")}
-                        className={`py-2 px-1 rounded-xl text-xs font-black flex items-center justify-center gap-1 transition-all ${
+                        className={`py-2 px-1 rounded-2xl text-xs flex items-center justify-center gap-1 transition-all ${
                           checkoutPaymentMethod === "MIXED"
-                            ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                            : "bg-[#14161a] text-gray-400 hover:text-white border border-gray-800"
+                            ? "bg-indigo-600 text-white font-black shadow-lg shadow-indigo-600/20"
+                            : "bg-[#181b22] text-gray-400 hover:text-white border border-gray-800 font-bold"
                         }`}
                       >
                         <Layers className="w-3.5 h-3.5" />
@@ -1644,7 +1710,7 @@ export default function AdminTablesCashierPage() {
                     </div>
                   </div>
 
-                  {/* 2. Panel Informativo Nequi / Daviplata */}
+                  {/* Panel Informativo Nequi */}
                   {checkoutPaymentMethod === "NEQUI" && (
                     <div className="bg-[#1a172e] border border-indigo-500/40 rounded-2xl p-3 space-y-2">
                       <div className="flex items-center justify-between text-xs">
@@ -1670,7 +1736,7 @@ export default function AdminTablesCashierPage() {
                     </div>
                   )}
 
-                  {/* 3. Panel Informativo Datáfono / Tarjeta */}
+                  {/* Panel Informativo Tarjeta */}
                   {checkoutPaymentMethod === "CARD" && (
                     <div className="bg-[#0f1d2a] border border-sky-500/40 rounded-2xl p-3 space-y-2">
                       <div className="flex items-center justify-between text-xs">
@@ -1696,7 +1762,7 @@ export default function AdminTablesCashierPage() {
                     </div>
                   )}
 
-                  {/* 4. Configuración de Pago Mixto (Efectivo + Transferencia) */}
+                  {/* Panel Configuración Pago Mixto */}
                   {checkoutPaymentMethod === "MIXED" && (
                     <div className="bg-[#161a29] border border-indigo-500/30 rounded-2xl p-2.5 space-y-2">
                       <div className="flex items-center justify-between">
@@ -1770,20 +1836,20 @@ export default function AdminTablesCashierPage() {
                     </div>
                   )}
 
-                  {/* 5. Calculadora de Billetes y Vueltas en Efectivo */}
+                  {/* Calculadora de Billetes y Vueltas en Efectivo */}
                   {(checkoutPaymentMethod === "CASH" || checkoutPaymentMethod === "MIXED") && (
-                    <div className="bg-[#141720] border border-gray-800/80 rounded-2xl p-2.5 space-y-2">
+                    <div className="bg-[#12141c] border border-gray-800/80 rounded-2xl p-3 space-y-2.5">
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
                           {checkoutPaymentMethod === "MIXED"
-                            ? `Billetes para Efectivo (${formatPrice(tableMixedCash)}):`
-                            : "Billetes Entregados (Auto-Suma):"}
+                            ? `BILLETES EFECTIVO (${formatPrice(tableMixedCash)}):`
+                            : "BILLETES ENTREGADOS (AUTO-SUMA):"}
                         </span>
                         <div className="flex items-center gap-2 text-xs">
                           <button
                             type="button"
                             onClick={handleSetExactTableCash}
-                            className="text-amber-400 font-black hover:underline"
+                            className="text-[#ffb703] font-black hover:underline"
                           >
                             Exacto
                           </button>
@@ -1797,14 +1863,14 @@ export default function AdminTablesCashierPage() {
                         </div>
                       </div>
 
-                      {/* Botonera de 6 Billetes */}
-                      <div className="grid grid-cols-3 gap-1.5">
+                      {/* Botonera de 6 Billetes (3x2) */}
+                      <div className="grid grid-cols-3 gap-2">
                         {TABLE_ACTIVE_BILLS.map((bill) => {
                           const conf = TABLE_BILL_CONFIG[bill] || {
-                            bg: "bg-[#1a1e24]",
+                            bg: "bg-[#181a20]",
                             border: "border-gray-700",
                             text: "text-gray-200",
-                            emoji: "💵",
+                            dotColor: "bg-gray-400",
                           };
 
                           return (
@@ -1812,17 +1878,17 @@ export default function AdminTablesCashierPage() {
                               key={bill}
                               type="button"
                               onClick={() => handleAddTableBill(bill)}
-                              className={`py-1.5 px-2 rounded-xl ${conf.bg} border ${conf.border} ${conf.text} font-black text-xs flex items-center justify-between shadow-sm active:scale-95 transition-all`}
+                              className={`py-2 px-2.5 rounded-2xl ${conf.bg} border ${conf.border} ${conf.text} font-black text-xs flex items-center justify-between shadow-sm active:scale-95 transition-all`}
                             >
                               <span>{formatPrice(bill)}</span>
-                              <span className="text-[10px]">{conf.emoji}</span>
+                              <span className={`w-2.5 h-2.5 rounded-full ${conf.dotColor} shadow-sm`} />
                             </button>
                           );
                         })}
                       </div>
 
                       {/* Bandeja de Billetes Seleccionados */}
-                      <div className="bg-[#0e1015] border border-gray-800 rounded-xl p-1.5 min-h-[38px] flex flex-wrap items-center gap-1">
+                      <div className="bg-[#0a0c10] border border-gray-800 rounded-2xl p-2 min-h-[40px] flex flex-wrap items-center gap-1.5">
                         {tableSelectedBills.length === 0 ? (
                           <span className="text-[10px] text-gray-500 italic">
                             Toca los billetes arriba para ingresar el pago...
@@ -1854,10 +1920,10 @@ export default function AdminTablesCashierPage() {
                       </div>
 
                       {/* Resumen Financiero: Total Recibido vs Vueltas */}
-                      <div className="pt-1.5 border-t border-gray-800 flex justify-between items-center text-xs">
+                      <div className="pt-2 border-t border-gray-800/80 flex justify-between items-center text-xs">
                         <div>
                           <span className="text-[10px] text-gray-400 block font-bold">Total Recibido:</span>
-                          <span className="font-bold text-white">
+                          <span className="font-bold text-white text-sm">
                             {formatPrice(
                               tableTotalCashReceived ||
                                 (checkoutPaymentMethod === "MIXED"
@@ -1867,10 +1933,10 @@ export default function AdminTablesCashierPage() {
                           </span>
                         </div>
                         <div className="text-right">
-                          <span className="text-[10px] text-emerald-400 block font-extrabold uppercase">
+                          <span className="text-[10px] text-emerald-400 block font-extrabold uppercase tracking-wider">
                             VUELTAS / CAMBIO:
                           </span>
-                          <span className="text-base font-black text-emerald-400">
+                          <span className="text-xl font-black text-emerald-400">
                             {formatPrice(tableCashChange)}
                           </span>
                         </div>
@@ -1878,7 +1944,7 @@ export default function AdminTablesCashierPage() {
                     </div>
                   )}
 
-                  {/* 6. Botón Principal de Cobro */}
+                  {/* Botón Principal Gigante de Cobro Verde Esmeralda */}
                   <button
                     type="button"
                     onClick={() =>
@@ -1888,9 +1954,9 @@ export default function AdminTablesCashierPage() {
                       )
                     }
                     disabled={isActionLoading}
-                    className="w-full py-4 bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-600 hover:opacity-95 text-white font-black text-sm rounded-2xl shadow-xl shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all active:scale-98"
+                    className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-black font-black text-sm uppercase rounded-2xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all active:scale-98"
                   >
-                    <CheckCircle2 className="w-5 h-5" />
+                    <CheckCircle2 className="w-5 h-5 text-black" />
                     <span>
                       {isActionLoading
                         ? "Procesando cobro..."

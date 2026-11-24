@@ -1336,6 +1336,35 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas estáticas y dinámicas.
 
+### Hito 76: Rediseño del Panel de Cobro y Comanda de Mesas en Disposición de Dos Columnas (Fiel a Referencia Visual)
+- **Fecha:** 24 de Noviembre de 2026
+- **Archivos Modificados:**
+  - [src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)
+  - [DOCUMENTO_DE_SEGUIMIENTO.md](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/DOCUMENTO_DE_SEGUIMIENTO.md)
+- **Descripción de los Cambios Quirúrgicos:**
+  1. **Reestructuración a Dos Columnas en Desktop/Tablets (`max-w-5xl` con `lg:grid-cols-12`):**
+     - Se superó el diseño previo de una única columna vertical apilada, expandiendo el modal cuando una mesa tiene comanda activa a un ancho de `max-w-5xl` con división armoniosa en 2 columnas:
+       - **Columna Izquierda (7 columnas, `lg:col-span-7`):**
+         - Encabezado de la mesa con número en insignia degradada naranja/ámbar `#{tableNumber}`, título con chip de estado (`OCUPADA` / `PIDIENDO CUENTA` / `QR POR CONFIRMAR`), tiempo de apertura, mesero asignado, botón para `Editar Mesa` y botón circular `✕` para cerrar.
+         - Banner de pedido QR por confirmar (si aplica).
+         - Tarjeta interactiva de `MESERO RESPONSABLE` con indicador de estado (atendido en caja o mesero asignado) y botón rápido `Asignar >` / `Transferir >`.
+         - Fila de 3 botones operacionales: `+ Agregar Productos`, `Asignar/Transferir Mesero` y `Cambiar Mesa`.
+         - Listado detallado y con scroll independiente (`max-h-[340px] overflow-y-auto`) de `PRODUCTOS EN LA COMANDA (N):` con cada plato, cantidad, notas, hora, ronda, origen, precio en ámbar y papelera roja de anulación.
+         - Banner de adición pendiente por entregar en cocina con cronómetro y botón `✓ Marcar Entregado`.
+       - **Columna Derecha (5 columnas, `lg:col-span-5` - Panel Dedicado de Cobro):**
+         - Tarjeta oscura dedicada (`bg-[#0e1118] border border-gray-800 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col justify-between space-y-4`).
+         - Encabezado: `TOTAL A COBRAR` con tipografía gigante ámbar/dorada (`text-[#ffb703] text-3xl sm:text-4xl font-black`) y chip lateral `Mesa #N`.
+         - Selector de 4 formas de pago tipo píldora (`Efectivo`, `Nequi`, `Tarjeta`, `Mixto`), donde `Efectivo` activo luce con fondo naranja brillante (`bg-[#ff8a00] text-black font-black rounded-2xl shadow-lg`).
+         - Calculadora de billetes auto-suma en cuadrícula 3x2 con 6 billetes (`$100.000`, `$50.000`, `$20.000`, `$10.000`, `$5.000`, `$2.000`) cada uno con su borde temático y circulito distintivo de color (`dotColor`).
+         - Botones rápidos `Exacto` y `Limpiar`, más la bandeja de billetes seleccionados con chips desmontables.
+         - Fila financiera: `Total Recibido: $ X` y `VUELTAS / CAMBIO:` con valor en verde fosforescente (`text-emerald-400 font-black text-xl`).
+         - Paneles temáticos dedicados para transferencias digitales `Nequi / Daviplata` y datáfono `Tarjeta`, así como la división 50/50 para pago `Mixto`.
+         - Botón gigante inferior verde esmeralda con texto negro en negrita: `✓ Cobrar $ X y Liberar Mesa #N` (`bg-emerald-500 hover:bg-emerald-400 text-black font-black text-sm uppercase rounded-2xl shadow-lg`).
+  2. **Responsividad Garantizada:**
+     - En dispositivos móviles o pantallas estrechas se apila elegantemente en una columna sin desbordamiento ni recorte.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas estáticas y dinámicas.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

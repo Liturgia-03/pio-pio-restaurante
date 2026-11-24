@@ -1127,6 +1127,21 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 25 rutas.
 
+### Hito 66: Centrado Horizontal y Mayúsculas en Títulos de Sección (Inmunidad a Barra Rápida)
+- **Solicitud del usuario:** Centrar los títulos de cada sección para que la Barra Rápida (franja naranja en PC) no los tape o corte, y colocarlos en mayúsculas.
+- **Análisis de la Captura Suministrada (`media_1795499325771_4884f499.png`):**
+  - El título de la sección en la cabecera superior (`AdminHeader`) estaba alineado a la izquierda (`px-4`), lo que provocaba que la franja naranja de Barra Rápida (`w-12`, fixed `left-64`, `z-40`) tapara las primeras letras del título (por ejemplo, en Dashboard sólo se leía "hboard").
+- **Solución Quirúrgica Implementada:**
+  1. **Centrado Absoluto en la Cabecera ([src/components/admin/AdminHeader.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminHeader.tsx)):**
+     - Se aplicó posicionamiento central `absolute left-1/2 -translate-x-1/2` con `text-center`, `uppercase` y `font-black tracking-widest`.
+     - Esto ubica el título exactamente en el centro horizontal de la cabecera, lejos de la franja izquierda y del botón de "Carta Clientes" a la derecha.
+  2. **Títulos en Mayúsculas Oficiales ([src/components/admin/AdminShell.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminShell.tsx)):**
+     - Se estandarizaron los títulos de todas las secciones en mayúsculas (`DASHBOARD`, `CONTROL DE MESAS Y CAJA`, `GESTIÓN DE PLATOS`, `NUEVO PLATO`, `CATEGORÍAS`, `AJUSTES MENÚ`, `CÓDIGOS QR MESAS`, `AJUSTES ASADERO`, `BARRA RÁPIDA & MOSTRADOR`).
+  3. **Tipografía en [src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx):**
+     - Se añadió `uppercase tracking-wider` al título interno de la tarjeta de mesas.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 25 rutas del proyecto.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

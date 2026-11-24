@@ -10,8 +10,8 @@ interface AdminHeaderProps {
 
 export function AdminHeader({ title, onOpenDrawer }: AdminHeaderProps) {
   return (
-    <header className="sticky top-0 z-30 bg-[#14161a]/95 backdrop-blur-md border-b border-gray-800 px-4 py-3 flex items-center justify-between">
-      {/* Botón Hamburguesa Móvil (min touch target >= 44x44px) */}
+    <header className="sticky top-0 z-30 bg-[#14161a]/95 backdrop-blur-md border-b border-gray-800 px-4 py-3 flex items-center justify-between relative">
+      {/* Botón Hamburguesa y Logo Móvil */}
       <div className="flex items-center gap-3">
         <button
           onClick={onOpenDrawer}
@@ -21,18 +21,20 @@ export function AdminHeader({ title, onOpenDrawer }: AdminHeaderProps) {
           <Menu className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-amber-400 bg-amber-950 md:hidden flex-shrink-0 shadow-sm">
-            <img
-              src="/logo-pio-pio.png"
-              alt="Pío Pío"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <h1 className="text-base font-extrabold text-white truncate max-w-[200px] sm:max-w-xs">
-            {title}
-          </h1>
+        <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-amber-400 bg-amber-950 md:hidden flex-shrink-0 shadow-sm">
+          <img
+            src="/logo-pio-pio.png"
+            alt="Pío Pío"
+            className="w-full h-full object-cover"
+          />
         </div>
+      </div>
+
+      {/* Título de la Sección Centrado Horizontalmente y en Mayúsculas (Inmune a la Barra Rápida) */}
+      <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none px-4 max-w-[calc(100%-180px)] sm:max-w-[calc(100%-240px)]">
+        <h1 className="text-base sm:text-lg md:text-xl font-black tracking-widest text-white uppercase truncate text-center pointer-events-auto select-none">
+          {title.toUpperCase()}
+        </h1>
       </div>
 
       {/* Botón Ver Carta */}

@@ -646,7 +646,7 @@ export default function AdminTablesCashierPage() {
             🍽️
           </span>
           <div>
-            <h1 className="text-xl font-black text-white">
+            <h1 className="text-xl font-black text-white uppercase tracking-wider">
               Control de Mesas y Caja
             </h1>
             <p className="text-xs text-gray-400">

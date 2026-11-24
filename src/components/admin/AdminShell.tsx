@@ -28,16 +28,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     return <div className="min-h-screen bg-[#0f1115] text-gray-100">{children}</div>;
   }
 
-  // Título según la ruta
-  let pageTitle = "Dashboard";
-  if (pathname.includes("/admin/dishes/new")) pageTitle = "Nuevo Plato";
-  else if (pathname.includes("/admin/dishes")) pageTitle = "Gestión de Platos";
-  else if (pathname.includes("/admin/categories")) pageTitle = "Categorías";
-  else if (pathname.includes("/admin/promo-modal")) pageTitle = "Ajustes Menú";
-  else if (pathname.includes("/admin/qr")) pageTitle = "Códigos QR Mesas";
-  else if (pathname.includes("/admin/settings")) pageTitle = "Ajustes Asadero";
-  else if (pathname.includes("/admin/barra")) pageTitle = "Barra Rápida & Mostrador";
-  else if (pathname.includes("/admin/tables")) pageTitle = "Control de Mesas & Caja";
+  // Título según la ruta (en mayúsculas)
+  let pageTitle = "DASHBOARD";
+  if (pathname.includes("/admin/dishes/new")) pageTitle = "NUEVO PLATO";
+  else if (pathname.includes("/admin/dishes")) pageTitle = "GESTIÓN DE PLATOS";
+  else if (pathname.includes("/admin/categories")) pageTitle = "CATEGORÍAS";
+  else if (pathname.includes("/admin/promo-modal")) pageTitle = "AJUSTES MENÚ";
+  else if (pathname.includes("/admin/qr")) pageTitle = "CÓDIGOS QR MESAS";
+  else if (pathname.includes("/admin/settings")) pageTitle = "AJUSTES ASADERO";
+  else if (pathname.includes("/admin/barra")) pageTitle = "BARRA RÁPIDA & MOSTRADOR";
+  else if (pathname.includes("/admin/tables")) pageTitle = "CONTROL DE MESAS Y CAJA";
 
   return (
     <div className="min-h-screen bg-[#0f1115] text-gray-100 flex flex-col md:flex-row">

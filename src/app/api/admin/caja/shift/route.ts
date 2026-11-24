@@ -104,12 +104,15 @@ export async function GET() {
       };
     }
 
-    // 7. Lista de últimos 10 turnos liquidados para histórico rápido
+    // 7. Lista de últimos turnos liquidados para histórico rápido (con desglose de gastos)
     const recentClosedShifts = await prisma.cashShift.findMany({
       where: { status: "CLOSED" },
-      take: 10,
+      take: 20,
       orderBy: { closedAt: "desc" },
       include: {
+        expenses: {
+          orderBy: { date: "asc" },
+        },
         _count: { select: { expenses: true } },
       },
     });

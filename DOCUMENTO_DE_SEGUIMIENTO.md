@@ -1386,6 +1386,30 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
      - Salón de mesas: **Todas las 19 mesas en estado LIBRE 🟢**.
 - **Resultado:** El sistema queda 100% limpio y listo para el estreno oficial del asadero.
 
+### Hito 79: Descarga, Compartir y Desglose Detallado de Gastos en Tirilla de Liquidación
+- **Fecha:** 24 de Noviembre de 2026
+- **Archivos Modificados:**
+  - [src/app/api/admin/caja/shift/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/shift/route.ts)
+  - [src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components\admin\AdminCajaView.tsx)
+  - [DOCUMENTO_DE_SEGUIMIENTO.md](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/DOCUMENTO_DE_SEGUIMIENTO.md)
+- **Alcance y Cambios Realizados:**
+  1. **Desglose Exhaustivo de Gastos en la Tirilla Térmica:**
+     - En el modal de comprobante de liquidación y cierre de caja se incorporó la sección `DETALLE DE GASTOS (N):` que lista cada gasto individual con:
+       - Número consecutivo y descripción del egreso.
+       - Monto individual en rojo (`-$ XX.XXX`).
+       - Categoría específica (Pollo & Carnes, Carbón/Gas, Verduras, Empaques, etc.) y forma de pago (`💵 Efectivo` o `📱 Nequi/Transferencia`).
+       - Nombre del solicitante/responsable y número de factura/voucher de soporte (si aplica).
+       - Subtotales discriminados por gastos en efectivo y transferencia, más el total consolidado.
+  2. **Capacidades de Descarga y Compartir:**
+     - 📥 **Botón Descargar:** Genera y descarga automáticamente un archivo de texto estructurado (`Tirilla-Liquidacion-PioPio-YYYY-MM-DD.txt`) con la factura térmica completa.
+     - 📤 **Botón Compartir:** Integra `navigator.share` para compartir nativamente a cualquier aplicación móvil o de escritorio (Telegram, Correo, Drive, Mensajes). Incluye fallback automático que copia al portapapeles con confirmación en toast.
+     - 💬 **Botón WhatsApp:** Abre un enlace directo de WhatsApp con el resumen de liquidación pre-formateado con emojis y detalles contables listo para enviar a socios o dueños.
+     - 🖨️ **Botón Imprimir:** Mantiene la compatibilidad con impresoras térmicas POS y diálogo del sistema para "Guardar como PDF".
+  3. **Backend Optimizado:**
+     - En [src/app/api/admin/caja/shift/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/shift/route.ts), el listado de turnos recientes (`recentClosedShifts`) ahora incluye la relación completa de gastos (`expenses`) ordenados cronológicamente, permitiendo ver la tirilla histórica con sus gastos en cualquier momento.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
+
 ### Hito 76: Rediseño del Panel de Cobro y Comanda de Mesas en Disposición de Dos Columnas (Fiel a Referencia Visual)
 - **Fecha:** 24 de Noviembre de 2026
 - **Archivos Modificados:**
@@ -1464,6 +1488,30 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
      - Próximo ticket automático de Barra Rápida: **#01**.
      - Salón de mesas: **Todas las 19 mesas en estado LIBRE 🟢**.
 - **Resultado:** El sistema queda 100% limpio y listo para el estreno oficial del asadero.
+
+### Hito 79: Descarga, Compartir y Desglose Detallado de Gastos en Tirilla de Liquidación
+- **Fecha:** 24 de Noviembre de 2026
+- **Archivos Modificados:**
+  - [src/app/api/admin/caja/shift/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/shift/route.ts)
+  - [src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components\admin\AdminCajaView.tsx)
+  - [DOCUMENTO_DE_SEGUIMIENTO.md](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/DOCUMENTO_DE_SEGUIMIENTO.md)
+- **Alcance y Cambios Realizados:**
+  1. **Desglose Exhaustivo de Gastos en la Tirilla Térmica:**
+     - En el modal de comprobante de liquidación y cierre de caja se incorporó la sección `DETALLE DE GASTOS (N):` que lista cada gasto individual con:
+       - Número consecutivo y descripción del egreso.
+       - Monto individual en rojo (`-$ XX.XXX`).
+       - Categoría específica (Pollo & Carnes, Carbón/Gas, Verduras, Empaques, etc.) y forma de pago (`💵 Efectivo` o `📱 Nequi/Transferencia`).
+       - Nombre del solicitante/responsable y número de factura/voucher de soporte (si aplica).
+       - Subtotales discriminados por gastos en efectivo y transferencia, más el total consolidado.
+  2. **Capacidades de Descarga y Compartir:**
+     - 📥 **Botón Descargar:** Genera y descarga automáticamente un archivo de texto estructurado (`Tirilla-Liquidacion-PioPio-YYYY-MM-DD.txt`) con la factura térmica completa.
+     - 📤 **Botón Compartir:** Integra `navigator.share` para compartir nativamente a cualquier aplicación móvil o de escritorio (Telegram, Correo, Drive, Mensajes). Incluye fallback automático que copia al portapapeles con confirmación en toast.
+     - 💬 **Botón WhatsApp:** Abre un enlace directo de WhatsApp con el resumen de liquidación pre-formateado con emojis y detalles contables listo para enviar a socios o dueños.
+     - 🖨️ **Botón Imprimir:** Mantiene la compatibilidad con impresoras térmicas POS y diálogo del sistema para "Guardar como PDF".
+  3. **Backend Optimizado:**
+     - En [src/app/api/admin/caja/shift/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/shift/route.ts), el listado de turnos recientes (`recentClosedShifts`) ahora incluye la relación completa de gastos (`expenses`) ordenados cronológicamente, permitiendo ver la tirilla histórica con sus gastos en cualquier momento.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
 
 ---
 

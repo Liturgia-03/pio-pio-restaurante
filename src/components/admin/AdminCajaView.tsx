@@ -33,6 +33,10 @@ import {
   ShieldAlert,
   KeyRound,
   History,
+  Download,
+  Share2,
+  Copy,
+  MessageCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
@@ -59,10 +63,12 @@ interface CashShiftData {
   totalExpenses: number;
   netProfit: number;
   notes?: string | null;
+  expenses?: ExpenseItem[];
 }
 
 interface ExpenseItem {
   id: string;
+  cashShiftId?: string | null;
   category: string;
   description: string;
   amount: number;
@@ -176,6 +182,164 @@ export function AdminCajaView() {
   const [expReceipt, setExpReceipt] = useState<string>("");
 
   const [printShift, setPrintShift] = useState<CashShiftData | null>(null);
+
+  // Helper para resolver los gastos detallados asociados a un turno de caja
+  const getShiftExpenses = useCallback(
+    (shift: CashShiftData): ExpenseItem[] => {
+      if (shift.expenses && shift.expenses.length > 0) {
+        return shift.expenses;
+      }
+      return expensesList.filter((e) => {
+        if (e.cashShiftId && e.cashShiftId === shift.id) return true;
+        const expTime = new Date(e.date).getTime();
+        const openTime = new Date(shift.openedAt).getTime();
+        const closeTime = shift.closedAt ? new Date(shift.closedAt).getTime() : Date.now();
+        return expTime >= openTime && expTime <= closeTime;
+      });
+    },
+    [expensesList]
+  );
+
+  // Helper para construir el texto plano formateado de la tirilla térmica
+  const generateTicketText = useCallback(
+    (shift: CashShiftData): string => {
+      const expenses = getShiftExpenses(shift);
+      const closeDateStr = shift.closedAt
+        ? new Date(shift.closedAt).toLocaleString()
+        : new Date().toLocaleString();
+      const openDateStr = new Date(shift.openedAt).toLocaleString();
+
+      const diffVal = shift.difference || 0;
+      const diffStr =
+        diffVal === 0
+          ? "$ 0 (CUADRE EXACTO)"
+          : diffVal > 0
+          ? `+${formatPrice(diffVal)} (SOBRANTE)`
+          : `-${formatPrice(Math.abs(diffVal))} (FALTANTE)`;
+
+      let text = `================================\n`;
+      text += `  PÍO PÍO ASADERO & RESTAURANTE  \n`;
+      text += ` COMPROBANTE DE CIERRE Y LIQUIDACIÓN\n`;
+      text += `================================\n`;
+      text += `Apertura:     ${openDateStr}\n`;
+      text += `Cierre:       ${closeDateStr}\n`;
+      text += `Apertura por: ${shift.openedBy}\n`;
+      text += `Cierre por:   ${shift.closedBy || shift.openedBy}\n`;
+      text += `--------------------------------\n`;
+      text += `RESUMEN DE VENTAS E INGRESOS:\n`;
+      text += `• Base Inicial:        ${formatPrice(shift.initialCash)}\n`;
+      text += `• Ventas en Efectivo:  ${formatPrice(shift.totalSalesCash)}\n`;
+      text += `• Ventas Nequi/Dig.:   ${formatPrice(shift.totalSalesDigital)}\n`;
+      text += `• Ventas Tarjeta:      ${formatPrice(shift.totalSalesCard)}\n`;
+      text += `--------------------------------\n`;
+      text += `VENTAS TOTALES:        ${formatPrice(shift.totalSales)}\n`;
+      text += `--------------------------------\n`;
+      text += `DETALLE DE GASTOS (${expenses.length}):\n`;
+
+      if (expenses.length > 0) {
+        expenses.forEach((exp, idx) => {
+          const catInfo = EXPENSE_CATEGORIES[exp.category];
+          const method = exp.paymentMethod === "CASH" ? "Efectivo" : "Nequi/Transf.";
+          text += `${idx + 1}. ${exp.description}\n`;
+          text += `   -${formatPrice(exp.amount)} [${catInfo?.label || exp.category} • ${method}]`;
+          if (exp.responsible) text += ` (Resp: ${exp.responsible})`;
+          text += `\n`;
+        });
+      } else {
+        text += `(Sin egresos registrados en este turno)\n`;
+      }
+
+      text += `--------------------------------\n`;
+      text += `• Gastos Efectivo:    -${formatPrice(shift.totalExpensesCash)}\n`;
+      text += `• Gastos Digital:     -${formatPrice(shift.totalExpensesDigital)}\n`;
+      text += `GASTOS TOTALES:       -${formatPrice(shift.totalExpenses)}\n`;
+      text += `--------------------------------\n`;
+      text += `ARQUEO DE CAJA FÍSICA:\n`;
+      text += `• Efectivo Esperado:   ${formatPrice(shift.expectedCash || 0)}\n`;
+      text += `• Efectivo Contado:    ${formatPrice(shift.actualCash || 0)}\n`;
+      text += `--------------------------------\n`;
+      text += `DIFERENCIA:            ${diffStr}\n`;
+      text += `UTILIDAD NETA TURNO:   ${formatPrice(shift.netProfit)}\n`;
+      if (shift.notes) {
+        text += `--------------------------------\n`;
+        text += `Observaciones: ${shift.notes}\n`;
+      }
+      text += `================================\n`;
+      text += `*** Sistema Pío Pío POS ***\n`;
+
+      return text;
+    },
+    [getShiftExpenses]
+  );
+
+  // Descargar tirilla en archivo .txt
+  const handleDownloadTicket = useCallback(
+    (shift: CashShiftData) => {
+      try {
+        const text = generateTicketText(shift);
+        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+        const dateStr = (shift.closedAt ? new Date(shift.closedAt) : new Date())
+          .toISOString()
+          .slice(0, 10);
+        const fileName = `Tirilla-Liquidacion-PioPio-${dateStr}.txt`;
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        toast.success("Tirilla descargada exitosamente en formato de texto.");
+      } catch (e: any) {
+        console.error(e);
+        toast.error("No se pudo descargar la tirilla.");
+      }
+    },
+    [generateTicketText]
+  );
+
+  // Compartir tirilla mediante Web Share API o copiar al portapapeles
+  const handleShareTicket = useCallback(
+    async (shift: CashShiftData) => {
+      const text = generateTicketText(shift);
+      const title = `Tirilla de Liquidación - Pío Pío (${shift.closedAt ? new Date(shift.closedAt).toLocaleDateString() : "Hoy"})`;
+
+      if (typeof navigator !== "undefined" && navigator.share) {
+        try {
+          await navigator.share({
+            title,
+            text,
+          });
+          toast.success("Tirilla compartida exitosamente.");
+          return;
+        } catch (err: any) {
+          if (err.name === "AbortError") return;
+        }
+      }
+
+      // Fallback: Copiar al portapapeles
+      try {
+        await navigator.clipboard.writeText(text);
+        toast.success("📋 ¡Tirilla copiada al portapapeles! Lista para pegar y compartir.");
+      } catch {
+        toast.error("No se pudo compartir ni copiar la tirilla.");
+      }
+    },
+    [generateTicketText]
+  );
+
+  // Compartir directamente a WhatsApp
+  const handleWhatsAppShare = useCallback(
+    (shift: CashShiftData) => {
+      const text = generateTicketText(shift);
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(url, "_blank");
+    },
+    [generateTicketText]
+  );
 
   // 1. Cargar turno de caja activo
   const fetchShiftData = useCallback(async () => {
@@ -1894,127 +2058,249 @@ export function AdminCajaView() {
       )}
 
       {/* ======================================================================= */}
-      {/* MODAL 4: TIRILLA DE CIERRE Y LIQUIDACIÓN IMPRIMIBLE                      */}
+      {/* MODAL 4: TIRILLA DE CIERRE Y LIQUIDACIÓN (IMPRIMIBLE / DESCARGABLE / COMPARTIBLE) */}
       {/* ======================================================================= */}
-      {printShift && (
-        <div
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
-          onClick={() => setPrintShift(null)}
-        >
+      {printShift && (() => {
+        const shiftExpenses = getShiftExpenses(printShift);
+
+        return (
           <div
-            className="w-full max-w-sm bg-white text-black rounded-3xl p-6 shadow-2xl space-y-4 font-mono text-xs max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in"
+            onClick={() => setPrintShift(null)}
           >
-            {/* Cabecera Tipo Factura Térmica */}
-            <div className="text-center border-b border-dashed border-gray-400 pb-3 space-y-1">
-              <h2 className="font-black text-sm uppercase tracking-wider">
-                PÍO PÍO ASADERO & RESTAURANTE
-              </h2>
-              <p className="text-[10px] text-gray-600">
-                COMPROBANTE DE CIERRE Y LIQUIDACIÓN DE CAJA
-              </p>
-              <p className="text-[10px] text-gray-500">
-                Fecha Cierre: {printShift.closedAt ? new Date(printShift.closedAt).toLocaleString() : new Date().toLocaleString()}
-              </p>
-              <p className="text-[10px] text-gray-500">
-                Responsable: {printShift.closedBy || printShift.openedBy}
-              </p>
-            </div>
+            <div
+              className="w-full max-w-sm sm:max-w-md bg-white text-black rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 font-mono text-xs max-h-[92vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Cabecera Tipo Factura Térmica */}
+              <div className="text-center border-b border-dashed border-gray-400 pb-3 space-y-1">
+                <h2 className="font-black text-sm uppercase tracking-wider text-black">
+                  PÍO PÍO ASADERO & RESTAURANTE
+                </h2>
+                <p className="text-[10px] text-gray-700 font-bold">
+                  COMPROBANTE DE CIERRE Y LIQUIDACIÓN DE CAJA
+                </p>
+                <div className="text-[10px] text-gray-600 space-y-0.5 pt-1">
+                  <p>
+                    Apertura: {new Date(printShift.openedAt).toLocaleString()} ({printShift.openedBy})
+                  </p>
+                  <p>
+                    Cierre: {printShift.closedAt ? new Date(printShift.closedAt).toLocaleString() : new Date().toLocaleString()}
+                  </p>
+                  <p className="font-bold text-gray-800">
+                    Liquidado por: {printShift.closedBy || printShift.openedBy}
+                  </p>
+                </div>
+              </div>
 
-            {/* Desglose Contable */}
-            <div className="space-y-1.5 border-b border-dashed border-gray-400 pb-3 text-xs">
-              <div className="flex justify-between">
-                <span>Base Inicial:</span>
-                <span className="font-bold">{formatPrice(printShift.initialCash)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Ventas en Efectivo:</span>
-                <span className="font-bold">{formatPrice(printShift.totalSalesCash)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Ventas Nequi/Daviplata:</span>
-                <span className="font-bold">{formatPrice(printShift.totalSalesDigital)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Ventas Datáfono/Tarjeta:</span>
-                <span className="font-bold">{formatPrice(printShift.totalSalesCard)}</span>
-              </div>
-              <div className="flex justify-between font-black border-t border-gray-200 pt-1">
-                <span>VENTAS TOTALES:</span>
-                <span>{formatPrice(printShift.totalSales)}</span>
-              </div>
-            </div>
-
-            {/* Gastos del Turno */}
-            <div className="space-y-1.5 border-b border-dashed border-gray-400 pb-3 text-xs">
-              <div className="flex justify-between">
-                <span>Gastos en Efectivo:</span>
-                <span className="font-bold">-{formatPrice(printShift.totalExpensesCash)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Gastos por Transferencia:</span>
-                <span className="font-bold">-{formatPrice(printShift.totalExpensesDigital)}</span>
-              </div>
-              <div className="flex justify-between font-black border-t border-gray-200 pt-1 text-red-600">
-                <span>GASTOS TOTALES:</span>
-                <span>-{formatPrice(printShift.totalExpenses)}</span>
-              </div>
-            </div>
-
-            {/* Arqueo de Efectivo Físico */}
-            <div className="space-y-1.5 border-b border-dashed border-gray-400 pb-3 text-xs bg-gray-50 p-2 rounded-xl">
-              <div className="flex justify-between font-bold">
-                <span>Efectivo Esperado:</span>
-                <span>{formatPrice(printShift.expectedCash || 0)}</span>
-              </div>
-              <div className="flex justify-between font-bold">
-                <span>Efectivo Contado Real:</span>
-                <span>{formatPrice(printShift.actualCash || 0)}</span>
-              </div>
-              <div className="flex justify-between font-black text-sm border-t border-gray-300 pt-1">
-                <span>DIFERENCIA:</span>
-                <span
-                  className={
-                    (printShift.difference || 0) === 0
-                      ? "text-green-700"
-                      : (printShift.difference || 0) > 0
-                      ? "text-blue-700"
-                      : "text-red-700"
-                  }
-                >
-                  {(printShift.difference || 0) === 0
-                    ? "$ 0 (EXACTO)"
-                    : (printShift.difference || 0) > 0
-                    ? `+${formatPrice(printShift.difference || 0)}`
-                    : `-${formatPrice(Math.abs(printShift.difference || 0))}`}
+              {/* Desglose Contable de Ventas */}
+              <div className="space-y-1.5 border-b border-dashed border-gray-400 pb-3 text-xs">
+                <span className="font-black text-[10px] uppercase tracking-wider text-gray-500 block">
+                  RESUMEN DE VENTAS E INGRESOS:
                 </span>
+                <div className="flex justify-between">
+                  <span>Base Inicial en Caja:</span>
+                  <span className="font-bold">{formatPrice(printShift.initialCash)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Ventas en Efectivo:</span>
+                  <span className="font-bold">{formatPrice(printShift.totalSalesCash)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Ventas Nequi / Daviplata:</span>
+                  <span className="font-bold">{formatPrice(printShift.totalSalesDigital)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Ventas Datáfono / Tarjeta:</span>
+                  <span className="font-bold">{formatPrice(printShift.totalSalesCard)}</span>
+                </div>
+                <div className="flex justify-between font-black border-t border-gray-300 pt-1 text-sm">
+                  <span>VENTAS TOTALES:</span>
+                  <span>{formatPrice(printShift.totalSales)}</span>
+                </div>
               </div>
-            </div>
 
-            <div className="text-center text-[10px] text-gray-500 pt-1">
-              *** Documento generado por Sistema Pío Pío POS ***
-            </div>
+              {/* Sección de Gastos con Desglose Detallado */}
+              <div className="space-y-2 border-b border-dashed border-gray-400 pb-3 text-xs">
+                <div className="flex justify-between items-center font-bold">
+                  <span className="font-black text-[10px] uppercase tracking-wider text-gray-500">
+                    DETALLE DE GASTOS ({shiftExpenses.length}):
+                  </span>
+                  <span className="text-red-600 font-black">
+                    -{formatPrice(printShift.totalExpenses)}
+                  </span>
+                </div>
 
-            <div className="flex gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setPrintShift(null)}
-                className="w-1/2 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-black font-bold text-xs"
-              >
-                Cerrar
-              </button>
-              <button
-                type="button"
-                onClick={() => window.print()}
-                className="w-1/2 py-2 rounded-xl bg-black hover:bg-gray-800 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span>Imprimir</span>
-              </button>
+                {/* Lista de Gastos Individuales */}
+                {shiftExpenses.length > 0 ? (
+                  <div className="space-y-2 bg-gray-50 p-2.5 rounded-2xl border border-gray-200 max-h-48 overflow-y-auto">
+                    {shiftExpenses.map((exp, idx) => {
+                      const catInfo = EXPENSE_CATEGORIES[exp.category];
+                      return (
+                        <div
+                          key={exp.id || idx}
+                          className="border-b border-gray-200 last:border-b-0 pb-1.5 last:pb-0 text-[11px] space-y-0.5"
+                        >
+                          <div className="flex justify-between items-start gap-2">
+                            <span className="font-bold text-gray-800 leading-tight">
+                              {idx + 1}. {exp.description}
+                            </span>
+                            <span className="font-black text-red-600 whitespace-nowrap">
+                              -{formatPrice(exp.amount)}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap justify-between text-[10px] text-gray-500 gap-x-2">
+                            <span>
+                              {catInfo?.label || exp.category} •{" "}
+                              {exp.paymentMethod === "CASH" ? "💵 Efectivo" : "📱 Nequi/Transf."}
+                            </span>
+                            {exp.responsible && (
+                              <span className="italic">Resp: {exp.responsible}</span>
+                            )}
+                          </div>
+                          {exp.receiptNumber && (
+                            <span className="text-[9px] text-gray-400 block">
+                              Soporte: #{exp.receiptNumber}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-[10px] text-gray-500 italic bg-gray-50 p-2.5 rounded-2xl text-center border border-gray-200">
+                    Sin egresos registrados en este turno ($0).
+                  </div>
+                )}
+
+                {/* Totales y Subtotales de Gastos */}
+                <div className="space-y-1 pt-1 text-[11px]">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Gastos pagados en Efectivo:</span>
+                    <span className="font-bold">-{formatPrice(printShift.totalExpensesCash)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Gastos por Transferencia:</span>
+                    <span className="font-bold">-{formatPrice(printShift.totalExpensesDigital)}</span>
+                  </div>
+                  <div className="flex justify-between font-black border-t border-gray-300 pt-1 text-red-600 text-xs">
+                    <span>GASTOS TOTALES:</span>
+                    <span>-{formatPrice(printShift.totalExpenses)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Arqueo de Efectivo Físico */}
+              <div className="space-y-1.5 border-b border-dashed border-gray-400 pb-3 text-xs bg-gray-50 p-3 rounded-2xl border border-gray-200">
+                <span className="font-black text-[10px] uppercase tracking-wider text-gray-500 block">
+                  ARQUEO DE CAJA FÍSICA:
+                </span>
+                <div className="flex justify-between font-bold">
+                  <span>Efectivo Físico Esperado:</span>
+                  <span>{formatPrice(printShift.expectedCash || 0)}</span>
+                </div>
+                <div className="flex justify-between font-bold">
+                  <span>Efectivo Real Contado:</span>
+                  <span>{formatPrice(printShift.actualCash || 0)}</span>
+                </div>
+                <div className="flex justify-between font-black text-sm border-t border-gray-300 pt-1.5">
+                  <span>DIFERENCIA:</span>
+                  <span
+                    className={
+                      (printShift.difference || 0) === 0
+                        ? "text-emerald-700 font-black"
+                        : (printShift.difference || 0) > 0
+                        ? "text-blue-700 font-black"
+                        : "text-rose-700 font-black"
+                    }
+                  >
+                    {(printShift.difference || 0) === 0
+                      ? "$ 0 (CUADRE EXACTO)"
+                      : (printShift.difference || 0) > 0
+                      ? `+${formatPrice(printShift.difference || 0)} (SOBRANTE)`
+                      : `-${formatPrice(Math.abs(printShift.difference || 0))} (FALTANTE)`}
+                  </span>
+                </div>
+                <div className="flex justify-between font-bold text-gray-700 border-t border-dashed border-gray-300 pt-1 text-[11px]">
+                  <span>Utilidad Neta del Turno:</span>
+                  <span className="font-black text-black">{formatPrice(printShift.netProfit)}</span>
+                </div>
+              </div>
+
+              {printShift.notes && (
+                <div className="text-[10px] text-gray-600 bg-gray-50 p-2 rounded-xl border border-gray-200">
+                  <strong className="block text-gray-700">Observaciones:</strong>
+                  <span>{printShift.notes}</span>
+                </div>
+              )}
+
+              <div className="text-center text-[10px] text-gray-500 pt-1">
+                *** Documento generado por Sistema Pío Pío POS ***
+              </div>
+
+              {/* Botonera de Acciones: Descargar, Compartir, WhatsApp e Imprimir */}
+              <div className="space-y-2 pt-2">
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Botón Descargar Tirilla en Archivo .txt */}
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadTicket(printShift)}
+                    className="py-2.5 px-3 rounded-xl bg-gray-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+                    title="Descargar comprobante en formato texto"
+                  >
+                    <Download className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Descargar</span>
+                  </button>
+
+                  {/* Botón Compartir Tirilla */}
+                  <button
+                    type="button"
+                    onClick={() => handleShareTicket(printShift)}
+                    className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+                    title="Compartir tirilla por cualquier aplicación"
+                  >
+                    <Share2 className="w-3.5 h-3.5 text-white" />
+                    <span>Compartir</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  {/* Botón Compartir Directo a WhatsApp */}
+                  <button
+                    type="button"
+                    onClick={() => handleWhatsAppShare(printShift)}
+                    className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
+                    title="Enviar resumen de liquidación por WhatsApp"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5 text-white" />
+                    <span>WhatsApp</span>
+                  </button>
+
+                  {/* Botón Imprimir Tirilla Física */}
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="py-2.5 px-3 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-900 font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                    title="Imprimir en impresora térmica o guardar como PDF"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-gray-800" />
+                    <span>Imprimir</span>
+                  </button>
+                </div>
+
+                {/* Botón Cerrar */}
+                <button
+                  type="button"
+                  onClick={() => setPrintShift(null)}
+                  className="w-full py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs transition-all"
+                >
+                  Cerrar Comprobante
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* MODAL 5: CONFIRMACIÓN PREVIA PARA LIMPIEZA DE HISTORIAL */}
       {showClearHistoryModal && (

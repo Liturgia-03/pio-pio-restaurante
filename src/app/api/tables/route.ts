@@ -145,7 +145,7 @@ export async function GET() {
 
     const closedSessionsRaw = await prisma.tableSession.findMany({
       where: {
-        status: "CLOSED",
+        status: { in: ["CLOSED", "CANCELLED"] },
         closedAt: {
           gte: startOfToday,
         },

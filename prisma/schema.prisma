@@ -127,6 +127,7 @@ model RestaurantSettings {
   instagramUrl      String?  @default("")
   websiteUrl        String?  @default("")
   totalTables       Int      @default(15)
+  adminPin          String?  @default("1234") // PIN rápido de 4 dígitos para autorizaciones de administrador
   updatedAt         DateTime @updatedAt
 
   @@map("restaurant_settings")
@@ -213,6 +214,7 @@ enum TableStatus {
   PENDING_CONFIRMATION
   BILL_REQUESTED
   CLOSED
+  CANCELLED
 }
 
 enum ItemSource {
@@ -274,6 +276,23 @@ model Expense {
   @@index([date])
   @@index([category])
   @@map("expenses")
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  action       String   // "REACTIVATE_SESSION", "DELETE_SESSION", "EDIT_PAYMENT_METHOD", "CANCEL_SESSION", "REOPEN_SHIFT", "CLEAR_HISTORY"
+  description  String
+  reason       String
+  approvedBy   String   @default("Admin")
+  targetId     String?
+  targetType   String?  // "SESSION", "SHIFT", "EXPENSE", "HISTORY"
+  previousData String?  // JSON con estado previo
+  newData      String?  // JSON con nuevo estado
+  createdAt    DateTime @default(now())
+
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
 
 

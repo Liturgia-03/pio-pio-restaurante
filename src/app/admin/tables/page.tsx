@@ -22,9 +22,15 @@ import {
   DollarSign,
   UserCheck,
   Edit2,
+  RotateCcw,
+  Ban,
+  Wallet,
+  KeyRound,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TableCardData, TableSessionData, WaiterItem } from "@/types";
+import { AdminAuthModal } from "@/components/admin/AdminAuthModal";
 
 interface MenuItem {
   id: string;
@@ -132,6 +138,99 @@ export default function AdminTablesCashierPage() {
       currency: "COP",
       maximumFractionDigits: 0,
     }).format(val);
+  };
+
+  // Estados para modal de autorización administrativa con PIN
+  const [authModalConfig, setAuthModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    actionType:
+      | "REACTIVATE_SESSION"
+      | "EDIT_PAYMENT_METHOD"
+      | "CANCEL_SESSION"
+      | "DELETE_SESSION"
+      | "REOPEN_SHIFT"
+      | "CLEAR_HISTORY";
+    payload: Record<string, any>;
+    confirmButtonText?: string;
+    confirmButtonColor?: "amber" | "rose" | "emerald" | "blue";
+    detailsBadge?: string;
+  } | null>(null);
+
+  // Estados para modal de corrección de forma de pago
+  const [editingPaymentSession, setEditingPaymentSession] = useState<TableSessionData | null>(null);
+  const [selectedNewPaymentMethod, setSelectedNewPaymentMethod] = useState<"CASH" | "NEQUI" | "CARD" | "MIXED">("CASH");
+  const [mixedCashAmount, setMixedCashAmount] = useState<number>(0);
+  const [mixedTransferAmount, setMixedTransferAmount] = useState<number>(0);
+
+  // Handlers de autorización administrativa
+  const handleRequestReactivateSession = (session: TableSessionData) => {
+    setAuthModalConfig({
+      isOpen: true,
+      title: "Reactivar Cuenta Cobrada",
+      description: `La cuenta de ${session.tableNumber} volverá al estado ABIERTA en el panel de mesas y se reactivará su atención.`,
+      actionType: "REACTIVATE_SESSION",
+      payload: { sessionId: session.id },
+      confirmButtonText: "Autorizar y Reactivar",
+      confirmButtonColor: "amber",
+      detailsBadge: `${session.tableNumber} • Total: ${formatPrice(session.total)}`,
+    });
+  };
+
+  const handleRequestCancelSession = (session: TableSessionData) => {
+    setAuthModalConfig({
+      isOpen: true,
+      title: "Anulación Formal de Venta",
+      description: `La cuenta de ${session.tableNumber} quedará como ANULADA y no sumará a los reportes de ventas ni arqueos de caja.`,
+      actionType: "CANCEL_SESSION",
+      payload: { sessionId: session.id },
+      confirmButtonText: "Autorizar y Anular",
+      confirmButtonColor: "rose",
+      detailsBadge: `${session.tableNumber} • Total: ${formatPrice(session.total)}`,
+    });
+  };
+
+  const handleRequestDeleteSession = (session: TableSessionData) => {
+    setAuthModalConfig({
+      isOpen: true,
+      title: "Eliminación Definitiva de Cuenta",
+      description: `Esta cuenta y sus productos asociados serán eliminados permanentemente del sistema (queda respaldo en auditoría).`,
+      actionType: "DELETE_SESSION",
+      payload: { sessionId: session.id },
+      confirmButtonText: "Eliminar Permanentemente",
+      confirmButtonColor: "rose",
+      detailsBadge: `PELIGRO: Eliminar ${session.tableNumber} (${formatPrice(session.total)})`,
+    });
+  };
+
+  const handleOpenEditPaymentModal = (session: TableSessionData) => {
+    setEditingPaymentSession(session);
+    setSelectedNewPaymentMethod("CASH");
+    setMixedCashAmount(Math.round(session.total / 2));
+    setMixedTransferAmount(session.total - Math.round(session.total / 2));
+  };
+
+  const handleConfirmEditPaymentSelection = () => {
+    if (!editingPaymentSession) return;
+    const session = editingPaymentSession;
+    setEditingPaymentSession(null);
+
+    setAuthModalConfig({
+      isOpen: true,
+      title: "Cambiar Forma de Pago",
+      description: `Actualizar la forma de pago de ${session.tableNumber} a ${selectedNewPaymentMethod}. El arqueo de caja se recalibrará de inmediato.`,
+      actionType: "EDIT_PAYMENT_METHOD",
+      payload: {
+        sessionId: session.id,
+        newPaymentMethod: selectedNewPaymentMethod,
+        mixedCash: selectedNewPaymentMethod === "MIXED" ? mixedCashAmount : undefined,
+        mixedTransfer: selectedNewPaymentMethod === "MIXED" ? mixedTransferAmount : undefined,
+      },
+      confirmButtonText: "Autorizar y Cambiar",
+      confirmButtonColor: "blue",
+      detailsBadge: `${session.tableNumber} • Total: ${formatPrice(session.total)} • A: ${selectedNewPaymentMethod}`,
+    });
   };
 
   // Cargar datos de mesas
@@ -1526,10 +1625,10 @@ export default function AdminTablesCashierPage() {
                   return (
                     <div
                       key={session.id}
-                      className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-gray-900/30 transition-all text-xs"
+                      className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3 hover:bg-gray-900/30 transition-all text-xs"
                     >
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           {session.tableNumber.startsWith("BARRA") ? (
                             <span className="font-black text-amber-400 text-sm flex items-center gap-1.5">
                               <span>🥡</span> {session.tableNumber}
@@ -1541,12 +1640,18 @@ export default function AdminTablesCashierPage() {
                           )}
                           <span
                             className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                              session.tableNumber.startsWith("BARRA")
+                              session.status === "CANCELLED"
+                                ? "bg-rose-950 text-rose-300 border border-rose-800"
+                                : session.tableNumber.startsWith("BARRA")
                                 ? "bg-amber-950/80 text-amber-300 border border-amber-800"
                                 : "bg-emerald-950 text-emerald-300 border border-emerald-800"
                             }`}
                           >
-                            {session.tableNumber.startsWith("BARRA") ? "LLEVAR / BARRA" : "PAGADA"}
+                            {session.status === "CANCELLED"
+                              ? "VENTA ANULADA"
+                              : session.tableNumber.startsWith("BARRA")
+                              ? "LLEVAR / BARRA"
+                              : "PAGADA"}
                           </span>
                           <span className="text-gray-400">🕒 {closeTime}</span>
                         </div>
@@ -1561,13 +1666,63 @@ export default function AdminTablesCashierPage() {
                         </div>
                       </div>
 
-                      <div className="text-right">
-                        <span className="text-base font-black text-amber-400 block">
-                          {formatPrice(session.total)}
-                        </span>
-                        <span className="text-[10px] text-gray-500">
-                          {session.items.filter((i) => i.status !== "CANCELLED").length} productos
-                        </span>
+                      <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3 self-end lg:self-auto">
+                        <div className="text-right">
+                          <span className="text-base font-black text-amber-400 block">
+                            {formatPrice(session.total)}
+                          </span>
+                          <span className="text-[10px] text-gray-500">
+                            {session.items.filter((i) => i.status !== "CANCELLED").length} productos
+                          </span>
+                        </div>
+
+                        {/* Botones de Gestión con Seguridad y Auditoría */}
+                        <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                          {/* 1. Reactivar Cuenta Cobrada */}
+                          <button
+                            type="button"
+                            onClick={() => handleRequestReactivateSession(session)}
+                            title="Reactivar cuenta cobrada por error (Vuelve a estado ABIERTA)"
+                            className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-bold text-[11px] flex items-center gap-1.5 transition-all border border-amber-500/20"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>Reactivar</span>
+                          </button>
+
+                          {/* 2. Cambiar Método de Pago */}
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditPaymentModal(session)}
+                            title="Cambiar forma de pago (Efectivo / Nequi / Tarjeta / Mixto)"
+                            className="px-2.5 py-1.5 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 font-bold text-[11px] flex items-center gap-1.5 transition-all border border-blue-500/20"
+                          >
+                            <CreditCard className="w-3.5 h-3.5" />
+                            <span>Pago</span>
+                          </button>
+
+                          {/* 3. Anular Venta Formalmente */}
+                          {session.status !== "CANCELLED" && (
+                            <button
+                              type="button"
+                              onClick={() => handleRequestCancelSession(session)}
+                              title="Anular venta formalmente (No sumará a caja)"
+                              className="px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-bold text-[11px] flex items-center gap-1.5 transition-all border border-rose-500/20"
+                            >
+                              <Ban className="w-3.5 h-3.5" />
+                              <span>Anular</span>
+                            </button>
+                          )}
+
+                          {/* 4. Eliminar Definitivamente */}
+                          <button
+                            type="button"
+                            onClick={() => handleRequestDeleteSession(session)}
+                            title="Eliminar cuenta definitivamente del sistema"
+                            className="p-1.5 rounded-xl bg-gray-800 hover:bg-rose-950/60 text-gray-400 hover:text-rose-300 font-bold text-[11px] transition-all border border-gray-700/50"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
@@ -2373,6 +2528,160 @@ export default function AdminTablesCashierPage() {
             </div>
           </form>
         </div>
+      )}
+
+      {/* MODAL DE SELECCIÓN DE NUEVA FORMA DE PAGO */}
+      {editingPaymentSession && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm bg-[#12141a] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-gray-800">
+              <div className="flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-amber-400" />
+                <h3 className="text-sm font-black text-white">
+                  Cambiar Forma de Pago
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingPaymentSession(null)}
+                className="text-gray-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-gray-900/60 border border-gray-800 flex justify-between items-center text-xs">
+              <span className="font-bold text-gray-300">{editingPaymentSession.tableNumber}</span>
+              <span className="font-black text-amber-400">{formatPrice(editingPaymentSession.total)}</span>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-400">
+                Selecciona la forma de pago real:
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedNewPaymentMethod("CASH")}
+                  className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 transition-all ${
+                    selectedNewPaymentMethod === "CASH"
+                      ? "bg-amber-500/20 border-amber-500 text-amber-400 font-black"
+                      : "bg-[#181b22] border-gray-800 text-gray-300 hover:border-gray-700"
+                  }`}
+                >
+                  <DollarSign className="w-4 h-4 text-emerald-400" />
+                  <span>Efectivo</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedNewPaymentMethod("NEQUI")}
+                  className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 transition-all ${
+                    selectedNewPaymentMethod === "NEQUI"
+                      ? "bg-purple-500/20 border-purple-500 text-purple-300 font-black"
+                      : "bg-[#181b22] border-gray-800 text-gray-300 hover:border-gray-700"
+                  }`}
+                >
+                  <Wallet className="w-4 h-4 text-purple-400" />
+                  <span>Nequi / Daviplata</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedNewPaymentMethod("CARD")}
+                  className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 transition-all ${
+                    selectedNewPaymentMethod === "CARD"
+                      ? "bg-blue-500/20 border-blue-500 text-blue-300 font-black"
+                      : "bg-[#181b22] border-gray-800 text-gray-300 hover:border-gray-700"
+                  }`}
+                >
+                  <CreditCard className="w-4 h-4 text-blue-400" />
+                  <span>Datáfono / Tarjeta</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedNewPaymentMethod("MIXED")}
+                  className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 transition-all ${
+                    selectedNewPaymentMethod === "MIXED"
+                      ? "bg-emerald-500/20 border-emerald-500 text-emerald-300 font-black"
+                      : "bg-[#181b22] border-gray-800 text-gray-300 hover:border-gray-700"
+                  }`}
+                >
+                  <RotateCcw className="w-4 h-4 text-emerald-400" />
+                  <span>Pago Mixto</span>
+                </button>
+              </div>
+            </div>
+
+            {selectedNewPaymentMethod === "MIXED" && (
+              <div className="space-y-2 p-3 bg-gray-900/40 rounded-2xl border border-gray-800 text-xs">
+                <div>
+                  <label className="text-[10px] text-gray-400 block mb-1">Monto en Efectivo ($):</label>
+                  <input
+                    type="number"
+                    value={mixedCashAmount}
+                    onChange={(e) => {
+                      const cash = Math.max(0, parseInt(e.target.value, 10) || 0);
+                      setMixedCashAmount(cash);
+                      setMixedTransferAmount(Math.max(0, editingPaymentSession.total - cash));
+                    }}
+                    className="w-full bg-[#14161a] border border-gray-700 rounded-xl px-3 py-1.5 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-400 block mb-1">Monto en Transferencia ($):</label>
+                  <input
+                    type="number"
+                    value={mixedTransferAmount}
+                    onChange={(e) => {
+                      const trans = Math.max(0, parseInt(e.target.value, 10) || 0);
+                      setMixedTransferAmount(trans);
+                      setMixedCashAmount(Math.max(0, editingPaymentSession.total - trans));
+                    }}
+                    className="w-full bg-[#14161a] border border-gray-700 rounded-xl px-3 py-1.5 text-white font-mono"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditingPaymentSession(null)}
+                className="flex-1 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs rounded-xl"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmEditPaymentSelection}
+                className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-lg shadow-blue-500/20"
+              >
+                Continuar a Autorización
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL UNIVERSAL DE AUTORIZACIÓN ADMINISTRATIVA CON PIN */}
+      {authModalConfig && (
+        <AdminAuthModal
+          isOpen={authModalConfig.isOpen}
+          onClose={() => setAuthModalConfig(null)}
+          onSuccess={() => {
+            setAuthModalConfig(null);
+            loadTables(true);
+          }}
+          title={authModalConfig.title}
+          description={authModalConfig.description}
+          actionType={authModalConfig.actionType}
+          payload={authModalConfig.payload}
+          confirmButtonText={authModalConfig.confirmButtonText}
+          confirmButtonColor={authModalConfig.confirmButtonColor}
+          detailsBadge={authModalConfig.detailsBadge}
+        />
       )}
     </div>
   );

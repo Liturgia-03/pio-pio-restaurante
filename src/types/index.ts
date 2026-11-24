@@ -80,7 +80,7 @@ export interface ApiResponse<T = any> {
   error?: string | null;
 }
 
-export type TableStatus = "OPEN" | "PENDING_CONFIRMATION" | "BILL_REQUESTED" | "CLOSED";
+export type TableStatus = "OPEN" | "PENDING_CONFIRMATION" | "BILL_REQUESTED" | "CLOSED" | "CANCELLED";
 export type ItemSource = "CUSTOMER_QR" | "WAITER" | "ADMIN_CASHIER";
 export type ItemStatus = "PENDING_CONFIRMATION" | "CONFIRMED" | "CANCELLED";
 

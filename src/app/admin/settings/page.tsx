@@ -47,6 +47,8 @@ export default function AdminSettingsPage() {
 
   // Credenciales de administración (Usuario y Contraseña)
   const [adminUsername, setAdminUsername] = useState("");
+  const [adminPin, setAdminPin] = useState("1234");
+  const [showAdminPin, setShowAdminPin] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -78,6 +80,7 @@ export default function AdminSettingsPage() {
       if (settings.instagramUrl) setInstagramUrl(settings.instagramUrl);
       if (settings.websiteUrl) setWebsiteUrl(settings.websiteUrl);
       if (settings.adminUsername) setAdminUsername(settings.adminUsername);
+      if (settings.adminPin) setAdminPin(settings.adminPin);
       if (settings.headerImages && Array.isArray(settings.headerImages)) {
         setHeaderImages(settings.headerImages);
       }
@@ -141,6 +144,7 @@ export default function AdminSettingsPage() {
       headerTagline: headerTagline.trim(),
       headerDescription: headerDescription.trim(),
       adminUsername: adminUsername.trim(),
+      adminPin: adminPin.trim() || "1234",
       ...(newPassword ? { currentPassword, newPassword, confirmPassword } : {}),
     });
   };
@@ -365,20 +369,53 @@ export default function AdminSettingsPage() {
             Desde aquí puedes cambiar tu <strong>Usuario</strong>, tu <strong>Contraseña</strong> o ambos en cualquier momento.
           </p>
 
-          {/* Campo Usuario */}
-          <div className="space-y-1 max-w-sm">
-            <label className="text-[11px] font-bold text-gray-300 flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-amber-400" />
-              <span>Usuario Administrador</span>
-            </label>
-            <input
-              type="text"
-              required
-              value={adminUsername}
-              onChange={(e) => setAdminUsername(e.target.value)}
-              placeholder="Ej: Piopio123"
-              className="w-full bg-[#14161a] border border-gray-800 rounded-xl px-3.5 py-2 text-xs text-white font-semibold focus:outline-none focus:border-amber-500"
-            />
+          {/* Campos Usuario y PIN de Autorización Rápida */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 max-w-xl">
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-gray-300 flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-amber-400" />
+                <span>Usuario Administrador</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={adminUsername}
+                onChange={(e) => setAdminUsername(e.target.value)}
+                placeholder="Ej: Piopio123"
+                className="w-full bg-[#14161a] border border-gray-800 rounded-xl px-3.5 py-2 text-xs text-white font-semibold focus:outline-none focus:border-amber-500"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-gray-300 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+                  <span>PIN de Autorización Rápida (4 dígitos)</span>
+                </span>
+              </label>
+              <div className="relative">
+                <input
+                  type={showAdminPin ? "text" : "password"}
+                  maxLength={6}
+                  required
+                  value={adminPin}
+                  onChange={(e) => setAdminPin(e.target.value)}
+                  placeholder="1234"
+                  className="w-full bg-[#14161a] border border-gray-800 rounded-xl pl-3.5 pr-8 py-2 text-xs font-mono font-bold tracking-wider text-amber-400 focus:outline-none focus:border-amber-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAdminPin(!showAdminPin)}
+                  tabIndex={-1}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-amber-400"
+                >
+                  {showAdminPin ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+              <p className="text-[10px] text-gray-500">
+                Usado en Caja y Mesas para reactivar cuentas, cambiar pagos y reabrir turnos.
+              </p>
+            </div>
           </div>
 
           <div className="pt-1">

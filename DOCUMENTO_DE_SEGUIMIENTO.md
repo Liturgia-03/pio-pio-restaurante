@@ -1258,6 +1258,39 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del proyecto.
 
+### Hito 73: Sistema de Seguridad con PIN, Registro Inmutable de Auditoría y Gestión de Cuentas (Reactivación, Corrección de Pago, Anulación y Purga)
+- **Solicitud del usuario:** Implementar opciones de reactivar una cuenta en caso de que se haya cobrado por error, eliminar o limpiar reportes o historial, y otras opciones recomendadas; todas estas opciones deben ser aprobadas mediante el PIN o contraseña de admin y dejar registro inmutable de estas acciones.
+- **Solución Quirúrgica Implementada:**
+  1. **Modelo de Datos y Seguridad en Prisma (`prisma/schema.prisma`):**
+     - Añadido campo `adminPin String? @default("1234")` a `RestaurantSettings` para configuración de PIN de 4 dígitos rápido para tabletas táctiles.
+     - Añadido valor `CANCELLED` al enum `TableStatus` para marcar ventas anuladas formalmente.
+     - Creado modelo `AuditLog` (`id`, `action`, `description`, `reason`, `approvedBy`, `targetId`, `targetType`, `previousData`, `newData`, `createdAt`).
+     - Sincronización exitosa con la base de datos PostgreSQL de Supabase vía `prisma db push` y cliente Prisma regenerado.
+  2. **Motor de Verificación y Auditoría ([src/lib/admin-auth-check.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/lib/admin-auth-check.ts)):**
+     - `verifyAdminAuthorization(pinOrPassword)`: Valida contra el PIN administrativo rápido (configurable en Ajustes Asadero, por defecto 1234), contra la contraseña de usuarios con rol `ADMIN`, o contra `ADMIN_INITIAL_PASSWORD`.
+     - `logAuditEvent(...)`: Inserta de forma inmutable el registro con motivo justificado (mínimo 3 caracteres), usuario que autorizó, instantáneas de datos previos (`previousData`) y nuevos (`newData`).
+  3. **Endpoints de API de Auditoría:**
+     - [src/app/api/admin/audit/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/audit/route.ts): `GET` con filtros por tipo de acción y límite de registros para consulta en el panel.
+     - [src/app/api/admin/audit/actions/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/audit/actions/route.ts): `POST` protegido que ejecuta quirúrgicamente:
+       - `REACTIVATE_SESSION`: Reactiva cuentas cobradas por error cambiando su estado a `OPEN` y restableciendo su disponibilidad en mesas.
+       - `EDIT_PAYMENT_METHOD`: Corrige el método de pago (Efectivo, Nequi, Tarjeta o Mixto) de cuentas cobradas, recalibrando el arqueo de caja sin alterar los productos de la comanda.
+       - `CANCEL_SESSION`: Anula formalmente una venta (`CANCELLED`), excluyéndola de los totales de ventas y proyecciones de caja.
+       - `DELETE_SESSION`: Elimina definitivamente una cuenta dejando respaldo de sus ítems y montos en `AuditLog`.
+       - `REOPEN_SHIFT`: Reabre un turno de caja cerrado por error para permitir continuar registrando ventas y gastos en dicho turno.
+       - `CLEAR_HISTORY`: Purga selectivamente cuentas y/o gastos de prueba dentro de un rango de fechas especificado.
+  4. **Componente Reutilizable de Autorización ([src/components/admin/AdminAuthModal.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminAuthModal.tsx)):**
+     - Modal ergonómico con teclado numérico táctil para tablets, selector de visibilidad de PIN/contraseña, textarea para motivo/justificación obligatoria y distintivo visual según la severidad de la acción.
+  5. **Integración en Gestión de Mesas ([src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+     - En la pestaña "Cuentas Hoy", cada cuenta cobrada o anulada cuenta ahora con botones de gestión inmediata: 🔄 *Reactivar*, 💳 *Pago*, 🚫 *Anular* y 🗑️ *Eliminar*, todos protegidos por autorización con PIN.
+  6. **Integración en Caja & Contabilidad ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)):**
+     - Botón de 🔄 *Reabrir* turno en el historial de turnos liquidados.
+     - Botón de 🗑️ *Limpiar Historial / Pruebas* con selector de fechas en la pestaña de reportes.
+     - Nueva pestaña **🛡️ Auditoría & Seguridad PIN** que lista la bitácora inmutable de todas las acciones aprobadas, filtrable por tipo de acción y con actualización en vivo.
+  7. **Configuración de PIN en Ajustes ([src/app/admin/settings/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/settings/page.tsx)):**
+     - Campo editable para el "PIN de Autorización Rápida (4 dígitos)" con opción de mostrar/ocultar y persistencia en base de datos.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del proyecto.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

@@ -28,10 +28,16 @@ import {
   User,
   ShoppingBag,
   Flame,
+  RotateCcw,
+  ShieldCheck,
+  ShieldAlert,
+  KeyRound,
+  History,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
 import { EXPENSE_CATEGORIES } from "@/lib/caja-helpers";
+import { AdminAuthModal } from "@/components/admin/AdminAuthModal";
 
 interface CashShiftData {
   id: string;
@@ -97,7 +103,7 @@ interface ReportData {
 }
 
 export function AdminCajaView() {
-  const [activeTab, setActiveTab] = useState<"shift" | "expenses" | "reports">("shift");
+  const [activeTab, setActiveTab] = useState<"shift" | "expenses" | "reports" | "audit">("shift");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -105,6 +111,37 @@ export function AdminCajaView() {
   const [activeShift, setActiveShift] = useState<CashShiftData | null>(null);
   const [liveData, setLiveData] = useState<any>(null);
   const [recentClosedShifts, setRecentClosedShifts] = useState<CashShiftData[]>([]);
+
+  // Datos de auditoría
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [auditActionFilter, setAuditActionFilter] = useState<string>("ALL");
+  const [isAuditLoading, setIsAuditLoading] = useState<boolean>(false);
+
+  // Modal para limpieza de historial
+  const [showClearHistoryModal, setShowClearHistoryModal] = useState<boolean>(false);
+  const [clearStartDate, setClearStartDate] = useState<string>(
+    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  );
+  const [clearEndDate, setClearEndDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [clearIncludeExpenses, setClearIncludeExpenses] = useState<boolean>(false);
+
+  // Modal de autorización administrativa con PIN
+  const [authModalConfig, setAuthModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    actionType:
+      | "REACTIVATE_SESSION"
+      | "EDIT_PAYMENT_METHOD"
+      | "CANCEL_SESSION"
+      | "DELETE_SESSION"
+      | "REOPEN_SHIFT"
+      | "CLEAR_HISTORY";
+    payload: Record<string, any>;
+    confirmButtonText?: string;
+    confirmButtonColor?: "amber" | "rose" | "emerald" | "blue";
+    detailsBadge?: string;
+  } | null>(null);
 
   // Datos de gastos
   const [expensesList, setExpensesList] = useState<ExpenseItem[]>([]);
@@ -205,6 +242,82 @@ export function AdminCajaView() {
       fetchReport();
     }
   }, [activeTab, fetchReport]);
+
+  // 4. Cargar bitácora de auditoría
+  const fetchAuditLogs = useCallback(async () => {
+    setIsAuditLoading(true);
+    try {
+      let url = "/api/admin/audit?limit=100";
+      if (auditActionFilter !== "ALL") {
+        url += `&action=${auditActionFilter}`;
+      }
+      const res = await fetch(url);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setAuditLogs(json.data);
+      }
+    } catch (err) {
+      console.error("Error al cargar auditoría:", err);
+    } finally {
+      setIsAuditLoading(false);
+    }
+  }, [auditActionFilter]);
+
+  useEffect(() => {
+    if (activeTab === "audit") {
+      fetchAuditLogs();
+    }
+  }, [activeTab, fetchAuditLogs]);
+
+  // Handler para reabrir turno cerrado
+  const handleRequestReopenShift = (shift: CashShiftData) => {
+    if (activeShift) {
+      toast.error(
+        `Ya existe un turno abierto actualmente (#${activeShift.id.slice(-4)}). Debes cerrarlo antes de reabrir este turno.`
+      );
+      return;
+    }
+
+    setAuthModalConfig({
+      isOpen: true,
+      title: "Reabrir Turno de Caja Liquidado",
+      description: `El turno del ${new Date(shift.openedAt).toLocaleDateString()} volverá a estar ABIERTO. Podrás continuar registrando ventas y gastos en este turno.`,
+      actionType: "REOPEN_SHIFT",
+      payload: { shiftId: shift.id },
+      confirmButtonText: "Autorizar y Reabrir Turno",
+      confirmButtonColor: "amber",
+      detailsBadge: `Turno #${shift.id.slice(-4)} • Ventas: ${formatPrice(
+        (shift.totalSalesCash || 0) + (shift.totalSalesDigital || 0) + (shift.totalSalesCard || 0)
+      )}`,
+    });
+  };
+
+  // Handler para limpieza de historial
+  const handleConfirmClearHistory = () => {
+    if (!clearStartDate || !clearEndDate) {
+      toast.error("Selecciona el rango de fechas para la limpieza");
+      return;
+    }
+
+    setShowClearHistoryModal(false);
+
+    setAuthModalConfig({
+      isOpen: true,
+      title: "Limpieza Masiva de Historial / Pruebas",
+      description: `Se eliminarán permanentemente todas las cuentas cobradas entre el ${clearStartDate} y el ${clearEndDate}${
+        clearIncludeExpenses ? " y sus gastos registrados" : ""
+      }. Esta acción no se puede deshacer.`,
+      actionType: "CLEAR_HISTORY",
+      payload: {
+        startDate: clearStartDate,
+        endDate: clearEndDate,
+        includeExpenses: clearIncludeExpenses,
+      },
+      confirmButtonText: "Autorizar y Purgar Datos",
+      confirmButtonColor: "rose",
+      detailsBadge: `PERÍODO: ${clearStartDate} al ${clearEndDate}${clearIncludeExpenses ? " (+ Gastos)" : ""}`,
+    });
+  };
 
   // Intervalo para actualizar el arqueo en vivo cada 15 segundos
   useEffect(() => {
@@ -472,6 +585,19 @@ export function AdminCajaView() {
         >
           <TrendingUp className="w-4 h-4" />
           <span>Histórico & Reportes Contables</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("audit")}
+          className={`py-3 px-3.5 font-bold text-xs flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+            activeTab === "audit"
+              ? "border-amber-500 text-amber-400 font-black"
+              : "border-transparent text-gray-400 hover:text-gray-200"
+          }`}
+        >
+          <ShieldAlert className="w-4 h-4" />
+          <span>Auditoría & Seguridad PIN</span>
         </button>
       </div>
 
@@ -777,14 +903,25 @@ export function AdminCajaView() {
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => setPrintShift(s)}
-                        className="w-full py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-[10px] font-bold flex items-center justify-center gap-1.5 transition-all"
-                      >
-                        <Printer className="w-3 h-3" />
-                        <span>Ver / Imprimir Tirilla</span>
-                      </button>
+                      <div className="flex gap-1.5 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setPrintShift(s)}
+                          className="flex-1 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-[10px] font-bold flex items-center justify-center gap-1.5 transition-all"
+                        >
+                          <Printer className="w-3 h-3" />
+                          <span>Tirilla</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRequestReopenShift(s)}
+                          title="Reabrir este turno si fue liquidado por error"
+                          className="px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-bold text-[10px] flex items-center justify-center gap-1 transition-all border border-amber-500/20"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          <span>Reabrir</span>
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -1033,16 +1170,28 @@ export function AdminCajaView() {
             )}
           </div>
 
-          {/* Subtítulo de Confirmación del Rango Activo */}
+          {/* Subtítulo de Confirmación del Rango Activo & Botón de Limpieza */}
           {reportData?.periodLabel && (
-            <div className="flex items-center justify-between text-xs text-gray-400 px-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-gray-400 px-1">
               <span className="flex items-center gap-1.5 text-amber-400 font-bold">
                 <Calendar className="w-3.5 h-3.5" />
                 <span>{reportData.periodLabel}</span>
+                <span className="text-[11px] text-gray-500 font-normal">
+                  (Del {new Date(reportData.startDate).toLocaleDateString()} al{" "}
+                  {new Date(reportData.endDate).toLocaleDateString()})
+                </span>
               </span>
-              <span className="text-[11px] text-gray-500">
-                Del {new Date(reportData.startDate).toLocaleDateString()} al {new Date(reportData.endDate).toLocaleDateString()}
-              </span>
+
+              {/* Botón de Limpieza de Historial / Pruebas */}
+              <button
+                type="button"
+                onClick={() => setShowClearHistoryModal(true)}
+                className="px-3 py-1.5 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 font-bold text-[11px] border border-rose-800/40 flex items-center gap-1.5 self-start sm:self-auto transition-all"
+                title="Eliminar o limpiar cuentas de prueba en un rango de fechas con autorización PIN"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Limpiar Historial / Pruebas</span>
+              </button>
             </div>
           )}
 
@@ -1216,6 +1365,133 @@ export function AdminCajaView() {
               )}
             </>
           ) : null}
+        </div>
+      )}
+
+      {/* ======================================================================= */}
+      {/* 6. PESTAÑA 4: AUDITORÍA & SEGURIDAD PIN                                 */}
+      {/* ======================================================================= */}
+      {activeTab === "audit" && (
+        <div className="p-4 sm:p-6 space-y-4 overflow-y-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-800">
+            <div>
+              <h2 className="text-sm font-black text-white flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4 text-amber-400" />
+                <span>Bitácora de Auditoría & Seguridad PIN</span>
+              </h2>
+              <p className="text-[11px] text-gray-400">
+                Registro inmutable de todas las acciones sensibles autorizadas con PIN o contraseña de Administrador.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <select
+                value={auditActionFilter}
+                onChange={(e) => setAuditActionFilter(e.target.value)}
+                className="bg-[#14161a] border border-gray-800 rounded-xl px-3 py-1.5 text-xs text-gray-300 focus:outline-none focus:border-amber-500 font-bold"
+              >
+                <option value="ALL">Todas las acciones</option>
+                <option value="REACTIVATE_SESSION">Reactivación de Cuentas</option>
+                <option value="EDIT_PAYMENT_METHOD">Cambios de Forma de Pago</option>
+                <option value="CANCEL_SESSION">Anulaciones de Venta</option>
+                <option value="DELETE_SESSION">Eliminación de Cuentas</option>
+                <option value="REOPEN_SHIFT">Reapertura de Turnos</option>
+                <option value="CLEAR_HISTORY">Limpieza de Historial</option>
+              </select>
+
+              <button
+                type="button"
+                onClick={fetchAuditLogs}
+                disabled={isAuditLoading}
+                className="p-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-all"
+                title="Actualizar bitácora"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isAuditLoading ? "animate-spin" : ""}`} />
+              </button>
+            </div>
+          </div>
+
+          {/* Registros de Auditoría */}
+          {isAuditLoading ? (
+            <div className="py-20 text-center text-xs text-gray-500 flex flex-col items-center justify-center gap-2">
+              <RefreshCw className="w-6 h-6 animate-spin text-amber-500" />
+              <span>Cargando registros de auditoría...</span>
+            </div>
+          ) : auditLogs.length === 0 ? (
+            <div className="py-16 text-center text-xs text-gray-500 bg-[#14161a] border border-gray-800 rounded-3xl p-8 space-y-2">
+              <ShieldCheck className="w-8 h-8 text-emerald-500/40 mx-auto" />
+              <p className="font-bold text-gray-400">Sin acciones críticas registradas</p>
+              <p className="text-[11px] text-gray-500">
+                Cada vez que un administrador use su PIN para reactivar una cuenta, cambiar un método de pago, anular una venta o reabrir un turno, aparecerá aquí detallado.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-[#14161a] border border-gray-800 rounded-3xl overflow-hidden divide-y divide-gray-800/80">
+              {auditLogs.map((log: any) => {
+                const badgeColor =
+                  log.action === "REACTIVATE_SESSION"
+                    ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                    : log.action === "EDIT_PAYMENT_METHOD"
+                    ? "bg-blue-500/20 text-blue-300 border-blue-500/30"
+                    : log.action === "CANCEL_SESSION"
+                    ? "bg-rose-500/20 text-rose-300 border-rose-500/30"
+                    : log.action === "DELETE_SESSION"
+                    ? "bg-red-500/20 text-red-400 border-red-500/30"
+                    : log.action === "REOPEN_SHIFT"
+                    ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/30"
+                    : "bg-purple-500/20 text-purple-300 border-purple-500/30";
+
+                const actionLabel =
+                  log.action === "REACTIVATE_SESSION"
+                    ? "Reactivación"
+                    : log.action === "EDIT_PAYMENT_METHOD"
+                    ? "Cambio de Pago"
+                    : log.action === "CANCEL_SESSION"
+                    ? "Venta Anulada"
+                    : log.action === "DELETE_SESSION"
+                    ? "Cuenta Eliminada"
+                    : log.action === "REOPEN_SHIFT"
+                    ? "Turno Reabierto"
+                    : log.action === "CLEAR_HISTORY"
+                    ? "Limpieza Historial"
+                    : log.action;
+
+                return (
+                  <div
+                    key={log.id}
+                    className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-900/30 transition-all text-xs"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span
+                          className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${badgeColor}`}
+                        >
+                          {actionLabel}
+                        </span>
+                        <span className="font-bold text-white text-xs">
+                          {log.description}
+                        </span>
+                        <span className="text-[10px] text-gray-500">
+                          🕒 {new Date(log.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-gray-300">
+                        <strong className="text-gray-400">Justificación:</strong> &quot;{log.reason}&quot;
+                      </p>
+                      <p className="text-[10px] text-gray-500">
+                        Aprobado por: <span className="font-semibold text-gray-300">{log.approvedBy}</span>
+                        {log.targetType && (
+                          <span className="ml-2 font-mono text-[9px] text-gray-600">
+                            [{log.targetType}]
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -1738,6 +2014,116 @@ export function AdminCajaView() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* MODAL 5: CONFIRMACIÓN PREVIA PARA LIMPIEZA DE HISTORIAL */}
+      {showClearHistoryModal && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+          onClick={() => setShowClearHistoryModal(false)}
+        >
+          <div
+            className="w-full max-w-md bg-[#14161f] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+              <h3 className="text-sm font-black text-rose-400 flex items-center gap-2">
+                <Trash2 className="w-4 h-4" />
+                <span>Limpieza de Historial / Pruebas</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowClearHistoryModal(false)}
+                className="w-7 h-7 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-rose-950/20 border border-rose-800/30 text-rose-300 text-xs leading-relaxed space-y-1">
+              <p className="font-bold">⚠️ Atención: Acción destructiva</p>
+              <p className="text-[11px] text-rose-200/80">
+                Esta acción eliminará de forma irreversible las ventas y cuentas del período seleccionado. Se requiere autorización obligatoria con PIN de Administrador.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider block mb-1">
+                    FECHA INICIAL
+                  </label>
+                  <input
+                    type="date"
+                    value={clearStartDate}
+                    onChange={(e) => setClearStartDate(e.target.value)}
+                    className="w-full bg-[#181b24] border border-gray-800 focus:border-rose-500 rounded-xl px-3 py-2 text-xs font-mono text-white outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider block mb-1">
+                    FECHA FINAL
+                  </label>
+                  <input
+                    type="date"
+                    value={clearEndDate}
+                    onChange={(e) => setClearEndDate(e.target.value)}
+                    className="w-full bg-[#181b24] border border-gray-800 focus:border-rose-500 rounded-xl px-3 py-2 text-xs font-mono text-white outline-none"
+                  />
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2.5 p-3 rounded-xl bg-[#181b24] border border-gray-800 cursor-pointer text-xs text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={clearIncludeExpenses}
+                  onChange={(e) => setClearIncludeExpenses(e.target.checked)}
+                  className="rounded border-gray-700 text-rose-500 focus:ring-rose-500 w-4 h-4 bg-gray-900"
+                />
+                <span>Eliminar también los egresos / gastos de este período</span>
+              </label>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowClearHistoryModal(false)}
+                className="flex-1 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmClearHistory}
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-700 hover:to-red-800 text-white font-black text-xs shadow-lg shadow-rose-600/20"
+              >
+                Continuar a Autorización
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL UNIVERSAL DE AUTORIZACIÓN ADMINISTRATIVA CON PIN */}
+      {authModalConfig && (
+        <AdminAuthModal
+          isOpen={authModalConfig.isOpen}
+          onClose={() => setAuthModalConfig(null)}
+          onSuccess={() => {
+            setAuthModalConfig(null);
+            fetchShiftData();
+            fetchExpenses();
+            if (activeTab === "reports") fetchReport();
+            if (activeTab === "audit") fetchAuditLogs();
+          }}
+          title={authModalConfig.title}
+          description={authModalConfig.description}
+          actionType={authModalConfig.actionType}
+          payload={authModalConfig.payload}
+          confirmButtonText={authModalConfig.confirmButtonText}
+          confirmButtonColor={authModalConfig.confirmButtonColor}
+          detailsBadge={authModalConfig.detailsBadge}
+        />
       )}
     </div>
   );

@@ -69,6 +69,7 @@ export async function GET() {
         headerTagline: settings.headerTagline || "Asadero & Restaurante Tradicional",
         headerDescription: settings.headerDescription || "El auténtico sabor a la brasa, broaster y platos típicos",
         adminUsername: adminUser?.name || adminUser?.email || "Piopio123",
+        adminPin: settings.adminPin || "1234",
       },
     });
   } catch (error: any) {
@@ -107,6 +108,7 @@ export async function PUT(request: Request) {
         ...(headerImagesStr !== undefined ? { headerImages: headerImagesStr } : {}),
         ...(body.headerTagline !== undefined ? { headerTagline: body.headerTagline } : {}),
         ...(body.headerDescription !== undefined ? { headerDescription: body.headerDescription } : {}),
+        ...(body.adminPin !== undefined ? { adminPin: String(body.adminPin).trim() || "1234" } : {}),
       },
       create: {
         id: "default",

@@ -118,7 +118,8 @@ export async function POST(request: Request) {
     } else if (paymentMethod === "CARD") {
       paymentDesc = "Datáfono/Tarjeta";
     } else if (paymentMethod === "MIXED") {
-      paymentDesc = `Pago Mixto (Efectivo: $${Number(mixedCash || 0).toLocaleString()} + Nequi: $${Number(mixedTransfer || 0).toLocaleString()})`;
+      const changeStr = cashChange && Number(cashChange) > 0 ? `, Cambio: $${Number(cashChange).toLocaleString()}` : "";
+      paymentDesc = `Pago Mixto (Efectivo: $${Number(mixedCash || 0).toLocaleString()}${changeStr} + Nequi: $${Number(mixedTransfer || 0).toLocaleString()})`;
     }
 
     const clientLabel = customerName.trim() || "Cliente Mostrador";

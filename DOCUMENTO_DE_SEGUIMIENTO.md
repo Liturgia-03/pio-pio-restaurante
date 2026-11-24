@@ -1181,6 +1181,41 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 25 rutas del proyecto.
 
+### Hito 70: Auditoría y Perfeccionamiento Integral de Formas de Pago en Barra Rápida (Efectivo, Nequi, Tarjeta y Mixto)
+- **Solicitud del usuario:** Revisar toda la lógica y funcionalidades de las opciones de formas de pago: efectivo, nequi, tarjeta y mixto; asegurando que todas funcionen correctamente.
+- **Solución Quirúrgica Implementada:**
+  1. **Auditoría y Lógica de Medios de Pago en Venta Inmediata ("Paga Ahora") ([src/components/admin/AdminBarraView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraView.tsx)):**
+     - **Efectivo (`CASH`):**
+       - Panel de auto-suma táctil con 6 billetes configurables ($100k, $50k, $20k, $10k, $5k, $2k).
+       - Bandeja interactiva con chips de billetes entregados y botón individual `✕` para remover billetes ingresados por error.
+       - Botón "Exacto" que asigna el monto exacto de la cuenta (cambio = $0).
+       - Botón "Limpiar" para resetear los billetes entregados.
+       - Cálculo reactivo en vivo de `totalCashReceived` y `cashChange`.
+       - Validación estricta que impide procesar pagos si el efectivo recibido es menor al total a cobrar.
+     - **Nequi / Daviplata (`NEQUI`):**
+       - Panel informativo con temática púrpura de Nequi que resalta el monto exacto a transferir e instruye al cajero a verificar el comprobante digital en el teléfono antes de despachar el pedido.
+       - Envío de payload limpio con método `NEQUI`.
+     - **Datáfono / Tarjeta (`CARD`):**
+       - Panel informativo con temática azul cian que resalta el monto exacto a ingresar en el datáfono físico e instruye la verificación del voucher aprobado.
+       - Envío de payload limpio con método `CARD`.
+     - **Pago Mixto (`MIXED`):**
+       - Selector interactivo con inputs numéricos para la parte en Efectivo (`mixedCash`) y la parte Digital (`mixedTransfer`).
+       - Botón de división rápida "50% / 50%" y balanceo automático en tiempo real.
+       - La calculadora de billetes de efectivo se ajusta automáticamente para calcular vueltas sobre la parte pactada en efectivo (`mixedCash`), evitando cobros erróneos.
+       - Se corrigió la discrepancia de nombres en el payload: anteriormente se enviaba `transferAmount`, ahora se envían `mixedCash` y `mixedTransfer` alineados exactamente con el backend.
+  2. **Multi-Medio de Pago en Cobro al Retirar ("Paga al Entregar") ([src/components/admin/AdminBarraView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraView.tsx)):**
+     - Anteriormente el modal `deliveringOrder` ("Cobro al Retirar") asumía únicamente efectivo sin permitir otra opción.
+     - Se integró la botonera completa de los 4 medios de pago (`CASH`, `NEQUI`, `CARD`, `MIXED`) dentro del modal de entrega:
+       - Si el cliente paga con Nequi o Tarjeta al retirar, el cajero puede seleccionarlo con un toque y confirmar la entrega.
+       - Si el cliente paga en Mixto al retirar, se despliegan los controles de división y la calculadora de billetes para el efectivo recibido.
+  3. **Soporte de Métodos HTTP en Endpoint de Entrega ([src/app/api/admin/barra/[sessionId]/deliver/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/barra/[sessionId]/deliver/route.ts)):**
+     - Se habilitó la exportación de `POST` como alias de `PATCH` en la ruta de entrega para blindar la compatibilidad y evitar errores 405 Method Not Allowed.
+     - Se enriqueció la descripción del pago en `closedBy` detallando el desglose de efectivo y cambio para pagos mixtos y en efectivo.
+  4. **Campo de Identificación de Cliente / Referencia:**
+     - Se incorporó el campo de texto "CLIENTE / REFERENCIA MOSTRADOR" con icono de usuario en la columna de cobro, permitiendo asociar nombres o turnos (ej. "Carlos", "Para Llevar Moto") a la comanda tanto en cocina como en el ticket cerrado.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 25 rutas del proyecto.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

@@ -20,6 +20,7 @@ import {
   ChevronRight,
   ChevronLeft,
   RefreshCw,
+  User,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
@@ -150,6 +151,8 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
   const [deliveringOrder, setDeliveringOrder] = useState<BarraOrder | null>(null);
   const [deliverPayMethod, setDeliverPayMethod] = useState<"CASH" | "NEQUI" | "CARD" | "MIXED">("CASH");
   const [deliverBills, setDeliverBills] = useState<number[]>([]);
+  const [deliverMixedCash, setDeliverMixedCash] = useState<number>(0);
+  const [deliverMixedTransfer, setDeliverMixedTransfer] = useState<number>(0);
 
   // Total de la canasta
   const cartTotal = useMemo(() => {
@@ -236,12 +239,23 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
 
   // Ajustar valores de pago mixto cuando cambia el total
   useEffect(() => {
-    if (cartTotal > 0) {
-      const half = Math.floor(cartTotal / 2000) * 1000;
-      setMixedCash(half);
-      setMixedTransfer(cartTotal - half);
+    if (cartTotal <= 0) {
+      setMixedCash(0);
+      setMixedTransfer(0);
+      return;
     }
+    setMixedCash((prev) => {
+      if (prev <= 0 || prev > cartTotal) {
+        const half = Math.floor(cartTotal / 2000) * 1000;
+        return half > 0 ? half : cartTotal;
+      }
+      return prev;
+    });
   }, [cartTotal]);
+
+  useEffect(() => {
+    setMixedTransfer(Math.max(0, cartTotal - mixedCash));
+  }, [cartTotal, mixedCash]);
 
   // Manejo de billetes acumulables
   const handleAddBill = (amount: number) => {
@@ -348,9 +362,19 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
       return;
     }
 
-    if (paymentTiming === "NOW" && paymentMethod === "CASH" && totalCashReceived < cartTotal) {
-      toast.error(`El efectivo entregado (${formatPrice(totalCashReceived)}) es menor a la cuenta (${formatPrice(cartTotal)})`);
-      return;
+    if (paymentTiming === "NOW") {
+      if (paymentMethod === "CASH" && totalCashReceived < cartTotal) {
+        toast.error(
+          `El efectivo entregado (${formatPrice(totalCashReceived)}) es menor a la cuenta (${formatPrice(cartTotal)}). Usa los billetes o presiona "Exacto".`
+        );
+        return;
+      }
+      if (paymentMethod === "MIXED" && mixedCash > 0 && totalCashReceived < mixedCash) {
+        toast.error(
+          `El efectivo entregado (${formatPrice(totalCashReceived)}) es menor a la parte en efectivo pactada (${formatPrice(mixedCash)}). Usa los billetes o presiona "Exacto".`
+        );
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -370,7 +394,8 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
         })),
         cashPaidAmount: paymentMethod === "CASH" || paymentMethod === "MIXED" ? totalCashReceived : undefined,
         cashChange: paymentMethod === "CASH" || paymentMethod === "MIXED" ? cashChange : undefined,
-        transferAmount: paymentMethod === "MIXED" ? mixedTransfer : undefined,
+        mixedCash: paymentMethod === "MIXED" ? mixedCash : undefined,
+        mixedTransfer: paymentMethod === "MIXED" ? mixedTransfer : undefined,
       };
 
       const res = await fetch("/api/admin/barra", {
@@ -381,10 +406,11 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
       const json = await res.json();
 
       if (!res.ok || !json.success) {
-        throw new Error(json.error || "No se pudo crear el pedido");
+        throw new Error(json.message || json.error || "No se pudo crear el pedido");
       }
 
-      toast.success(`Pedido creado con éxito: ${json.data.tableNumber}`);
+      const ticketIdentifier = json.data?.session?.tableNumber || json.data?.ticketNumber || nextTicket;
+      toast.success(`Pedido creado con éxito: ${ticketIdentifier}`);
       clearCart();
       fetchBarraData();
 
@@ -409,7 +435,7 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
-        throw new Error(json.error || "No se pudo despachar el pedido");
+        throw new Error(json.message || json.error || "No se pudo despachar el pedido");
       }
       toast.success("Pedido despachado y entregado");
       setDeliveringOrder(null);
@@ -735,6 +761,23 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
                 <span>← Seguir agregando platos</span>
               </button>
 
+              {/* REFERENCIA / NOMBRE DEL CLIENTE */}
+              <div>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider block mb-1">
+                  CLIENTE / REFERENCIA MOSTRADOR
+                </label>
+                <div className="relative">
+                  <User className="w-3.5 h-3.5 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="Ej: Carlos / Llevar / Moto..."
+                    className="w-full bg-[#181b22] border border-gray-800 focus:border-amber-500/80 rounded-xl pl-8 pr-3 py-2 text-xs text-white placeholder-gray-500 outline-none transition-all shadow-inner"
+                  />
+                </div>
+              </div>
+
               {/* 1. MOMENTO DEL PAGO */}
               <div>
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider block mb-1.5">
@@ -767,7 +810,20 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
                 </div>
               </div>
 
-              {/* 2. FORMA DE PAGO */}
+              {/* Mensaje Informativo si es Pago al Entregar */}
+              {paymentTiming === "ON_DELIVERY" && (
+                <div className="bg-[#1f1912] border border-amber-600/40 rounded-2xl p-3 text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 text-amber-400 font-bold">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Cobro Programado al Entregar</span>
+                  </div>
+                  <p className="text-[11px] text-gray-400 leading-relaxed">
+                    El pedido pasará a <span className="text-rose-400 font-bold">PENDIENTE DE PAGO</span>. Al momento de la entrega en mostrador, podrás registrar el cobro en Efectivo, Nequi, Tarjeta o Mixto.
+                  </p>
+                </div>
+              )}
+
+              {/* 2. FORMA DE PAGO (CUANDO PAGA AHORA) */}
               <div>
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider block mb-1.5">
                   FORMA DE PAGO
@@ -775,10 +831,13 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
                 <div className="grid grid-cols-4 gap-1.5">
                   <button
                     type="button"
-                    onClick={() => setPaymentMethod("CASH")}
+                    onClick={() => {
+                      setPaymentMethod("CASH");
+                      setSelectedBills([]);
+                    }}
                     className={`py-2 px-1 rounded-xl text-[11px] font-black flex items-center justify-center gap-1 transition-all ${
                       paymentMethod === "CASH"
-                        ? "bg-amber-500 text-black shadow-md"
+                        ? "bg-amber-500 text-black shadow-md ring-2 ring-amber-400/50"
                         : "bg-[#181b22] text-gray-400 hover:text-white border border-gray-800"
                     }`}
                   >
@@ -790,7 +849,7 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
                     onClick={() => setPaymentMethod("NEQUI")}
                     className={`py-2 px-1 rounded-xl text-[11px] font-black flex items-center justify-center gap-1 transition-all ${
                       paymentMethod === "NEQUI"
-                        ? "bg-[#6366f1] text-white shadow-md"
+                        ? "bg-[#6366f1] text-white shadow-md ring-2 ring-indigo-400/50"
                         : "bg-[#181b22] text-gray-400 hover:text-white border border-gray-800"
                     }`}
                   >
@@ -802,7 +861,7 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
                     onClick={() => setPaymentMethod("CARD")}
                     className={`py-2 px-1 rounded-xl text-[11px] font-black flex items-center justify-center gap-1 transition-all ${
                       paymentMethod === "CARD"
-                        ? "bg-[#0284c7] text-white shadow-md"
+                        ? "bg-[#0284c7] text-white shadow-md ring-2 ring-sky-400/50"
                         : "bg-[#181b22] text-gray-400 hover:text-white border border-gray-800"
                     }`}
                   >
@@ -811,10 +870,13 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
 
                   <button
                     type="button"
-                    onClick={() => setPaymentMethod("MIXED")}
+                    onClick={() => {
+                      setPaymentMethod("MIXED");
+                      setSelectedBills([]);
+                    }}
                     className={`py-2 px-1 rounded-xl text-[11px] font-black flex items-center justify-center gap-1 transition-all ${
                       paymentMethod === "MIXED"
-                        ? "bg-indigo-600 text-white shadow-md"
+                        ? "bg-indigo-600 text-white shadow-md ring-2 ring-purple-400/50"
                         : "bg-[#181b22] text-gray-400 hover:text-white border border-gray-800"
                     }`}
                   >
@@ -823,12 +885,133 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
                 </div>
               </div>
 
+              {/* Panel Informativo Nequi / Transferencia */}
+              {paymentTiming === "NOW" && paymentMethod === "NEQUI" && (
+                <div className="bg-[#1a172e] border border-indigo-500/40 rounded-2xl p-3 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <Smartphone className="w-3.5 h-3.5 text-indigo-400" />
+                      Pago Digital Nequi / Daviplata
+                    </span>
+                    <span className="text-xs font-black text-indigo-200">
+                      {formatPrice(cartTotal)}
+                    </span>
+                  </div>
+                  <div className="bg-[#111022] rounded-xl p-2.5 text-[11px] text-gray-300 space-y-1 border border-indigo-500/20">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-400">Total a transferir:</span>
+                      <span className="font-black text-emerald-400">{formatPrice(cartTotal)}</span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 pt-1">
+                      📱 Solicite al cliente el comprobante de transferencia y verifique la acreditación en la cuenta del asadero antes de despachar.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Panel Informativo Datáfono / Tarjeta */}
+              {paymentTiming === "NOW" && paymentMethod === "CARD" && (
+                <div className="bg-[#0f1d2a] border border-sky-500/40 rounded-2xl p-3 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-[10px] font-black text-sky-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <CreditCard className="w-3.5 h-3.5 text-sky-400" />
+                      Datáfono / Tarjeta
+                    </span>
+                    <span className="text-xs font-black text-sky-200">
+                      {formatPrice(cartTotal)}
+                    </span>
+                  </div>
+                  <div className="bg-[#0a151f] rounded-xl p-2.5 text-[11px] text-gray-300 space-y-1 border border-sky-500/20">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-400">Total a pasar por datáfono:</span>
+                      <span className="font-black text-emerald-400">{formatPrice(cartTotal)}</span>
+                    </div>
+                    <p className="text-[10px] text-gray-400 pt-1">
+                      💳 Ingrese el valor en el datáfono físico y confirme la aprobación del voucher.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Configuración de Pago Mixto (Efectivo + Transferencia) */}
+              {paymentTiming === "NOW" && paymentMethod === "MIXED" && (
+                <div className="bg-[#161a29] border border-indigo-500/30 rounded-2xl p-2.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                      División de Pago Mixto
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const half = Math.floor(cartTotal / 2000) * 1000;
+                        setMixedCash(half);
+                        setMixedTransfer(cartTotal - half);
+                      }}
+                      className="text-[10px] font-bold text-amber-400 hover:underline"
+                    >
+                      Dividir 50% / 50%
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-[#0f121d] p-2 rounded-xl border border-gray-800">
+                      <label className="text-[10px] text-gray-400 block font-bold mb-1">
+                        💵 Parte Efectivo:
+                      </label>
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-400 font-bold">$</span>
+                        <input
+                          type="number"
+                          step={1000}
+                          min={0}
+                          max={cartTotal}
+                          value={mixedCash || ""}
+                          onChange={(e) => {
+                            const val = Math.min(cartTotal, Math.max(0, Number(e.target.value) || 0));
+                            setMixedCash(val);
+                            setMixedTransfer(Math.max(0, cartTotal - val));
+                          }}
+                          className="w-full bg-transparent text-amber-400 font-black text-sm outline-none"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-[#0f121d] p-2 rounded-xl border border-gray-800">
+                      <label className="text-[10px] text-gray-400 block font-bold mb-1">
+                        📱 Parte Digital (Nequi):
+                      </label>
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-400 font-bold">$</span>
+                        <input
+                          type="number"
+                          step={1000}
+                          min={0}
+                          max={cartTotal}
+                          value={mixedTransfer || ""}
+                          onChange={(e) => {
+                            const val = Math.min(cartTotal, Math.max(0, Number(e.target.value) || 0));
+                            setMixedTransfer(val);
+                            setMixedCash(Math.max(0, cartTotal - val));
+                          }}
+                          className="w-full bg-transparent text-indigo-400 font-black text-sm outline-none"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* 3. CALCULADORA DE EFECTIVO */}
               {paymentTiming === "NOW" && (paymentMethod === "CASH" || paymentMethod === "MIXED") && (
                 <div className="bg-[#141720] border border-gray-800/80 rounded-2xl p-2.5 space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
-                      Billetes Entregados (Auto-Suma):
+                      {paymentMethod === "MIXED"
+                        ? `Billetes para Efectivo (${formatPrice(mixedCash)}):`
+                        : "Billetes Entregados (Auto-Suma):"}
                     </span>
                     <div className="flex items-center gap-2 text-xs">
                       <button
@@ -1071,7 +1254,11 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
                           disabled={isSubmitting}
                           onClick={() => {
                             setDeliveringOrder(order);
+                            setDeliverPayMethod("CASH");
                             setDeliverBills([order.total]);
+                            const half = Math.floor(order.total / 2000) * 1000;
+                            setDeliverMixedCash(half);
+                            setDeliverMixedTransfer(order.total - half);
                           }}
                           className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs flex items-center gap-1.5 shadow-md active:scale-95"
                         >
@@ -1227,7 +1414,7 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
           onClick={() => setDeliveringOrder(null)}
         >
           <div
-            className="w-full max-w-sm bg-[#14161a] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4"
+            className="w-full max-w-md bg-[#14161a] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-gray-800 pb-3">
@@ -1238,71 +1425,292 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
               <button
                 type="button"
                 onClick={() => setDeliveringOrder(null)}
-                className="text-gray-400 hover:text-white text-xs"
+                className="w-7 h-7 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold text-xs flex items-center justify-center"
               >
                 ✕
               </button>
             </div>
 
             <div className="bg-[#181b22] p-3 rounded-2xl border border-gray-800 flex justify-between items-center text-xs">
-              <span className="text-gray-400">Total a Pagar:</span>
-              <span className="text-base font-black text-amber-400">{formatPrice(deliveringOrder.total)}</span>
+              <div>
+                <span className="text-[10px] text-gray-400 block font-bold">Total del Pedido:</span>
+                <span className="text-lg font-black text-amber-400">{formatPrice(deliveringOrder.total)}</span>
+              </div>
+              <div className="text-right text-[11px] text-gray-400">
+                <span>{deliveringOrder.items.length} productos</span>
+              </div>
             </div>
 
-            {/* Billetes en entrega si es efectivo */}
-            <div className="space-y-2 bg-[#181b22] p-2.5 rounded-2xl border border-gray-800">
-              <div className="flex justify-between items-center text-[10px] text-gray-400">
-                <span>Billetes Entregados:</span>
+            {/* Selector de Método de Pago al Entregar */}
+            <div>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider block mb-1.5">
+                MÉTODO DE PAGO
+              </label>
+              <div className="grid grid-cols-4 gap-1.5">
                 <button
                   type="button"
-                  onClick={() => setDeliverBills([deliveringOrder.total])}
-                  className="text-amber-400 font-bold hover:underline"
+                  onClick={() => {
+                    setDeliverPayMethod("CASH");
+                    setDeliverBills([deliveringOrder.total]);
+                  }}
+                  className={`py-2 px-1 rounded-xl text-[11px] font-black flex items-center justify-center gap-1 transition-all ${
+                    deliverPayMethod === "CASH"
+                      ? "bg-amber-500 text-black shadow-md ring-2 ring-amber-400/50"
+                      : "bg-[#181b22] text-gray-400 hover:text-white border border-gray-800"
+                  }`}
                 >
-                  Exacto
+                  <span>💵 Efectivo</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setDeliverPayMethod("NEQUI")}
+                  className={`py-2 px-1 rounded-xl text-[11px] font-black flex items-center justify-center gap-1 transition-all ${
+                    deliverPayMethod === "NEQUI"
+                      ? "bg-[#6366f1] text-white shadow-md ring-2 ring-indigo-400/50"
+                      : "bg-[#181b22] text-gray-400 hover:text-white border border-gray-800"
+                  }`}
+                >
+                  <span>🟣 Nequi</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setDeliverPayMethod("CARD")}
+                  className={`py-2 px-1 rounded-xl text-[11px] font-black flex items-center justify-center gap-1 transition-all ${
+                    deliverPayMethod === "CARD"
+                      ? "bg-[#0284c7] text-white shadow-md ring-2 ring-sky-400/50"
+                      : "bg-[#181b22] text-gray-400 hover:text-white border border-gray-800"
+                  }`}
+                >
+                  <span>💳 Tarjeta</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeliverPayMethod("MIXED");
+                    const half = Math.floor(deliveringOrder.total / 2000) * 1000;
+                    setDeliverMixedCash(half);
+                    setDeliverMixedTransfer(deliveringOrder.total - half);
+                    setDeliverBills([half]);
+                  }}
+                  className={`py-2 px-1 rounded-xl text-[11px] font-black flex items-center justify-center gap-1 transition-all ${
+                    deliverPayMethod === "MIXED"
+                      ? "bg-indigo-600 text-white shadow-md ring-2 ring-purple-400/50"
+                      : "bg-[#181b22] text-gray-400 hover:text-white border border-gray-800"
+                  }`}
+                >
+                  <span>🔀 Mixto</span>
                 </button>
               </div>
-              <div className="grid grid-cols-3 gap-1">
-                {barraConfig.activeBills.slice(0, 6).map((bill) => (
-                  <button
-                    key={bill}
-                    type="button"
-                    onClick={() => setDeliverBills((prev) => [...prev, bill])}
-                    className="py-1 px-1 rounded-lg bg-[#20252e] hover:bg-gray-700 text-[10px] font-bold text-gray-200 border border-gray-700"
-                  >
-                    {formatPrice(bill)}
-                  </button>
-                ))}
-              </div>
-
-              <div className="pt-2 border-t border-gray-800 flex justify-between items-center text-xs">
-                <div>
-                  <span className="text-[10px] text-gray-400 block">Recibido</span>
-                  <span className="font-bold text-white">
-                    {formatPrice(deliverBills.reduce((a, b) => a + b, 0))}
-                  </span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] text-emerald-400 block font-bold">Vueltas</span>
-                  <span className="text-sm font-black text-emerald-400">
-                    {formatPrice(Math.max(0, deliverBills.reduce((a, b) => a + b, 0) - deliveringOrder.total))}
-                  </span>
-                </div>
-              </div>
             </div>
+
+            {/* PANEL NEQUI */}
+            {deliverPayMethod === "NEQUI" && (
+              <div className="bg-[#1a172e] border border-indigo-500/40 rounded-2xl p-3 text-xs space-y-1.5">
+                <span className="text-[10px] font-black text-indigo-300 uppercase tracking-wider block">
+                  Cobro por Transferencia Nequi / Daviplata
+                </span>
+                <div className="flex justify-between items-center bg-[#111022] p-2.5 rounded-xl border border-indigo-500/20">
+                  <span className="text-gray-400">Total a transferir:</span>
+                  <span className="font-black text-emerald-400 text-sm">{formatPrice(deliveringOrder.total)}</span>
+                </div>
+                <p className="text-[10px] text-gray-400">
+                  📱 Verifique el comprobante digital en el teléfono antes de entregar el pedido.
+                </p>
+              </div>
+            )}
+
+            {/* PANEL TARJETA */}
+            {deliverPayMethod === "CARD" && (
+              <div className="bg-[#0f1d2a] border border-sky-500/40 rounded-2xl p-3 text-xs space-y-1.5">
+                <span className="text-[10px] font-black text-sky-300 uppercase tracking-wider block">
+                  Cobro por Datáfono / Tarjeta
+                </span>
+                <div className="flex justify-between items-center bg-[#0a151f] p-2.5 rounded-xl border border-sky-500/20">
+                  <span className="text-gray-400">Total en Datáfono:</span>
+                  <span className="font-black text-emerald-400 text-sm">{formatPrice(deliveringOrder.total)}</span>
+                </div>
+                <p className="text-[10px] text-gray-400">
+                  💳 Pase la tarjeta por el datáfono físico y confirme la aprobación del voucher.
+                </p>
+              </div>
+            )}
+
+            {/* PANEL MIXTO */}
+            {deliverPayMethod === "MIXED" && (
+              <div className="bg-[#161a29] border border-indigo-500/30 rounded-2xl p-2.5 space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-black text-indigo-300 uppercase tracking-wider">
+                    División Mixta
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const half = Math.floor(deliveringOrder.total / 2000) * 1000;
+                      setDeliverMixedCash(half);
+                      setDeliverMixedTransfer(deliveringOrder.total - half);
+                      setDeliverBills([half]);
+                    }}
+                    className="text-[10px] font-bold text-amber-400 hover:underline"
+                  >
+                    50% / 50%
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-[#0f121d] p-2 rounded-xl border border-gray-800">
+                    <label className="text-[10px] text-gray-400 block font-bold mb-1">Efectivo:</label>
+                    <input
+                      type="number"
+                      step={1000}
+                      min={0}
+                      max={deliveringOrder.total}
+                      value={deliverMixedCash || ""}
+                      onChange={(e) => {
+                        const val = Math.min(deliveringOrder.total, Math.max(0, Number(e.target.value) || 0));
+                        setDeliverMixedCash(val);
+                        setDeliverMixedTransfer(Math.max(0, deliveringOrder.total - val));
+                        setDeliverBills([val]);
+                      }}
+                      className="w-full bg-transparent text-amber-400 font-black text-sm outline-none"
+                    />
+                  </div>
+                  <div className="bg-[#0f121d] p-2 rounded-xl border border-gray-800">
+                    <label className="text-[10px] text-gray-400 block font-bold mb-1">Transferencia:</label>
+                    <input
+                      type="number"
+                      step={1000}
+                      min={0}
+                      max={deliveringOrder.total}
+                      value={deliverMixedTransfer || ""}
+                      onChange={(e) => {
+                        const val = Math.min(deliveringOrder.total, Math.max(0, Number(e.target.value) || 0));
+                        setDeliverMixedTransfer(val);
+                        setDeliverMixedCash(Math.max(0, deliveringOrder.total - val));
+                        setDeliverBills([Math.max(0, deliveringOrder.total - val)]);
+                      }}
+                      className="w-full bg-transparent text-indigo-400 font-black text-sm outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Billetes en entrega si es efectivo o mixto */}
+            {(deliverPayMethod === "CASH" || deliverPayMethod === "MIXED") && (
+              <div className="space-y-2 bg-[#181b22] p-2.5 rounded-2xl border border-gray-800">
+                <div className="flex justify-between items-center text-[10px] text-gray-400">
+                  <span className="font-bold">
+                    {deliverPayMethod === "MIXED"
+                      ? `Billetes para Efectivo (${formatPrice(deliverMixedCash)}):`
+                      : "Billetes Entregados:"}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const target = deliverPayMethod === "MIXED" ? deliverMixedCash : deliveringOrder.total;
+                        setDeliverBills([target]);
+                      }}
+                      className="text-amber-400 font-bold hover:underline"
+                    >
+                      Exacto
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeliverBills([])}
+                      className="text-gray-400 hover:text-white font-bold"
+                    >
+                      Limpiar
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-1">
+                  {barraConfig.activeBills.slice(0, 6).map((bill) => (
+                    <button
+                      key={bill}
+                      type="button"
+                      onClick={() => setDeliverBills((prev) => [...prev, bill])}
+                      className="py-1 px-1 rounded-lg bg-[#20252e] hover:bg-gray-700 text-[10px] font-bold text-gray-200 border border-gray-700 active:scale-95 transition-all"
+                    >
+                      {formatPrice(bill)}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Bandeja de billetes seleccionados en entrega */}
+                {deliverBills.length > 0 && (
+                  <div className="bg-[#0e1015] border border-gray-800 rounded-xl p-1 flex flex-wrap gap-1">
+                    {deliverBills.map((b, idx) => (
+                      <span
+                        key={idx}
+                        className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-gray-800 text-[9px] font-bold text-gray-300"
+                      >
+                        {formatPrice(b)}
+                        <button
+                          type="button"
+                          onClick={() => setDeliverBills((prev) => prev.filter((_, i) => i !== idx))}
+                          className="hover:text-rose-400"
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="pt-2 border-t border-gray-800 flex justify-between items-center text-xs">
+                  <div>
+                    <span className="text-[10px] text-gray-400 block font-bold">Total Recibido:</span>
+                    <span className="font-bold text-white">
+                      {formatPrice(deliverBills.reduce((a, b) => a + b, 0))}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] text-emerald-400 block font-bold">Vueltas / Cambio:</span>
+                    <span className="text-sm font-black text-emerald-400">
+                      {formatPrice(
+                        Math.max(
+                          0,
+                          deliverBills.reduce((a, b) => a + b, 0) -
+                            (deliverPayMethod === "MIXED" ? deliverMixedCash : deliveringOrder.total)
+                        )
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <button
               type="button"
               disabled={isSubmitting}
               onClick={() => {
                 const totalGiven = deliverBills.reduce((a, b) => a + b, 0);
-                const change = Math.max(0, totalGiven - deliveringOrder.total);
+                const targetCash = deliverPayMethod === "MIXED" ? deliverMixedCash : deliveringOrder.total;
+                
+                if (deliverPayMethod === "CASH" && totalGiven < deliveringOrder.total) {
+                  toast.error(`El efectivo entregado (${formatPrice(totalGiven)}) es menor al total (${formatPrice(deliveringOrder.total)})`);
+                  return;
+                }
+                if (deliverPayMethod === "MIXED" && deliverMixedCash > 0 && totalGiven < deliverMixedCash) {
+                  toast.error(`El efectivo entregado (${formatPrice(totalGiven)}) es menor a la parte en efectivo pactada (${formatPrice(deliverMixedCash)})`);
+                  return;
+                }
+
+                const change = Math.max(0, totalGiven - targetCash);
                 executeDeliver(deliveringOrder.id, {
                   paymentMethod: deliverPayMethod,
-                  cashPaidAmount: totalGiven,
-                  cashChange: change,
+                  cashPaidAmount: (deliverPayMethod === "CASH" || deliverPayMethod === "MIXED") ? totalGiven : undefined,
+                  cashChange: (deliverPayMethod === "CASH" || deliverPayMethod === "MIXED") ? change : undefined,
+                  mixedCash: deliverPayMethod === "MIXED" ? deliverMixedCash : undefined,
+                  mixedTransfer: deliverPayMethod === "MIXED" ? deliverMixedTransfer : undefined,
                 });
               }}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black text-xs uppercase tracking-wider shadow-xl transition-all"
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black text-xs uppercase tracking-wider shadow-xl transition-all active:scale-95"
             >
               ✓ Confirmar Cobro y Despachar
             </button>

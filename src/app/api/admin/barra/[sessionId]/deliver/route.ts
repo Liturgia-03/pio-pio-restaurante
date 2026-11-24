@@ -3,6 +3,13 @@ import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+export async function POST(
+  request: Request,
+  props: { params: Promise<{ sessionId: string }> }
+) {
+  return PATCH(request, props);
+}
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ sessionId: string }> }
@@ -54,7 +61,8 @@ export async function PATCH(
       } else if (paymentMethod === "CARD") {
         paymentDesc = "Datáfono/Tarjeta";
       } else if (paymentMethod === "MIXED") {
-        paymentDesc = `Pago Mixto (Efectivo: $${Number(mixedCash || 0).toLocaleString()} + Nequi: $${Number(mixedTransfer || 0).toLocaleString()})`;
+        const changeStr = cashChange && Number(cashChange) > 0 ? `, Cambio: $${Number(cashChange).toLocaleString()}` : "";
+        paymentDesc = `Pago Mixto (Efectivo: $${Number(mixedCash || 0).toLocaleString()}${changeStr} + Nequi: $${Number(mixedTransfer || 0).toLocaleString()})`;
       }
       finalClosedBy = `Admin en Barra [Cobrado al Entregar] • ${paymentDesc}`;
     }

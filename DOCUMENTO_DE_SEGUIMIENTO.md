@@ -1216,6 +1216,34 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 25 rutas del proyecto.
 
+### Hito 71: Implementación de la Propuesta 2 — Módulo Dedicado "Caja & Contabilidad"
+- **Solicitud del usuario:** Implementar toda la lógica y funcionalidades necesarias para contabilidad, ventas y gastos, apertura y cierre de caja, filtrado por días, semanas, meses y año, y liquidación de caja del día, seleccionando la Propuesta 2 (Módulo Dedicado).
+- **Solución Quirúrgica Implementada:**
+  1. **Modelos de Datos en Prisma ([prisma/schema.prisma](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/prisma/schema.prisma)):**
+     - `CashShift`: Registra cada turno de caja con `status` (OPEN/CLOSED), `openedAt`, `closedAt`, `openedBy`, `closedBy`, `initialCash` (Base inicial), `expectedCash` (calculado automáticamente), `actualCash` (físico contado), `difference` (cuadre, sobrante o faltante), acumulados de ventas por método (`totalSalesCash`, `totalSalesDigital`, `totalSalesCard`), egresos (`totalExpensesCash`, `totalExpensesDigital`), `totalSales`, `totalExpenses` y `netProfit`.
+     - `Expense`: Registra salidas de dinero con `category` (Pollo & Carnes, Carbón/Gas, Verduras/Plaza, Empaques, Servicios/Mantenimiento, Personal/Adelantos, Varios), `description`, `amount`, `paymentMethod` (Efectivo o Transferencia), `responsible`, `receiptNumber`, `date` y enlace directo con el turno de caja abierto (`cashShiftId`).
+     - Sincronización exitosa con la base de datos PostgreSQL de Supabase vía `prisma db push` y regeneración del cliente Prisma.
+  2. **Endpoints de API Especializados:**
+     - [src/app/api/admin/caja/shift/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/shift/route.ts):
+       - `GET`: Retorna el turno abierto activo, calcula ventas en vivo desde `TableSession` (tanto de mesas como de barra rápida) y egresos de `Expense`, proyectando el efectivo esperado en caja en tiempo real y listando los turnos cerrados recientes.
+       - `POST`: Apertura de nuevo turno validando que no haya turnos duplicados abiertos.
+       - `PATCH`: Cierre y liquidación definitiva del turno calculando la diferencia entre el dinero físico contado y el esperado, emitiendo el resumen de liquidación.
+     - [src/app/api/admin/caja/expenses/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/expenses/route.ts):
+       - `GET`: Listado de gastos con filtros por categoría o turno.
+       - `POST`: Registro de egreso con imputación automática al turno abierto.
+       - `DELETE`: Anulación de gastos con ajuste dinámico de balances.
+     - [src/app/api/admin/caja/reports/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/reports/route.ts):
+       - `GET`: Reportes contables con filtros por **Día** (fecha objetivo), **Semana** (lunes a domingo), **Mes** (mes calendario) y **Año**, consolidando ventas brutas, gastos operativos, utilidad neta real, ticket promedio, desglose por métodos de pago y ranking de platos más vendidos.
+  3. **Interfaz Completa de Usuario ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx) y [src/app/admin/caja/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/caja/page.tsx)):**
+     - **Pestaña 1 (Turno & Arqueo en Vivo):** Monitor de caja abierta/cerrada, tarjetas KPI de efectivo esperado, ventas digitales, datáfono y utilidad, botones rápidos para registrar gastos y liquidar caja, y modal con conteo de billetes e indicador reactivo de cuadre (exacto, sobrante o faltante).
+     - **Comprobante Térmico Imprimible:** Modal con diseño idéntico a tirilla de impresora térmica para imprimir o archivar el comprobante oficial de liquidación de turno.
+     - **Pestaña 2 (Libro de Gastos):** Selector por categorías con iconos gastronómicos, badges de color, totales en vivo y modal de registro rápido.
+     - **Pestaña 3 (Histórico & Reportes):** Selector dinámico por Día, Semana, Mes y Año con selector de fecha, métricas maestras, barras comparativas de ingresos y desglose de gastos.
+  4. **Navegación Unificada:**
+     - Enlace `Caja & Contabilidad` agregado en [src/components/admin/AdminNavSidebar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminNavSidebar.tsx), [src/components/admin/AdminMobileDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminMobileDrawer.tsx) y resolución de título `CAJA & CONTABILIDAD` en [src/components/admin/AdminShell.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminShell.tsx).
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del proyecto.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

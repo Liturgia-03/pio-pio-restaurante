@@ -227,5 +227,54 @@ enum ItemStatus {
   CANCELLED
 }
 
+model CashShift {
+  id                   String     @id @default(cuid())
+  status               String     @default("OPEN") // "OPEN" | "CLOSED"
+  openedAt             DateTime   @default(now())
+  closedAt             DateTime?
+  openedBy             String     @default("Admin en Caja")
+  closedBy             String?
+  initialCash          Float      @default(0) // Base inicial en efectivo
+  expectedCash         Float?     // Efectivo que debería haber en caja
+  actualCash           Float?     // Efectivo físico real contado al liquidar
+  difference           Float?     // actualCash - expectedCash (Sobrante > 0, Faltante < 0)
+  totalSalesCash       Float      @default(0)
+  totalSalesDigital    Float      @default(0) // Nequi / Daviplata
+  totalSalesCard       Float      @default(0) // Datáfono
+  totalExpensesCash    Float      @default(0)
+  totalExpensesDigital Float      @default(0)
+  totalSales           Float      @default(0)
+  totalExpenses        Float      @default(0)
+  netProfit            Float      @default(0)
+  notes                String?
+  expenses             Expense[]
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  @@index([status])
+  @@index([openedAt])
+  @@map("cash_shifts")
+}
+
+model Expense {
+  id            String     @id @default(cuid())
+  cashShiftId   String?
+  cashShift     CashShift? @relation(fields: [cashShiftId], references: [id], onDelete: SetNull)
+  category      String     // "POLLO_CARNES", "CARBON_GAS", "VERDURAS_PLAZA", "EMPAQUES_DESECHABLES", "SERVICIOS_MANTENIMIENTO", "PERSONAL_ADELANTOS", "VARIOS"
+  description   String
+  amount        Float
+  paymentMethod String     @default("CASH") // "CASH" | "TRANSFER"
+  responsible   String?    // Persona que solicitó o autorizó el gasto
+  receiptNumber String?    // Referencia, voucher o factura de soporte
+  date          DateTime   @default(now())
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([cashShiftId])
+  @@index([date])
+  @@index([category])
+  @@map("expenses")
+}
+
 
 

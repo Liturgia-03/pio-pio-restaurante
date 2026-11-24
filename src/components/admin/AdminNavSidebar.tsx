@@ -12,6 +12,7 @@ import {
   PlusCircle,
   QrCode,
   Settings,
+  WalletCards,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -33,6 +34,7 @@ export function AdminNavSidebar() {
   const navItems = [
     { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
     { label: "Mesas & Caja", href: "/admin/tables", icon: UtensilsCrossed },
+    { label: "Caja & Contabilidad", href: "/admin/caja", icon: WalletCards },
     { label: "Platos & Disponibilidad", href: "/admin/dishes", icon: UtensilsCrossed },
     { label: "Crear Nuevo Plato", href: "/admin/dishes/new", icon: PlusCircle },
     { label: "Categorías", href: "/admin/categories", icon: FolderTree },

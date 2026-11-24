@@ -36,6 +36,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   else if (pathname.includes("/admin/promo-modal")) pageTitle = "AJUSTES MENÚ";
   else if (pathname.includes("/admin/qr")) pageTitle = "CÓDIGOS QR MESAS";
   else if (pathname.includes("/admin/settings")) pageTitle = "AJUSTES ASADERO";
+  else if (pathname.includes("/admin/caja")) pageTitle = "CAJA & CONTABILIDAD";
   else if (pathname.includes("/admin/barra")) pageTitle = "BARRA RÁPIDA & MOSTRADOR";
   else if (pathname.includes("/admin/tables")) pageTitle = "CONTROL DE MESAS Y CAJA";
 

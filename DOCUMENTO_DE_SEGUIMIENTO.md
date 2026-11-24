@@ -1116,6 +1116,17 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 25 rutas del proyecto (incorporando estáticamente `/admin/barra`).
 
+### Hito 65: Retiro de Barra Rápida del Menú Lateral de Escritorio (PC)
+- **Solicitud del usuario:** En la vista de escritorio (PC), no debe aparecer el botón o sección de Barra Rápida en el menú lateral. Quitar u ocultar esa opción de `AdminNavSidebar`.
+- **Solución Quirúrgica Implementada:**
+  1. **Ajuste en el Menú Lateral de Escritorio ([src/components/admin/AdminNavSidebar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminNavSidebar.tsx)):**
+     - Se retiró el elemento `{ label: "Barra Rápida", href: "/admin/barra", icon: Zap }` de la lista `navItems`, eliminando el botón redundantemente visible en pantallas de PC.
+     - En computadores (PC), el acceso a la Barra se realiza de forma limpia mediante la franja vertical naranja desplegable continua (`AdminBarraDrawer`), idéntica a las Imágenes de Referencia 01 y 02.
+  2. **Persistencia en Dispositivos Móviles:**
+     - La sección se mantiene intacta en el menú lateral móvil (`AdminMobileDrawer`, arriba de Control de Mesas) y en la barra de navegación inferior móvil (`AdminBottomBar`).
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 25 rutas.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

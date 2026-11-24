@@ -1357,6 +1357,35 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
   - `npm run test:stress`: Ejecución con **código de salida 0** y 100% de éxito en todas las pruebas.
   - `npm run build`: Compilación limpia de 26 rutas estáticas y dinámicas.
 
+### Hito 78: Purga Transaccional Segura y Puesta en Ceros para Estreno Oficial
+- **Fecha:** 24 de Noviembre de 2026
+- **Archivos Agregados / Modificados:**
+  - [scripts/purge-history.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/scripts/purge-history.ts)
+  - [DOCUMENTO_DE_SEGUIMIENTO.md](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/DOCUMENTO_DE_SEGUIMIENTO.md)
+- **Alcance y Ejecución:**
+  1. **Preservación Absoluta del Menú Digital y Datos Maestros (100% Intactos):**
+     - **Categorías gastronómicas:** 11 categorías preservadas.
+     - **Platos del menú:** 75 platos activos con sus fotos, descripciones e insignias intactos.
+     - **Porciones:** 4 porciones configuradas intactas.
+     - **Mesas:** 19 mesas del restaurante listas y libres (🟢 Libre).
+     - **Meseros:** 2 meseros con sus PINs registrados intactos.
+     - **Usuarios administradores:** Cuenta principal y credenciales preservadas.
+  2. **Purga Transaccional Completa (Puesta a Ceros en PostgreSQL Neon Serverless):**
+     - Eliminadas 22 sesiones históricas de mesas y barra rápida (`TableSession`).
+     - Eliminados 66 ítems de comandas de prueba (`OrderItem`).
+     - Eliminados turnos históricos y activos de caja (`CashShift`).
+     - Gastos de caja verificados en **$0** (`Expense`).
+     - Registros de auditoría histórica purgados (`AuditLog`).
+  3. **Certificación de Estado en Ceros:**
+     - Comandas activas / históricas: **0 (Ceros)**.
+     - Cuentas de mesas / barra: **0 (Ceros)**.
+     - Gastos: **0 (Ceros)**.
+     - Turnos de caja: **0 (Ceros)**.
+     - Auditoría: **0 (Ceros)**.
+     - Próximo ticket automático de Barra Rápida: **#01**.
+     - Salón de mesas: **Todas las 19 mesas en estado LIBRE 🟢**.
+- **Resultado:** El sistema queda 100% limpio y listo para el estreno oficial del asadero.
+
 ### Hito 76: Rediseño del Panel de Cobro y Comanda de Mesas en Disposición de Dos Columnas (Fiel a Referencia Visual)
 - **Fecha:** 24 de Noviembre de 2026
 - **Archivos Modificados:**
@@ -1406,6 +1435,35 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run test:stress`: Ejecución con **código de salida 0** y 100% de éxito en todas las pruebas.
   - `npm run build`: Compilación limpia de 26 rutas estáticas y dinámicas.
+
+### Hito 78: Purga Transaccional Segura y Puesta en Ceros para Estreno Oficial
+- **Fecha:** 24 de Noviembre de 2026
+- **Archivos Agregados / Modificados:**
+  - [scripts/purge-history.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/scripts/purge-history.ts)
+  - [DOCUMENTO_DE_SEGUIMIENTO.md](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/DOCUMENTO_DE_SEGUIMIENTO.md)
+- **Alcance y Ejecución:**
+  1. **Preservación Absoluta del Menú Digital y Datos Maestros (100% Intactos):**
+     - **Categorías gastronómicas:** 11 categorías preservadas.
+     - **Platos del menú:** 75 platos activos con sus fotos, descripciones e insignias intactos.
+     - **Porciones:** 4 porciones configuradas intactas.
+     - **Mesas:** 19 mesas del restaurante listas y libres (🟢 Libre).
+     - **Meseros:** 2 meseros con sus PINs registrados intactos.
+     - **Usuarios administradores:** Cuenta principal y credenciales preservadas.
+  2. **Purga Transaccional Completa (Puesta a Ceros en PostgreSQL Neon Serverless):**
+     - Eliminadas 22 sesiones históricas de mesas y barra rápida (`TableSession`).
+     - Eliminados 66 ítems de comandas de prueba (`OrderItem`).
+     - Eliminados turnos históricos y activos de caja (`CashShift`).
+     - Gastos de caja verificados en **$0** (`Expense`).
+     - Registros de auditoría histórica purgados (`AuditLog`).
+  3. **Certificación de Estado en Ceros:**
+     - Comandas activas / históricas: **0 (Ceros)**.
+     - Cuentas de mesas / barra: **0 (Ceros)**.
+     - Gastos: **0 (Ceros)**.
+     - Turnos de caja: **0 (Ceros)**.
+     - Auditoría: **0 (Ceros)**.
+     - Próximo ticket automático de Barra Rápida: **#01**.
+     - Salón de mesas: **Todas las 19 mesas en estado LIBRE 🟢**.
+- **Resultado:** El sistema queda 100% limpio y listo para el estreno oficial del asadero.
 
 ---
 

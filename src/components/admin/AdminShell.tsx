@@ -49,7 +49,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         onClose={() => setDrawerOpen(false)}
       />
 
-      <div className="flex-1 md:pl-64 flex flex-col min-h-screen pb-20 md:pb-6">
+      <div className="flex-1 pl-11 md:pl-64 flex flex-col min-h-screen pb-20 md:pb-6">
         <AdminHeader
           title={pageTitle}
           onOpenDrawer={handleOpenDrawer}

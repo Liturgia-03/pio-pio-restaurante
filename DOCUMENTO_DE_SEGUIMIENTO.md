@@ -1073,6 +1073,28 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa sin advertencias de Turbopack, con **código de salida 0** en las 24 rutas estáticas y dinámicas.
 
+### Hito 63: Adaptación Responsiva Integral de Barra Rápida para Dispositivos Móviles
+- **Solicitud del usuario:** Adaptar el diseño de la barra de mostrador / barra rápida para dispositivos móviles, dado que la franja cerrada cubría elementos del dashboard y la barra inferior, y al desplegarse en móvil se comprimía a ~310px apretando 2 columnas, distorsionando platos en tiras de 35px y encimando textos y botones.
+- **Análisis de Capturas Móviles Suministradas:**
+  1. *Estado Cerrado (`media_1795495438665_22a3a5cf.png`):* La franja fija naranja `left-0` tapaba el logo, el botón de menú hamburguesa, el título y la mitad izquierda de las tarjetas de métricas del dashboard; asimismo, bajaba hasta `bottom-0`, solapándose sobre la barra de navegación inferior (`AdminBottomBar`).
+  2. *Estado Desplegado (`media_1795495472042_945a57a3.jpg`):* El panel mantenía ancho limitado con `w-12` a la derecha, forzando 2 columnas paralelas en ~310px. El catálogo de 4 columnas se volvía ilegible, los botones de medios de pago colisionaban ("Efecti NequiTarjetMixto"), la cuadrícula de billetes colapsaba y los botones de cobro quedaban cortados.
+- **Solución Quirúrgica Implementada:**
+  1. **Ajuste de Margen en el Shell Administrativo ([src/components/admin/AdminShell.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminShell.tsx)):**
+     - Se añadió un espaciado izquierdo `pl-11 md:pl-64` al contenedor principal en móviles. Los 44px (`w-11`) reservan el espacio exacto de la franja cerrada, permitiendo que el header, tarjetas, botones y mesas del dashboard queden 100% visibles y accesibles sin ningún solapamiento.
+  2. **Contenedor y Altura Inteligente en Móvil ([src/components/admin/AdminBarraDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraDrawer.tsx)):**
+     - *Cerrado:* `top-0 bottom-16 md:bottom-0`, evitando invadir el espacio de la barra de navegación inferior móvil (`AdminBottomBar`, `h-16`).
+     - *Desplegado:* `inset-0 z-50 md:inset-auto md:left-64 md:top-0 md:bottom-0 md:z-40`, convirtiéndose en una experiencia POS de pantalla completa en celulares, cubriendo toda la pantalla de forma fluida.
+  3. **Cabecera Exclusiva Móvil con Cierre Rápido:**
+     - En móviles se añadió una cabecera superior compacta (`md:hidden`) con botón `[← Cerrar]`, indicador `⚡ Barra Rápida • Ticket #XX` y acceso rápido a ajustes `(+)`. Al abrirse en móvil, la franja naranja se oculta automáticamente para aprovechar el 100% del ancho del celular.
+  4. **Sub-pestañas Móviles (Catálogo vs. Cobro):**
+     - Se incorporó selector táctil en celulares: `[🍽️ Platos Favoritos (N)]` y `[💵 Cobro / Caja ($)]`, alternando vistas limpiamente sin apretar las 2 columnas.
+     - En el catálogo: cuadrícula táctil responsiva `grid-cols-2 sm:grid-cols-3 md:grid-cols-4`, con fotos más altas (`h-20 sm:h-20 md:h-16`) y nombres legibles.
+     - Barra flotante inferior en catálogo que muestra el total y permite saltar directamente a `[Ir a Cobro →]`.
+     - En la pantalla de cobro: métodos de pago a ancho completo sin textos encimados, 6 billetes en cuadrícula 3x2 holgada, desglose claro de recibido/vueltas y botones maestros `[Cobrar Vitrina]` y `[Enviar a Cocina]`.
+     - Se preservó al 100% la vista de escritorio (`md:`): mantiene exactamente el diseño lado a lado de 960px con las 2 columnas simultáneas y la franja naranja vertical continua según las imágenes de referencia 01 y 02.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 24 rutas del proyecto.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

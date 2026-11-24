@@ -113,6 +113,7 @@ const BILL_CONFIG: Record<
 export function AdminBarraDrawer() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<"pos" | "queue">("pos");
+  const [mobileSubTab, setMobileSubTab] = useState<"catalog" | "checkout">("catalog");
 
   // Configuración editable de la barra
   const [barraConfig, setBarraConfig] = useState<BarraConfig>(DEFAULT_CONFIG);
@@ -436,11 +437,13 @@ export function AdminBarraDrawer() {
   return (
     <>
       {/* ========================================================================= */}
-      {/* 1. FRANJA VERTICAL FIJA (IDÉNTICA A LA IMAGEN 01 Y 02)                    */}
+      {/* 1. FRANJA VERTICAL FIJA Y PANEL DESPLEGABLE                               */}
       {/* ========================================================================= */}
       <div
-        className={`fixed left-0 md:left-64 top-0 bottom-0 z-40 flex items-stretch select-none pointer-events-none ${
-          isOpen ? "pointer-events-auto" : ""
+        className={`fixed left-0 md:left-64 z-40 flex items-stretch select-none pointer-events-none ${
+          isOpen
+            ? "pointer-events-auto inset-0 md:inset-auto md:left-64 md:top-0 md:bottom-0 z-50 md:z-40"
+            : "top-0 bottom-16 md:bottom-0"
         }`}
       >
         {/* ======================================================================= */}
@@ -448,25 +451,96 @@ export function AdminBarraDrawer() {
         {/* ======================================================================= */}
         <div
           onClick={(e) => e.stopPropagation()}
-          className={`pointer-events-auto h-full bg-[#101217] border-r border-gray-800/80 flex shadow-2xl transition-all duration-300 overflow-hidden ${
+          className={`pointer-events-auto h-full bg-[#101217] border-r border-gray-800/80 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden ${
             isOpen
-              ? "w-[960px] max-w-[calc(100vw-54px)] opacity-100"
+              ? "w-full md:w-[960px] md:max-w-[calc(100vw-54px)] opacity-100"
               : "w-0 opacity-0 pointer-events-none"
           }`}
         >
+          {/* Cabecera Móvil Exclusiva con botón cerrar y título */}
+          <div className="md:hidden flex items-center justify-between px-3.5 py-2.5 bg-[#14161f] border-b border-gray-800 shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-800/90 hover:bg-gray-700 text-white font-bold text-xs active:scale-95 transition-all border border-gray-700/60 shadow-sm"
+            >
+              <ChevronLeft className="w-4 h-4 text-amber-400 stroke-[3]" />
+              <span>Cerrar</span>
+            </button>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-black text-amber-400">⚡ Barra Rápida</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                Ticket {nextTicket}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowConfigModal(true)}
+              className="w-8 h-8 rounded-full bg-[#8b5cf6] hover:bg-[#7c3aed] text-white flex items-center justify-center font-black text-sm shadow-md transition-transform active:scale-90"
+              title="Ajustes de barra y favoritos"
+            >
+              <Plus className="w-4 h-4 stroke-[3]" />
+            </button>
+          </div>
+
+          {/* Selector de Sub-Pestañas en Móvil */}
+          {activeTab === "pos" && (
+            <div className="md:hidden flex items-center p-1.5 bg-[#0e1015] border-b border-gray-800/80 gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => setMobileSubTab("catalog")}
+                className={`flex-1 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all ${
+                  mobileSubTab === "catalog"
+                    ? "bg-amber-500 text-black shadow-md font-black"
+                    : "bg-[#181b22] text-gray-400 hover:text-white"
+                }`}
+              >
+                <span>🍽️ Platos Favoritos</span>
+                {cart.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-black/40 text-black text-[10px] font-black">
+                    {cart.reduce((a, b) => a + b.quantity, 0)}
+                  </span>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMobileSubTab("checkout")}
+                className={`flex-1 py-2 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all ${
+                  mobileSubTab === "checkout"
+                    ? "bg-amber-500 text-black shadow-md font-black"
+                    : "bg-[#181b22] text-gray-400 hover:text-white"
+                }`}
+              >
+                <span>💵 Cobro / Caja</span>
+                {cartTotal > 0 && (
+                  <span className="text-[10px] font-black">
+                    ({formatPrice(cartTotal)})
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
+
           {activeTab === "pos" ? (
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
               
               {/* ----------------------------------------------------------------- */}
-              {/* COLUMNA IZQUIERDA: CATÁLOGO, BUSCADOR Y FOTOS (4 COLUMNAS)         */}
+              {/* COLUMNA IZQUIERDA: CATÁLOGO, BUSCADOR Y FOTOS                     */}
               {/* ----------------------------------------------------------------- */}
-              <div className="w-[52%] border-r border-gray-800/80 p-3.5 flex flex-col justify-between overflow-hidden bg-[#0d0f14]">
+              <div
+                className={`w-full md:w-[52%] md:border-r border-gray-800/80 p-3 sm:p-3.5 flex-col justify-between overflow-hidden bg-[#0d0f14] ${
+                  mobileSubTab === "catalog" ? "flex flex-1" : "hidden md:flex"
+                }`}
+              >
                 <div className="space-y-3 flex-1 flex flex-col overflow-hidden">
                   
                   {/* Fila 1: Buscador + Carrusel de Categorías + Botón + morado */}
                   <div className="flex items-center gap-2 shrink-0">
                     {/* Buscador compacto con icono de lupa */}
-                    <div className="relative w-36 sm:w-44 shrink-0">
+                    <div className="relative w-32 sm:w-44 shrink-0">
                       <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5 pointer-events-none" />
                       <input
                         type="text"
@@ -515,11 +589,11 @@ export function AdminBarraDrawer() {
                       ))}
                     </div>
 
-                    {/* Botón Circular Morado '+' de la imagen 02 (Ajustes y Favoritos) */}
+                    {/* Botón Circular Morado '+' (oculto en móvil porque está en la cabecera móvil) */}
                     <button
                       type="button"
                       onClick={() => setShowConfigModal(true)}
-                      className="w-7 h-7 rounded-full bg-[#8b5cf6] hover:bg-[#7c3aed] text-white flex items-center justify-center font-black text-sm shadow-md transition-transform active:scale-90 shrink-0"
+                      className="hidden md:flex w-7 h-7 rounded-full bg-[#8b5cf6] hover:bg-[#7c3aed] text-white items-center justify-center font-black text-sm shadow-md transition-transform active:scale-90 shrink-0"
                       title="Configurar favoritos de mostrador y formas de pago"
                     >
                       <Plus className="w-4 h-4 stroke-[3]" />
@@ -536,8 +610,8 @@ export function AdminBarraDrawer() {
                     </span>
                   </div>
 
-                  {/* Cuadrícula Táctil: 4 Columnas x Filas con Fotos Reales de Platos */}
-                  <div className="flex-1 overflow-y-auto pr-1 grid grid-cols-4 gap-2 custom-scrollbar">
+                  {/* Cuadrícula Táctil: 2 columnas en móvil, 4 en desktop */}
+                  <div className="flex-1 overflow-y-auto pr-1 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2.5 custom-scrollbar">
                     {displayedDishes.map((dish) => {
                       const countInCart = cart
                         .filter((c) => c.dishName === dish.name)
@@ -557,7 +631,7 @@ export function AdminBarraDrawer() {
                           )}
 
                           {/* Foto del plato */}
-                          <div className="h-16 w-full bg-[#101216] overflow-hidden relative">
+                          <div className="h-20 sm:h-20 md:h-16 w-full bg-[#101216] overflow-hidden relative">
                             <img
                               src={dish.imageUrl || "/logo-pio-pio.png"}
                               alt={dish.name}
@@ -569,11 +643,11 @@ export function AdminBarraDrawer() {
                           </div>
 
                           {/* Pie de la tarjeta con nombre y precio */}
-                          <div className="p-1 bg-[#14161d] text-center border-t border-gray-800/80">
-                            <p className="text-[10px] font-bold text-white group-hover:text-amber-400 truncate leading-tight">
+                          <div className="p-1.5 md:p-1 bg-[#14161d] text-center border-t border-gray-800/80">
+                            <p className="text-[11px] md:text-[10px] font-bold text-white group-hover:text-amber-400 truncate leading-tight">
                               {dish.name}
                             </p>
-                            <p className="text-[10px] font-black text-amber-400">
+                            <p className="text-xs md:text-[10px] font-black text-amber-400">
                               {formatPrice(dish.basePrice)}
                             </p>
                           </div>
@@ -583,6 +657,26 @@ export function AdminBarraDrawer() {
                   </div>
 
                 </div>
+
+                {/* Barra flotante inferior en móvil para pasar a pagar si hay platos */}
+                {cart.length > 0 && (
+                  <div className="md:hidden mt-2 p-2.5 bg-[#141720] rounded-2xl border border-amber-500/40 flex items-center justify-between shadow-2xl shrink-0">
+                    <div>
+                      <span className="text-[10px] text-gray-400 block font-bold">
+                        {cart.reduce((a, b) => a + b.quantity, 0)} platos en comanda
+                      </span>
+                      <span className="text-sm font-black text-amber-400">{formatPrice(cartTotal)}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setMobileSubTab("checkout")}
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-black font-black text-xs flex items-center gap-1 shadow-lg active:scale-95"
+                    >
+                      <span>Ir a Cobro</span>
+                      <ChevronRight className="w-4 h-4 stroke-[3]" />
+                    </button>
+                  </div>
+                )}
 
                 {/* Switch inferior para cambiar a pedidos en espera */}
                 <div className="pt-2 border-t border-gray-800/80 flex items-center justify-between text-xs shrink-0">
@@ -622,8 +716,22 @@ export function AdminBarraDrawer() {
               {/* ----------------------------------------------------------------- */}
               {/* COLUMNA DERECHA: PANEL DE COBRO Y DESPACHO                         */}
               {/* ----------------------------------------------------------------- */}
-              <div className="w-[48%] bg-[#12141a] p-3.5 flex flex-col justify-between overflow-y-auto space-y-3">
+              <div
+                className={`w-full md:w-[48%] bg-[#12141a] p-3 sm:p-3.5 flex-col justify-between overflow-y-auto space-y-3 ${
+                  mobileSubTab === "checkout" ? "flex flex-1" : "hidden md:flex"
+                }`}
+              >
                 <div className="space-y-3">
+                  
+                  {/* Botón Móvil para regresar al catálogo de platos */}
+                  <button
+                    type="button"
+                    onClick={() => setMobileSubTab("catalog")}
+                    className="md:hidden w-full py-2 px-3 rounded-xl bg-gray-800/80 hover:bg-gray-700 text-gray-200 font-bold text-xs flex items-center justify-center gap-1.5 border border-gray-700/60 active:scale-95"
+                  >
+                    <ChevronLeft className="w-4 h-4 text-amber-400 stroke-[2.5]" />
+                    <span>← Seguir agregando platos</span>
+                  </button>
                   
                   {/* 1. MOMENTO DEL PAGO */}
                   <div>
@@ -906,7 +1014,7 @@ export function AdminBarraDrawer() {
                   <p className="text-[10px]">Todos los pedidos para llevar han sido despachados.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {activeOrders.map((order) => {
                     const isPrepaid = order.closedBy?.startsWith("PAGADO_PREVIO");
                     return (
@@ -972,16 +1080,18 @@ export function AdminBarraDrawer() {
             e.stopPropagation();
             setIsOpen((prev) => !prev);
           }}
-          className="pointer-events-auto w-12 bg-gradient-to-b from-[#f59e0b] via-[#f97316] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f97316] text-black cursor-pointer flex flex-col items-center justify-between py-6 shadow-2xl rounded-r-3xl border-r-2 border-amber-300/40 transition-all active:scale-98 group"
+          className={`${
+            isOpen ? "hidden md:flex" : "flex"
+          } pointer-events-auto w-11 md:w-12 bg-gradient-to-b from-[#f59e0b] via-[#f97316] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f97316] text-black cursor-pointer flex-col items-center justify-between py-4 md:py-6 shadow-2xl rounded-r-2xl md:rounded-r-3xl border-r-2 border-amber-300/40 transition-all active:scale-98 group`}
           title={isOpen ? "Ocultar barra" : "Desplegar Barra Rápida hacia la derecha"}
         >
           {/* Badge superior: contador de pedidos pendientes */}
-          <div className="w-6 h-6 rounded-full bg-[#7c2d12] text-amber-300 border border-amber-400/80 font-black text-[11px] flex items-center justify-center shadow">
+          <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-[#7c2d12] text-amber-300 border border-amber-400/80 font-black text-[10px] md:text-[11px] flex items-center justify-center shadow">
             {activeOrders.length}
           </div>
 
           {/* Texto vertical: B A R R A */}
-          <div className="flex flex-col items-center gap-1.5 font-black text-xs text-black/95 tracking-widest font-mono italic select-none">
+          <div className="flex flex-col items-center gap-1 md:gap-1.5 font-black text-[10px] md:text-xs text-black/95 tracking-widest font-mono italic select-none">
             <span>B</span>
             <span>A</span>
             <span>R</span>
@@ -990,12 +1100,12 @@ export function AdminBarraDrawer() {
           </div>
 
           {/* Botón Central Circular con Flecha (apunta a la derecha al estar cerrado, izquierda al estar abierto) */}
-          <div className="w-9 h-9 rounded-full bg-black text-[#f97316] border-2 border-[#ea580c] flex items-center justify-center font-black text-sm shadow-xl group-hover:scale-110 transition-transform">
-            {isOpen ? <ChevronLeft className="w-5 h-5 stroke-[3]" /> : <ChevronRight className="w-5 h-5 stroke-[3]" />}
+          <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-black text-[#f97316] border-2 border-[#ea580c] flex items-center justify-center font-black text-sm shadow-xl group-hover:scale-110 transition-transform">
+            {isOpen ? <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 stroke-[3]" /> : <ChevronRight className="w-4 h-4 md:w-5 md:h-5 stroke-[3]" />}
           </div>
 
           {/* Texto vertical: R A P I D A */}
-          <div className="flex flex-col items-center gap-1.5 font-black text-xs text-black/95 tracking-widest font-mono italic select-none">
+          <div className="flex flex-col items-center gap-1 md:gap-1.5 font-black text-[10px] md:text-xs text-black/95 tracking-widest font-mono italic select-none">
             <span>R</span>
             <span>A</span>
             <span>P</span>
@@ -1005,8 +1115,8 @@ export function AdminBarraDrawer() {
           </div>
 
           {/* Icono inferior: Rayo ⚡ */}
-          <div className="w-6 h-6 rounded-full bg-black/25 flex items-center justify-center font-black text-xs shadow-inner">
-            <Zap className="w-3.5 h-3.5 fill-black" />
+          <div className="w-5 h-5 md:w-6 md:h-6 rounded-full bg-black/25 flex items-center justify-center font-black text-xs shadow-inner">
+            <Zap className="w-3 h-3 md:w-3.5 md:h-3.5 fill-black" />
           </div>
         </div>
 

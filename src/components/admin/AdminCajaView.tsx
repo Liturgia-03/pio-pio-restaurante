@@ -37,6 +37,8 @@ import {
   Share2,
   Copy,
   MessageCircle,
+  Sparkles,
+  ArrowDownRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/formatters";
@@ -54,6 +56,8 @@ interface CashShiftData {
   expectedCash?: number | null;
   actualCash?: number | null;
   difference?: number | null;
+  baseLeftForNext?: number | null;
+  withdrawnCash?: number | null;
   totalSalesCash: number;
   totalSalesDigital: number;
   totalSalesCard: number;
@@ -171,7 +175,10 @@ export function AdminCajaView() {
 
   const [showCloseModal, setShowCloseModal] = useState<boolean>(false);
   const [countedCash, setCountedCash] = useState<number>(0);
+  const [baseLeftForNext, setBaseLeftForNext] = useState<number>(0);
   const [closeNotes, setCloseNotes] = useState<string>("");
+
+  const [interShiftSummary, setInterShiftSummary] = useState<any>(null);
 
   const [showExpenseModal, setShowExpenseModal] = useState<boolean>(false);
   const [expCategory, setExpCategory] = useState<string>("CARBON_GAS");
@@ -259,6 +266,10 @@ export function AdminCajaView() {
       text += `• Efectivo Contado:    ${formatPrice(shift.actualCash || 0)}\n`;
       text += `--------------------------------\n`;
       text += `DIFERENCIA:            ${diffStr}\n`;
+      text += `• Base Dejada en Caja: ${formatPrice(shift.baseLeftForNext || 0)}\n`;
+      text += `• Efectivo Retirado:   ${formatPrice(
+        shift.withdrawnCash ?? Math.max(0, (shift.actualCash || 0) - (shift.baseLeftForNext || 0))
+      )}\n`;
       text += `UTILIDAD NETA TURNO:   ${formatPrice(shift.netProfit)}\n`;
       if (shift.notes) {
         text += `--------------------------------\n`;
@@ -350,8 +361,12 @@ export function AdminCajaView() {
         setActiveShift(json.data.activeShift || null);
         setLiveData(json.data.liveData || null);
         setRecentClosedShifts(json.data.recentClosedShifts || []);
+        setInterShiftSummary(json.data.interShiftSummary || null);
         if (json.data.liveData?.expectedCash) {
           setCountedCash(json.data.liveData.expectedCash);
+        }
+        if (!json.data.activeShift && json.data.interShiftSummary?.suggestedInitialCash !== undefined) {
+          setOpenInitialCash(json.data.interShiftSummary.suggestedInitialCash);
         }
       }
     } catch (err) {
@@ -535,6 +550,7 @@ export function AdminCajaView() {
         body: JSON.stringify({
           shiftId: activeShift.id,
           actualCash: countedCash,
+          baseLeftForNext,
           closedBy: openCajeroName,
           notes: closeNotes,
         }),
@@ -686,7 +702,9 @@ export function AdminCajaView() {
               <button
                 type="button"
                 onClick={() => {
-                  setCountedCash(liveData?.expectedCash || 0);
+                  const expCash = liveData?.expectedCash || 0;
+                  setCountedCash(expCash);
+                  setBaseLeftForNext(Math.min(activeShift.initialCash, expCash));
                   setShowCloseModal(true);
                 }}
                 className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black text-xs flex items-center gap-1.5 active:scale-95 transition-all shadow-md"
@@ -784,6 +802,36 @@ export function AdminCajaView() {
                   Para registrar ventas con control de arqueo, gastos de caja menor y liquidar el día, inicia un nuevo turno ingresando la base inicial en efectivo.
                 </p>
               </div>
+
+              {/* Tarjeta de Dinero Disponible Inter-Turno */}
+              {interShiftSummary && (interShiftSummary.baseLeft > 0 || interShiftSummary.interSalesCash > 0 || interShiftSummary.interExpensesCash > 0) && (
+                <div className="w-full bg-[#161a24] border border-amber-500/30 rounded-2xl p-3.5 space-y-2 text-left shadow-lg">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-black text-amber-400 uppercase text-[10px] flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Efectivo Acumulado en Cajón</span>
+                    </span>
+                    <span className="font-black text-amber-300 text-xs">
+                      {formatPrice(interShiftSummary.suggestedInitialCash)}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5 text-center text-[10px] border-t border-gray-800 pt-2">
+                    <div className="bg-[#1a1e27] p-1.5 rounded-lg">
+                      <span className="text-gray-400 block text-[9px]">Base Dejada</span>
+                      <span className="font-bold text-white">{formatPrice(interShiftSummary.baseLeft)}</span>
+                    </div>
+                    <div className="bg-[#1a1e27] p-1.5 rounded-lg">
+                      <span className="text-emerald-400 block text-[9px]">+ Ventas</span>
+                      <span className="font-bold text-emerald-400">+{formatPrice(interShiftSummary.interSalesCash)}</span>
+                    </div>
+                    <div className="bg-[#1a1e27] p-1.5 rounded-lg">
+                      <span className="text-rose-400 block text-[9px]">- Gastos</span>
+                      <span className="font-bold text-rose-400">-{formatPrice(interShiftSummary.interExpensesCash)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={() => setShowOpenModal(true)}
@@ -1064,6 +1112,10 @@ export function AdminCajaView() {
                         <div className="flex justify-between font-black text-emerald-400">
                           <span>Utilidad:</span>
                           <span>{formatPrice(s.netProfit)}</span>
+                        </div>
+                        <div className="flex justify-between text-gray-400 border-t border-gray-800/60 pt-0.5 text-[9px]">
+                          <span>Base Dejada: <strong className="text-amber-400">{formatPrice(s.baseLeftForNext || 0)}</strong></span>
+                          <span>Retirado: <strong className="text-emerald-300">{formatPrice(s.withdrawnCash ?? Math.max(0, (s.actualCash || 0) - (s.baseLeftForNext || 0)))}</strong></span>
                         </div>
                       </div>
 
@@ -1686,6 +1738,42 @@ export function AdminCajaView() {
             </div>
 
             <div className="space-y-3">
+              {/* Cálculo Automático Inter-Turno si hubo base previa o ventas/gastos con caja cerrada */}
+              {interShiftSummary && (interShiftSummary.baseLeft > 0 || interShiftSummary.interSalesCash > 0 || interShiftSummary.interExpensesCash > 0) && (
+                <div className="bg-gradient-to-br from-amber-500/15 to-orange-500/5 border border-amber-500/30 rounded-2xl p-3.5 space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-black text-amber-400 uppercase text-[10px] flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Cálculo de Base Sugerida
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setOpenInitialCash(interShiftSummary.suggestedInitialCash)}
+                      className="text-[10px] font-black text-black bg-amber-400 hover:bg-amber-300 px-2 py-0.5 rounded-lg shadow-sm transition-all"
+                    >
+                      Usar: {formatPrice(interShiftSummary.suggestedInitialCash)}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-center pt-1 border-t border-amber-500/20 text-[11px]">
+                    <div className="bg-black/30 p-1.5 rounded-xl border border-white/5">
+                      <span className="text-[9px] text-gray-400 block uppercase font-bold">Base Dejada</span>
+                      <span className="font-black text-white">{formatPrice(interShiftSummary.baseLeft)}</span>
+                    </div>
+                    <div className="bg-black/30 p-1.5 rounded-xl border border-white/5">
+                      <span className="text-[9px] text-emerald-400 block uppercase font-bold">+ Ventas Cerrada</span>
+                      <span className="font-black text-emerald-400">+{formatPrice(interShiftSummary.interSalesCash)}</span>
+                    </div>
+                    <div className="bg-black/30 p-1.5 rounded-xl border border-white/5">
+                      <span className="text-[9px] text-rose-400 block uppercase font-bold">- Gastos Cerrada</span>
+                      <span className="font-black text-rose-400">-{formatPrice(interShiftSummary.interExpensesCash)}</span>
+                    </div>
+                  </div>
+                  <p className="text-[9px] text-gray-400 italic text-center">
+                    Fórmula: Base dejada en cierre previo + Ventas en efectivo - Gastos en efectivo con caja cerrada.
+                  </p>
+                </div>
+              )}
+
               <div>
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-wider block mb-1">
                   BASE INICIAL EN EFECTIVO (PARA VUELTAS)
@@ -1875,6 +1963,95 @@ export function AdminCajaView() {
               <span className="text-base font-black">
                 {liveDiff === 0 ? "$ 0" : (liveDiff > 0 ? `+${formatPrice(liveDiff)}` : `-${formatPrice(Math.abs(liveDiff))}`)}
               </span>
+            </div>
+
+            {/* Destino del Efectivo: Base para siguiente turno vs Efectivo a Retirar */}
+            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#161a24] to-[#12141c] border border-amber-500/30 space-y-2.5">
+              <div className="flex justify-between items-center">
+                <label className="text-[10px] font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <Banknote className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Base que Queda en Caja (Próx. Turno)</span>
+                </label>
+                <span className="text-[10px] text-gray-400 font-bold">
+                  En Cajón: {formatPrice(countedCash)}
+                </span>
+              </div>
+
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 font-black text-amber-400 text-sm">$</span>
+                <input
+                  type="number"
+                  step={10000}
+                  value={baseLeftForNext}
+                  onChange={(e) => setBaseLeftForNext(Math.max(0, Number(e.target.value) || 0))}
+                  className="w-full bg-[#181b24] border border-gray-700 focus:border-amber-500 rounded-xl pl-8 pr-3 py-2 text-sm font-black text-white outline-none"
+                  placeholder="0"
+                />
+              </div>
+
+              {/* Botones rápidos de base para el próximo turno */}
+              <div className="grid grid-cols-4 gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setBaseLeftForNext(0)}
+                  className={`py-1 px-1.5 rounded-lg text-[9px] font-bold border transition-all ${
+                    baseLeftForNext === 0
+                      ? "bg-amber-500 text-black border-amber-400 font-black shadow"
+                      : "bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700"
+                  }`}
+                >
+                  $0 (Retirar Todo)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBaseLeftForNext(50000)}
+                  className={`py-1 px-1.5 rounded-lg text-[9px] font-bold border transition-all ${
+                    baseLeftForNext === 50000
+                      ? "bg-amber-500 text-black border-amber-400 font-black shadow"
+                      : "bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700"
+                  }`}
+                >
+                  $50.000
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBaseLeftForNext(100000)}
+                  className={`py-1 px-1.5 rounded-lg text-[9px] font-bold border transition-all ${
+                    baseLeftForNext === 100000
+                      ? "bg-amber-500 text-black border-amber-400 font-black shadow"
+                      : "bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700"
+                  }`}
+                >
+                  $100.000
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBaseLeftForNext(activeShift.initialCash)}
+                  className={`py-1 px-1.5 rounded-lg text-[9px] font-bold border transition-all ${
+                    baseLeftForNext === activeShift.initialCash
+                      ? "bg-amber-500 text-black border-amber-400 font-black shadow"
+                      : "bg-gray-800 text-gray-300 border-gray-700 hover:bg-gray-700"
+                  }`}
+                  title="Dejar exactamente la misma base inicial de este turno"
+                >
+                  Base Actual ({formatPrice(activeShift.initialCash)})
+                </button>
+              </div>
+
+              {/* Cálculo en vivo de Efectivo a Retirar / Consignar */}
+              <div className="pt-2 border-t border-gray-800 flex justify-between items-center text-xs">
+                <div>
+                  <span className="text-[10px] font-black uppercase text-emerald-400 block">
+                    💵 Efectivo a Retirar / Consignar:
+                  </span>
+                  <span className="text-[10px] text-gray-400">
+                    {formatPrice(countedCash)} contado - {formatPrice(baseLeftForNext)} base
+                  </span>
+                </div>
+                <span className="text-base font-black text-emerald-300">
+                  {formatPrice(Math.max(0, countedCash - baseLeftForNext))}
+                </span>
+              </div>
             </div>
 
             <div>
@@ -2219,6 +2396,20 @@ export function AdminCajaView() {
                       : (printShift.difference || 0) > 0
                       ? `+${formatPrice(printShift.difference || 0)} (SOBRANTE)`
                       : `-${formatPrice(Math.abs(printShift.difference || 0))} (FALTANTE)`}
+                  </span>
+                </div>
+                <div className="flex justify-between font-bold text-gray-800 border-t border-dashed border-gray-300 pt-1.5 text-xs">
+                  <span>Base Dejada en Caja (Próx. Turno):</span>
+                  <span className="font-black text-amber-700">{formatPrice(printShift.baseLeftForNext || 0)}</span>
+                </div>
+                <div className="flex justify-between font-bold text-gray-800 text-xs">
+                  <span>Efectivo Retirado / Consignado:</span>
+                  <span className="font-black text-emerald-800">
+                    {formatPrice(
+                      printShift.withdrawnCash !== null && printShift.withdrawnCash !== undefined
+                        ? printShift.withdrawnCash
+                        : Math.max(0, (printShift.actualCash || 0) - (printShift.baseLeftForNext || 0))
+                    )}
                   </span>
                 </div>
                 <div className="flex justify-between font-bold text-gray-700 border-t border-dashed border-gray-300 pt-1 text-[11px]">

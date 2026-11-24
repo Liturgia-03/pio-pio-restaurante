@@ -1410,6 +1410,39 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
 
+### Hito 80: Registro de Base Dejada para Próximo Turno, Efectivo Retirado y Cálculo Automático de Base con Caja Cerrada
+- **Requerimiento:**
+  1. Permitir que el sistema opere ventas y gastos incluso cuando la caja se encuentre cerrada.
+  2. Al cerrar y liquidar un turno, registrar explícitamente cuánto dinero queda en base en el cajón para el siguiente turno (`baseLeftForNext`), y cuánto dinero se retira o consigna (`withdrawnCash`).
+  3. Si la caja está cerrada y se registran ventas posteriores en efectivo, ese dinero debe sumarse automáticamente a la base sugerida de la próxima apertura de caja.
+  4. Si se registran gastos en efectivo con la caja cerrada, deben restarse de la base que se dejó en el cajón.
+  5. Ambos valores (Base Dejada en Caja y Efectivo Retirado / Consignado) deben reflejarse fielmente en la tirilla de liquidación (en pantalla, comprobante descargable `.txt`, mensaje de WhatsApp y formato de impresión térmico/PDF), así como en el modal de apertura del siguiente turno.
+- **Solución Implementada:**
+  1. **Modelo de Base de Datos en Supabase PostgreSQL ([prisma/schema.prisma](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/prisma/schema.prisma)):**
+     - Se incorporaron los campos en el modelo `CashShift`:
+       - `baseLeftForNext Float? @default(0)`: Base en efectivo que el cajero deja en el cajón para el turno siguiente.
+       - `withdrawnCash Float? @default(0)`: Efectivo retirado o consignado (`Math.max(0, actualCash - baseLeftForNext)`).
+     - Sincronización exitosa ejecutada mediante `npx prisma db push` contra el clúster de Supabase (`aws-1-us-west-2.pooler.supabase.com:5432`) y regeneración de Prisma Client.
+  2. **Lógica de Backend ([src/app/api/admin/caja/shift/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/shift/route.ts)):**
+     - **`GET` (Cálculo Inter-Turno):** Cuando no hay un turno activo, consulta el último turno cerrado para extraer su `baseLeftForNext`. Luego consulta las ventas cerradas (`TableSession` cerradas después del último turno) y los gastos con `cashShiftId: null`. Calcula el balance en efectivo:
+       $$\text{Base Sugerida} = \max(0, \text{Base Dejada Anterior} + \text{Ventas Efectivo Caja Cerrada} - \text{Gastos Efectivo Caja Cerrada})$$
+       Retorna el objeto `interShiftSummary` con los conteos y montos discriminados.
+     - **`PATCH` (Cierre y Liquidación de Turno):** Recibe `baseLeftForNext` desde el modal de cierre, calcula `withdrawnCash = Math.max(0, actualCash - baseLeftForNext)` y persiste ambos valores en el registro `CashShift`.
+     - **`POST` (Apertura de Turno):** Al iniciar un nuevo turno, vincula de forma transaccional los gastos registrados con caja cerrada (`cashShiftId: null`) para preservar la trazabilidad histórica.
+  3. **Interfaz de Usuario y Tirilla de Liquidación ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)):**
+     - **Modal de Cierre (`showCloseModal`):**
+       - Campo numérico para registrar `baseLeftForNext` con botones de ajuste rápido: `$0 (Retirar Todo)`, `$50.000`, `$100.000` y `Base Actual`.
+       - Indicador dinámico en tiempo real del *Efectivo a Retirar / Consignar* (`countedCash - baseLeftForNext`).
+     - **Modal de Apertura (`showOpenModal`):**
+       - Tarjeta informativa de *Cálculo de Base Sugerida* cuando hubo movimientos con caja cerrada o base previa, mostrando la base dejada, ventas (+) y egresos (-), con botón de 1 clic para aplicar el valor sugerido.
+     - **Vista de Caja Cerrada:** Banner visual que alerta al cajero del dinero físico acumulado en el cajón antes de abrir el turno.
+     - **Tirilla de Liquidación (Pantalla, Descarga `.txt`, Compartir y WhatsApp):**
+       - Muestra en el bloque de arqueo la línea `• Base Dejada en Caja (Próx. Turno)` y `• Efectivo Retirado / Consignado`.
+       - Tarjetas históricas de turnos cerrados con etiquetas visibles de base dejada y dinero retirado.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas estáticas y dinámicas.
+
+
 ### Hito 76: Rediseño del Panel de Cobro y Comanda de Mesas en Disposición de Dos Columnas (Fiel a Referencia Visual)
 - **Fecha:** 24 de Noviembre de 2026
 - **Archivos Modificados:**
@@ -1512,6 +1545,39 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
      - En [src/app/api/admin/caja/shift/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/shift/route.ts), el listado de turnos recientes (`recentClosedShifts`) ahora incluye la relación completa de gastos (`expenses`) ordenados cronológicamente, permitiendo ver la tirilla histórica con sus gastos en cualquier momento.
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
+
+### Hito 80: Registro de Base Dejada para Próximo Turno, Efectivo Retirado y Cálculo Automático de Base con Caja Cerrada
+- **Requerimiento:**
+  1. Permitir que el sistema opere ventas y gastos incluso cuando la caja se encuentre cerrada.
+  2. Al cerrar y liquidar un turno, registrar explícitamente cuánto dinero queda en base en el cajón para el siguiente turno (`baseLeftForNext`), y cuánto dinero se retira o consigna (`withdrawnCash`).
+  3. Si la caja está cerrada y se registran ventas posteriores en efectivo, ese dinero debe sumarse automáticamente a la base sugerida de la próxima apertura de caja.
+  4. Si se registran gastos en efectivo con la caja cerrada, deben restarse de la base que se dejó en el cajón.
+  5. Ambos valores (Base Dejada en Caja y Efectivo Retirado / Consignado) deben reflejarse fielmente en la tirilla de liquidación (en pantalla, comprobante descargable `.txt`, mensaje de WhatsApp y formato de impresión térmico/PDF), así como en el modal de apertura del siguiente turno.
+- **Solución Implementada:**
+  1. **Modelo de Base de Datos en Supabase PostgreSQL ([prisma/schema.prisma](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/prisma/schema.prisma)):**
+     - Se incorporaron los campos en el modelo `CashShift`:
+       - `baseLeftForNext Float? @default(0)`: Base en efectivo que el cajero deja en el cajón para el turno siguiente.
+       - `withdrawnCash Float? @default(0)`: Efectivo retirado o consignado (`Math.max(0, actualCash - baseLeftForNext)`).
+     - Sincronización exitosa ejecutada mediante `npx prisma db push` contra el clúster de Supabase (`aws-1-us-west-2.pooler.supabase.com:5432`) y regeneración de Prisma Client.
+  2. **Lógica de Backend ([src/app/api/admin/caja/shift/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/shift/route.ts)):**
+     - **`GET` (Cálculo Inter-Turno):** Cuando no hay un turno activo, consulta el último turno cerrado para extraer su `baseLeftForNext`. Luego consulta las ventas cerradas (`TableSession` cerradas después del último turno) y los gastos con `cashShiftId: null`. Calcula el balance en efectivo:
+       $$\text{Base Sugerida} = \max(0, \text{Base Dejada Anterior} + \text{Ventas Efectivo Caja Cerrada} - \text{Gastos Efectivo Caja Cerrada})$$
+       Retorna el objeto `interShiftSummary` con los conteos y montos discriminados.
+     - **`PATCH` (Cierre y Liquidación de Turno):** Recibe `baseLeftForNext` desde el modal de cierre, calcula `withdrawnCash = Math.max(0, actualCash - baseLeftForNext)` y persiste ambos valores en el registro `CashShift`.
+     - **`POST` (Apertura de Turno):** Al iniciar un nuevo turno, vincula de forma transaccional los gastos registrados con caja cerrada (`cashShiftId: null`) para preservar la trazabilidad histórica.
+  3. **Interfaz de Usuario y Tirilla de Liquidación ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)):**
+     - **Modal de Cierre (`showCloseModal`):**
+       - Campo numérico para registrar `baseLeftForNext` con botones de ajuste rápido: `$0 (Retirar Todo)`, `$50.000`, `$100.000` y `Base Actual`.
+       - Indicador dinámico en tiempo real del *Efectivo a Retirar / Consignar* (`countedCash - baseLeftForNext`).
+     - **Modal de Apertura (`showOpenModal`):**
+       - Tarjeta informativa de *Cálculo de Base Sugerida* cuando hubo movimientos con caja cerrada o base previa, mostrando la base dejada, ventas (+) y egresos (-), con botón de 1 clic para aplicar el valor sugerido.
+     - **Vista de Caja Cerrada:** Banner visual que alerta al cajero del dinero físico acumulado en el cajón antes de abrir el turno.
+     - **Tirilla de Liquidación (Pantalla, Descarga `.txt`, Compartir y WhatsApp):**
+       - Muestra en el bloque de arqueo la línea `• Base Dejada en Caja (Próx. Turno)` y `• Efectivo Retirado / Consignado`.
+       - Tarjetas históricas de turnos cerrados con etiquetas visibles de base dejada y dinero retirado.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas estáticas y dinámicas.
+
 
 ---
 

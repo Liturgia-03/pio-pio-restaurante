@@ -15,6 +15,8 @@ export async function GET() {
 
     let liveData = null;
 
+    let interShiftSummary = null;
+
     if (activeShift) {
       // 2. Traer todas las ventas cerradas desde la apertura del turno
       const closedSessions = await prisma.tableSession.findMany({
@@ -102,6 +104,84 @@ export async function GET() {
         recentSessions: closedSessions.slice(0, 15),
         recentExpenses: shiftExpenses.slice(0, 15),
       };
+    } else {
+      // 2b. CAJA CERRADA: Calcular resumen inter-turno para sugerir la base automática
+      // Buscar el último turno cerrado
+      const lastClosedShift = await prisma.cashShift.findFirst({
+        where: { status: "CLOSED" },
+        orderBy: { closedAt: "desc" },
+      });
+
+      const sinceDate = lastClosedShift?.closedAt || new Date(0);
+
+      // Ventas realizadas con caja cerrada
+      const interSessions = await prisma.tableSession.findMany({
+        where: {
+          status: "CLOSED",
+          closedAt: { gte: sinceDate },
+        },
+        include: {
+          items: { where: { status: { not: "CANCELLED" } } },
+        },
+        orderBy: { closedAt: "asc" },
+      });
+
+      let interSalesCash = 0;
+      let interSalesDigital = 0;
+      let interSalesTotal = 0;
+
+      interSessions.forEach((s) => {
+        const parsed = parseSessionPayment(s);
+        interSalesCash += parsed.cash;
+        interSalesDigital += parsed.digital + parsed.card;
+        interSalesTotal += parsed.total;
+      });
+
+      // Gastos realizados con caja cerrada
+      const interExpenses = await prisma.expense.findMany({
+        where: {
+          cashShiftId: null,
+          date: { gte: sinceDate },
+        },
+        orderBy: { date: "asc" },
+      });
+
+      let interExpensesCash = 0;
+      let interExpensesDigital = 0;
+      let interExpensesTotal = 0;
+
+      interExpenses.forEach((exp) => {
+        const amt = Number(exp.amount || 0);
+        interExpensesTotal += amt;
+        if (exp.paymentMethod === "CASH") {
+          interExpensesCash += amt;
+        } else {
+          interExpensesDigital += amt;
+        }
+      });
+
+      // Base dejada en el último cierre (o 0 si no hubo o se retiró todo)
+      const baseLeft = Number(lastClosedShift?.baseLeftForNext ?? 0);
+
+      // Base inicial sugerida para la próxima apertura de caja:
+      // Base dejada + ventas en efectivo caja cerrada - gastos en efectivo caja cerrada
+      const suggestedInitialCash = Math.max(0, baseLeft + interSalesCash - interExpensesCash);
+
+      interShiftSummary = {
+        lastClosedShiftId: lastClosedShift?.id || null,
+        lastClosedAt: lastClosedShift?.closedAt || null,
+        lastClosedBy: lastClosedShift?.closedBy || null,
+        baseLeft,
+        interSalesCash,
+        interSalesDigital,
+        interSalesTotal,
+        interSalesCount: interSessions.length,
+        interExpensesCash,
+        interExpensesDigital,
+        interExpensesTotal,
+        interExpensesCount: interExpenses.length,
+        suggestedInitialCash,
+      };
     }
 
     // 7. Lista de últimos turnos liquidados para histórico rápido (con desglose de gastos)
@@ -122,6 +202,7 @@ export async function GET() {
       data: {
         activeShift,
         liveData,
+        interShiftSummary,
         recentClosedShifts,
       },
     });
@@ -164,6 +245,16 @@ export async function POST(request: Request) {
       },
     });
 
+    // Asociar gastos registrados con caja cerrada al nuevo turno activo
+    await prisma.expense.updateMany({
+      where: {
+        cashShiftId: null,
+      },
+      data: {
+        cashShiftId: shift.id,
+      },
+    });
+
     return NextResponse.json({
       success: true,
       message: `Turno de caja abierto exitosamente con base de $${Number(shift.initialCash).toLocaleString()}`,
@@ -182,7 +273,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { shiftId, actualCash, closedBy = "Admin en Caja", notes = "" } = body;
+    const { shiftId, actualCash, baseLeftForNext = 0, closedBy = "Admin en Caja", notes = "" } = body;
 
     if (!shiftId) {
       return NextResponse.json(
@@ -250,6 +341,8 @@ export async function PATCH(request: Request) {
     const initialCash = Number(shift.initialCash || 0);
     const expectedCash = initialCash + totalSalesCash - totalExpensesCash;
     const realCounted = Math.max(0, Number(actualCash || 0));
+    const baseLeft = Math.max(0, Number(baseLeftForNext || 0));
+    const withdrawnCash = Math.max(0, realCounted - baseLeft);
     const difference = realCounted - expectedCash;
     const netProfit = totalSales - totalExpenses;
 
@@ -264,6 +357,8 @@ export async function PATCH(request: Request) {
         expectedCash,
         actualCash: realCounted,
         difference,
+        baseLeftForNext: baseLeft,
+        withdrawnCash,
         totalSalesCash,
         totalSalesDigital,
         totalSalesCard,
@@ -281,7 +376,7 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `Turno liquidado y cerrado exitosamente. Diferencia: ${difference === 0 ? "Cuadre exacto" : difference > 0 ? `Sobrante de $${difference.toLocaleString()}` : `Faltante de $${Math.abs(difference).toLocaleString()}`}`,
+      message: `Turno liquidado y cerrado exitosamente. Base dejada en caja: $${baseLeft.toLocaleString()} • Efectivo retirado: $${withdrawnCash.toLocaleString()} • Diferencia: ${difference === 0 ? "Cuadre exacto" : difference > 0 ? `Sobrante de $${difference.toLocaleString()}` : `Faltante de $${Math.abs(difference).toLocaleString()}`}`,
       data: updatedShift,
     });
   } catch (error: any) {

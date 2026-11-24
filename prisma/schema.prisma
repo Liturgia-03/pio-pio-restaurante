@@ -240,6 +240,8 @@ model CashShift {
   expectedCash         Float?     // Efectivo que debería haber en caja
   actualCash           Float?     // Efectivo físico real contado al liquidar
   difference           Float?     // actualCash - expectedCash (Sobrante > 0, Faltante < 0)
+  baseLeftForNext      Float?     @default(0) // Base que se deja en el cajón para el siguiente turno
+  withdrawnCash        Float?     @default(0) // Efectivo retirado o consignado (actualCash - baseLeftForNext)
   totalSalesCash       Float      @default(0)
   totalSalesDigital    Float      @default(0) // Nequi / Daviplata
   totalSalesCard       Float      @default(0) // Datáfono

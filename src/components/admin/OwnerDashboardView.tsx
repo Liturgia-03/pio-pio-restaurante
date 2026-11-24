@@ -355,35 +355,36 @@ export function OwnerDashboardView() {
   return (
     <div className="w-full max-w-5xl mx-auto space-y-4 pb-12">
       {/* ======================================================================= */}
-      {/* CABECERA EJECUTIVA DEL DUEÑO                                            */}
+      {/* CABECERA EJECUTIVA DEL DUEÑO (Compacta y Reorganizada)                  */}
       {/* ======================================================================= */}
-      <div className="bg-gradient-to-r from-[#171510] via-[#1a1712] to-[#12141c] border border-amber-500/40 rounded-3xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
-        {/* Glow dorado decorativo */}
-        <div className="absolute -top-10 -right-10 w-44 h-44 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-gradient-to-r from-[#171510] via-[#1a1712] to-[#12141c] border border-amber-500/30 rounded-2xl p-2.5 sm:p-4 shadow-lg relative overflow-hidden">
+        {/* Glow dorado decorativo sutil */}
+        <div className="absolute -top-10 -right-10 w-36 h-36 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-300 flex items-center justify-center text-black font-black shadow-lg shadow-amber-500/30 flex-shrink-0 animate-[bounce_4s_infinite]">
-              <Crown className="w-6 h-6 stroke-[2.5]" />
+        <div className="flex items-center justify-between gap-2 relative z-10">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-300 flex items-center justify-center text-black font-black shadow-md shadow-amber-500/20 flex-shrink-0">
+              <Crown className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-base sm:text-lg font-black text-white">
-                  Panel Ejecutivo del Dueño
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-xs sm:text-base font-black text-white truncate">
+                  <span className="sm:hidden">Panel Ejecutivo</span>
+                  <span className="hidden sm:inline">Panel Ejecutivo del Dueño</span>
                 </h1>
-                <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-black text-[9px] border border-amber-500/40 tracking-wider uppercase">
+                <span className="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold text-[8px] sm:text-[9px] border border-amber-500/40 uppercase tracking-wider flex-shrink-0">
                   SUPER ADMIN
                 </span>
               </div>
-              <p className="text-xs text-gray-400">
-                Pío Pío Asadero & Restaurante • Control en tiempo real
+              <p className="text-[10px] sm:text-xs text-gray-400 truncate">
+                Pío Pío Asadero & Restaurante • En tiempo real
               </p>
             </div>
           </div>
 
-          {/* Botón de Refrescar y Estado */}
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            <span className="text-[11px] text-gray-400 font-mono hidden sm:inline">
+          {/* Botón de Refrescar en la misma fila superior */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-[10px] text-gray-400 font-mono hidden md:inline">
               {stats ? formatTime(stats.timestamp) : "--:--"}
             </span>
             <button
@@ -394,32 +395,32 @@ export function OwnerDashboardView() {
                 if (activeTab === "audit") fetchAudit();
                 toast.success("Métricas actualizadas en vivo");
               }}
-              className="p-2.5 rounded-2xl bg-[#221f18] hover:bg-[#2b271f] text-amber-300 border border-amber-500/30 flex items-center gap-1.5 text-xs font-bold active:scale-95 transition-all shadow-md"
+              className="py-1.5 px-2.5 sm:py-2 sm:px-3 rounded-xl bg-[#221f18] hover:bg-[#2b271f] text-amber-300 border border-amber-500/30 flex items-center gap-1.5 text-[11px] sm:text-xs font-bold active:scale-95 transition-all shadow-sm"
               title="Actualizar datos en tiempo real"
             >
-              <RefreshCw className="w-4 h-4" />
-              <span className="text-[11px]">Actualizar</span>
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Actualizar</span>
             </button>
           </div>
         </div>
 
-        {/* Resumen del Turno Activo */}
-        <div className="mt-4 pt-3 border-t border-amber-500/20 flex flex-wrap items-center justify-between text-xs gap-2">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-gray-300">
+        {/* Resumen del Turno Activo: Tira horizontal compacta */}
+        <div className="mt-2 pt-2 border-t border-amber-500/15 flex items-center justify-between text-[10px] sm:text-xs gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse flex-shrink-0" />
+            <span className="text-gray-300 truncate">
               {stats?.shift ? (
                 <>
                   Turno abierto por{" "}
-                  <strong className="text-white">{stats.shift.openedBy}</strong> a las{" "}
-                  <span className="text-amber-300">{formatTime(stats.shift.openedAt)}</span>
+                  <strong className="text-white font-semibold">{stats.shift.openedBy}</strong> a las{" "}
+                  <span className="text-amber-300 font-medium">{formatTime(stats.shift.openedAt)}</span>
                 </>
               ) : (
                 <span className="text-rose-400 font-bold">Caja actualmente cerrada</span>
               )}
             </span>
           </div>
-          <span className="text-[11px] text-gray-400">
+          <span className="text-[9px] sm:text-[10px] text-gray-400 flex-shrink-0">
             {formatDate(new Date())}
           </span>
         </div>

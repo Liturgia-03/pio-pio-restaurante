@@ -2016,6 +2016,20 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas.
 
+### Hito 86: Compactación y Reorganización Horizontal de la Cabecera del Dueño
+- **Requerimiento:**
+  1. La tarjeta superior de cabecera del Panel Ejecutivo del Dueño ("Panel Ejecutivo del Dueño / SUPER ADMIN / Turno abierto...") se mostraba demasiado cuadrada, grande y alta en móviles, forzando varias líneas de salto y ocupando casi 200px verticales.
+  2. Rediseñarla para que sea significativamente más pequeña, delgada, horizontal y ergonómica.
+- **Solución Implementada:**
+  1. **Reorganización en 2 Filas Esbeltas ([src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx)):**
+     - **Fila 1 (Identidad y Acción):** Corona dorada compacta (36x36px) junto al título *"Panel Ejecutivo"* y badge *"SUPER ADMIN"*, integrando en la misma línea superior a la derecha el botón *"Actualizar"*, evitando que salte a una segunda línea en móviles.
+     - **Fila 2 (Estado del Turno y Fecha):** Tira horizontal delgada con separador fino que presenta en una sola línea compacta el estado de apertura (`🟢 Turno abierto por [Nombre] a las [Hora]`) y la fecha a la derecha.
+  2. **Dimensiones y Espaciados:**
+     - Padding reducido de `p-4 sm:p-6 rounded-3xl` a `p-2.5 sm:p-4 rounded-2xl`.
+     - Altura vertical reducida en más del 60% (de ~200px a ~75px en móviles).
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

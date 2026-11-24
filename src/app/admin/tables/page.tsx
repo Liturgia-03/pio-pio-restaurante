@@ -29,6 +29,8 @@ import {
   ShieldCheck,
   ChevronDown,
   SlidersHorizontal,
+  Smartphone,
+  Layers,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TableCardData, TableSessionData, WaiterItem } from "@/types";
@@ -52,6 +54,21 @@ interface MenuCategory {
   name: string;
   dishes: MenuItem[];
 }
+
+const TABLE_ACTIVE_BILLS = [100000, 50000, 20000, 10000, 5000, 2000];
+
+const TABLE_BILL_CONFIG: Record<
+  number,
+  { bg: string; border: string; text: string; badgeBg: string; badgeColor: string; emoji: string }
+> = {
+  100000: { bg: "bg-[#181c2e]", border: "border-indigo-500/50", text: "text-indigo-300", badgeBg: "bg-indigo-950", badgeColor: "text-indigo-200 border-indigo-500", emoji: "🟣" },
+  50000: { bg: "bg-[#12261e]", border: "border-emerald-500/50", text: "text-emerald-300", badgeBg: "bg-emerald-950", badgeColor: "text-emerald-200 border-emerald-500", emoji: "🟢" },
+  20000: { bg: "bg-[#2b1b11]", border: "border-orange-500/50", text: "text-orange-300", badgeBg: "bg-orange-950", badgeColor: "text-orange-200 border-orange-500", emoji: "🟠" },
+  10000: { bg: "bg-[#11232e]", border: "border-cyan-500/50", text: "text-cyan-300", badgeBg: "bg-cyan-950", badgeColor: "text-cyan-200 border-cyan-500", emoji: "🔵" },
+  5000: { bg: "bg-[#261e14]", border: "border-amber-600/50", text: "text-amber-300", badgeBg: "bg-amber-950", badgeColor: "text-amber-200 border-amber-600", emoji: "🟤" },
+  2000: { bg: "bg-[#1a1e24]", border: "border-gray-600/50", text: "text-gray-300", badgeBg: "bg-gray-900", badgeColor: "text-gray-200 border-gray-600", emoji: "🔘" },
+  1000: { bg: "bg-[#161a20]", border: "border-gray-700/50", text: "text-gray-400", badgeBg: "bg-gray-900", badgeColor: "text-gray-300 border-gray-700", emoji: "🪙" },
+};
 
 export default function AdminTablesCashierPage() {
   const [activeTab, setActiveTab] = useState<"tables" | "history" | "waiters">("tables");
@@ -111,7 +128,11 @@ export default function AdminTablesCashierPage() {
   // Modal para transferir mesa y método de pago
   const [showTransferModal, setShowTransferModal] = useState<boolean>(false);
   const [targetTableNumber, setTargetTableNumber] = useState<string>("");
-  const [paymentMethod, setPaymentMethod] = useState<string>("Efectivo");
+  // Opciones avanzadas de cobro de mesa (idénticas a Barra Rápida)
+  const [checkoutPaymentMethod, setCheckoutPaymentMethod] = useState<"CASH" | "NEQUI" | "CARD" | "MIXED">("CASH");
+  const [tableSelectedBills, setTableSelectedBills] = useState<number[]>([]);
+  const [tableMixedCash, setTableMixedCash] = useState<number>(0);
+  const [tableMixedTransfer, setTableMixedTransfer] = useState<number>(0);
 
   // Modal para asignar / transferir mesero responsable a la mesa
   const [showAssignWaiterModal, setShowAssignWaiterModal] = useState<boolean>(false);
@@ -345,22 +366,101 @@ export default function AdminTablesCashierPage() {
     return todaySessions.reduce((acc, s) => acc + s.total, 0);
   }, [todaySessions]);
 
-  // Acción de Cobro de 1 Clic
+  // Inicialización de forma de pago cuando se selecciona una mesa en caja
+  useEffect(() => {
+    if (selectedTable?.session) {
+      const tot = Number(selectedTable.session.total || 0);
+      setCheckoutPaymentMethod("CASH");
+      setTableSelectedBills([]);
+      const half = Math.floor(tot / 2000) * 1000;
+      setTableMixedCash(half);
+      setTableMixedTransfer(Math.max(0, tot - half));
+    }
+  }, [selectedTable?.tableNumber, selectedTable?.session?.id]);
+
+  // Cálculos reactivos de billetes y cambio en mesas
+  const tableTotalCashReceived = useMemo(() => {
+    return tableSelectedBills.reduce((acc, b) => acc + b, 0);
+  }, [tableSelectedBills]);
+
+  const tableCashChange = useMemo(() => {
+    if (!selectedTable?.session) return 0;
+    const tot = Number(selectedTable.session.total || 0);
+    const amountToCover = checkoutPaymentMethod === "MIXED" ? tableMixedCash : tot;
+    return Math.max(0, tableTotalCashReceived - amountToCover);
+  }, [tableSelectedBills, checkoutPaymentMethod, tableMixedCash, selectedTable?.session?.total]);
+
+  const handleAddTableBill = (amount: number) => {
+    setTableSelectedBills((prev) => [...prev, amount]);
+  };
+
+  const handleRemoveTableBillAt = (index: number) => {
+    setTableSelectedBills((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleSetExactTableCash = () => {
+    if (!selectedTable?.session) return;
+    const tot = Number(selectedTable.session.total || 0);
+    const target = checkoutPaymentMethod === "MIXED" ? tableMixedCash : tot;
+    setTableSelectedBills([target]);
+  };
+
+  const handleResetTableBills = () => {
+    setTableSelectedBills([]);
+  };
+
+  // Acción de Cobro y Liberación de Mesa con Múltiples Opciones
   const handleCheckoutAndFreeTable = async (sessionId: string, tableNumber: string) => {
-    if (!confirm(`¿Confirmas el pago y liberación inmediata de la Mesa #${tableNumber}?`)) {
+    if (!selectedTable?.session) return;
+    const tot = Number(selectedTable.session.total || 0);
+
+    // Validaciones de efectivo (Efectivo y Mixto)
+    if (checkoutPaymentMethod === "CASH" && tableTotalCashReceived > 0 && tableTotalCashReceived < tot) {
+      toast.error(
+        `El efectivo entregado (${formatPrice(tableTotalCashReceived)}) es menor a la cuenta (${formatPrice(tot)}). Usa los billetes o presiona "Exacto".`
+      );
       return;
     }
+    if (
+      checkoutPaymentMethod === "MIXED" &&
+      tableMixedCash > 0 &&
+      tableTotalCashReceived > 0 &&
+      tableTotalCashReceived < tableMixedCash
+    ) {
+      toast.error(
+        `El efectivo entregado (${formatPrice(tableTotalCashReceived)}) es menor a la parte en efectivo pactada (${formatPrice(tableMixedCash)}). Usa los billetes o presiona "Exacto".`
+      );
+      return;
+    }
+
+    if (!confirm(`¿Confirmas el cobro y liberación inmediata de la Mesa #${tableNumber}?`)) {
+      return;
+    }
+
     setIsActionLoading(true);
     try {
       const res = await fetch(`/api/tables/${sessionId}/checkout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ closedBy: "Admin / Caja" }),
+        body: JSON.stringify({
+          closedBy: "Admin en Caja",
+          paymentMethod: checkoutPaymentMethod,
+          cashPaidAmount:
+            checkoutPaymentMethod === "CASH" || checkoutPaymentMethod === "MIXED"
+              ? tableTotalCashReceived || (checkoutPaymentMethod === "MIXED" ? tableMixedCash : tot)
+              : undefined,
+          cashChange:
+            checkoutPaymentMethod === "CASH" || checkoutPaymentMethod === "MIXED"
+              ? tableCashChange
+              : undefined,
+          mixedCash: checkoutPaymentMethod === "MIXED" ? tableMixedCash : undefined,
+          mixedTransfer: checkoutPaymentMethod === "MIXED" ? tableMixedTransfer : undefined,
+        }),
       });
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.message);
 
-      toast.success(`¡Mesa #${tableNumber} cobrada exitosamente y liberada!`);
+      toast.success(json.message || `¡Mesa #${tableNumber} cobrada exitosamente y liberada!`);
       setSelectedTable(null);
       await loadTables(true);
     } catch (err: any) {
@@ -1468,41 +1568,317 @@ export default function AdminTablesCashierPage() {
                   </div>
                 )}
 
-                {/* Sección de Liquidación y Cobro de la Mesa */}
-                <div className="p-4 bg-[#181b20] border border-gray-800 rounded-3xl space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                      Total a Cobrar
-                    </span>
-                    <span className="text-2xl font-black text-amber-400">
-                      {formatPrice(selectedTable.session.total)}
+                {/* Sección de Liquidación y Cobro de la Mesa con Múltiples Formas de Pago */}
+                <div className="p-4 bg-[#181b20] border border-gray-800 rounded-3xl space-y-3.5">
+                  <div className="flex items-center justify-between pb-2 border-b border-gray-800">
+                    <div>
+                      <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">
+                        TOTAL A COBRAR
+                      </span>
+                      <span className="text-2xl font-black text-amber-400">
+                        {formatPrice(selectedTable.session.total)}
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-bold text-gray-400 bg-gray-800/80 px-2.5 py-1 rounded-xl">
+                      Mesa #{selectedTable.tableNumber}
                     </span>
                   </div>
 
-                  {/* Selector de Método de Pago */}
-                  <div className="space-y-1">
-                    <span className="text-[10px] text-gray-400 font-semibold">
-                      Método de pago del cliente:
+                  {/* 1. Selector de 4 Formas de Pago (Idéntico a Barra Rápida) */}
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 block">
+                      FORMA DE PAGO:
                     </span>
-                    <div className="grid grid-cols-3 gap-2">
-                      {["Efectivo", "Nequi/Transferencia", "Tarjeta/Datáfono"].map((m) => (
-                        <button
-                          key={m}
-                          type="button"
-                          onClick={() => setPaymentMethod(m)}
-                          className={`py-2 px-1 text-[11px] font-bold rounded-xl border transition-all text-center ${
-                            paymentMethod === m
-                              ? "bg-amber-500 text-black border-amber-400 font-black shadow-md"
-                              : "bg-[#14161a] border-gray-800 text-gray-400 hover:text-white"
-                          }`}
-                        >
-                          {m}
-                        </button>
-                      ))}
+                    <div className="grid grid-cols-4 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setCheckoutPaymentMethod("CASH")}
+                        className={`py-2 px-1 rounded-xl text-xs font-black flex items-center justify-center gap-1 transition-all ${
+                          checkoutPaymentMethod === "CASH"
+                            ? "bg-amber-500 text-black shadow-md shadow-amber-500/20"
+                            : "bg-[#14161a] text-gray-400 hover:text-white border border-gray-800"
+                        }`}
+                      >
+                        <DollarSign className="w-3.5 h-3.5" />
+                        <span>Efectivo</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setCheckoutPaymentMethod("NEQUI")}
+                        className={`py-2 px-1 rounded-xl text-xs font-black flex items-center justify-center gap-1 transition-all ${
+                          checkoutPaymentMethod === "NEQUI"
+                            ? "bg-purple-600 text-white shadow-md shadow-purple-600/20"
+                            : "bg-[#14161a] text-gray-400 hover:text-white border border-gray-800"
+                        }`}
+                      >
+                        <Smartphone className="w-3.5 h-3.5" />
+                        <span>Nequi</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setCheckoutPaymentMethod("CARD")}
+                        className={`py-2 px-1 rounded-xl text-xs font-black flex items-center justify-center gap-1 transition-all ${
+                          checkoutPaymentMethod === "CARD"
+                            ? "bg-blue-600 text-white shadow-md shadow-blue-600/20"
+                            : "bg-[#14161a] text-gray-400 hover:text-white border border-gray-800"
+                        }`}
+                      >
+                        <CreditCard className="w-3.5 h-3.5" />
+                        <span>Tarjeta</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setCheckoutPaymentMethod("MIXED")}
+                        className={`py-2 px-1 rounded-xl text-xs font-black flex items-center justify-center gap-1 transition-all ${
+                          checkoutPaymentMethod === "MIXED"
+                            ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                            : "bg-[#14161a] text-gray-400 hover:text-white border border-gray-800"
+                        }`}
+                      >
+                        <Layers className="w-3.5 h-3.5" />
+                        <span>Mixto</span>
+                      </button>
                     </div>
                   </div>
 
-                  {/* Botón Principal de Cobro */}
+                  {/* 2. Panel Informativo Nequi / Daviplata */}
+                  {checkoutPaymentMethod === "NEQUI" && (
+                    <div className="bg-[#1a172e] border border-indigo-500/40 rounded-2xl p-3 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[10px] font-black text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                          <Smartphone className="w-3.5 h-3.5 text-indigo-400" />
+                          Pago Digital Nequi / Daviplata
+                        </span>
+                        <span className="text-xs font-black text-indigo-200">
+                          {formatPrice(selectedTable.session.total)}
+                        </span>
+                      </div>
+                      <div className="bg-[#111022] rounded-xl p-2.5 text-[11px] text-gray-300 space-y-1 border border-indigo-500/20">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-gray-400">Total a transferir:</span>
+                          <span className="font-black text-emerald-400">
+                            {formatPrice(selectedTable.session.total)}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-400 pt-1">
+                          📱 Solicite al cliente el comprobante de transferencia y verifique la acreditación en la cuenta del asadero antes de liberar la mesa.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 3. Panel Informativo Datáfono / Tarjeta */}
+                  {checkoutPaymentMethod === "CARD" && (
+                    <div className="bg-[#0f1d2a] border border-sky-500/40 rounded-2xl p-3 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[10px] font-black text-sky-300 uppercase tracking-wider flex items-center gap-1.5">
+                          <CreditCard className="w-3.5 h-3.5 text-sky-400" />
+                          Datáfono / Tarjeta
+                        </span>
+                        <span className="text-xs font-black text-sky-200">
+                          {formatPrice(selectedTable.session.total)}
+                        </span>
+                      </div>
+                      <div className="bg-[#0a151f] rounded-xl p-2.5 text-[11px] text-gray-300 space-y-1 border border-sky-500/20">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-gray-400">Total a pasar por datáfono:</span>
+                          <span className="font-black text-emerald-400">
+                            {formatPrice(selectedTable.session.total)}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-400 pt-1">
+                          💳 Ingrese el valor en el datáfono físico y confirme la aprobación del voucher antes de liberar la mesa.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 4. Configuración de Pago Mixto (Efectivo + Transferencia) */}
+                  {checkoutPaymentMethod === "MIXED" && (
+                    <div className="bg-[#161a29] border border-indigo-500/30 rounded-2xl p-2.5 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                          <Layers className="w-3.5 h-3.5 text-indigo-400" />
+                          División de Pago Mixto
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const tot = selectedTable.session!.total;
+                            const half = Math.floor(tot / 2000) * 1000;
+                            setTableMixedCash(half);
+                            setTableMixedTransfer(Math.max(0, tot - half));
+                          }}
+                          className="text-[10px] font-bold text-amber-400 hover:underline"
+                        >
+                          Dividir 50% / 50%
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="bg-[#0f121d] p-2 rounded-xl border border-gray-800">
+                          <label className="text-[10px] text-gray-400 block font-bold mb-1">
+                            💵 Parte Efectivo:
+                          </label>
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-400 font-bold">$</span>
+                            <input
+                              type="number"
+                              step={1000}
+                              min={0}
+                              max={selectedTable.session.total}
+                              value={tableMixedCash || ""}
+                              onChange={(e) => {
+                                const tot = selectedTable.session!.total;
+                                const val = Math.min(tot, Math.max(0, Number(e.target.value) || 0));
+                                setTableMixedCash(val);
+                                setTableMixedTransfer(Math.max(0, tot - val));
+                              }}
+                              className="w-full bg-transparent text-amber-400 font-black text-sm outline-none"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="bg-[#0f121d] p-2 rounded-xl border border-gray-800">
+                          <label className="text-[10px] text-gray-400 block font-bold mb-1">
+                            📱 Parte Digital (Nequi):
+                          </label>
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-400 font-bold">$</span>
+                            <input
+                              type="number"
+                              step={1000}
+                              min={0}
+                              max={selectedTable.session.total}
+                              value={tableMixedTransfer || ""}
+                              onChange={(e) => {
+                                const tot = selectedTable.session!.total;
+                                const val = Math.min(tot, Math.max(0, Number(e.target.value) || 0));
+                                setTableMixedTransfer(val);
+                                setTableMixedCash(Math.max(0, tot - val));
+                              }}
+                              className="w-full bg-transparent text-indigo-400 font-black text-sm outline-none"
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 5. Calculadora de Billetes y Vueltas en Efectivo */}
+                  {(checkoutPaymentMethod === "CASH" || checkoutPaymentMethod === "MIXED") && (
+                    <div className="bg-[#141720] border border-gray-800/80 rounded-2xl p-2.5 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">
+                          {checkoutPaymentMethod === "MIXED"
+                            ? `Billetes para Efectivo (${formatPrice(tableMixedCash)}):`
+                            : "Billetes Entregados (Auto-Suma):"}
+                        </span>
+                        <div className="flex items-center gap-2 text-xs">
+                          <button
+                            type="button"
+                            onClick={handleSetExactTableCash}
+                            className="text-amber-400 font-black hover:underline"
+                          >
+                            Exacto
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleResetTableBills}
+                            className="text-gray-400 hover:text-white font-bold"
+                          >
+                            Limpiar
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Botonera de 6 Billetes */}
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {TABLE_ACTIVE_BILLS.map((bill) => {
+                          const conf = TABLE_BILL_CONFIG[bill] || {
+                            bg: "bg-[#1a1e24]",
+                            border: "border-gray-700",
+                            text: "text-gray-200",
+                            emoji: "💵",
+                          };
+
+                          return (
+                            <button
+                              key={bill}
+                              type="button"
+                              onClick={() => handleAddTableBill(bill)}
+                              className={`py-1.5 px-2 rounded-xl ${conf.bg} border ${conf.border} ${conf.text} font-black text-xs flex items-center justify-between shadow-sm active:scale-95 transition-all`}
+                            >
+                              <span>{formatPrice(bill)}</span>
+                              <span className="text-[10px]">{conf.emoji}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Bandeja de Billetes Seleccionados */}
+                      <div className="bg-[#0e1015] border border-gray-800 rounded-xl p-1.5 min-h-[38px] flex flex-wrap items-center gap-1">
+                        {tableSelectedBills.length === 0 ? (
+                          <span className="text-[10px] text-gray-500 italic">
+                            Toca los billetes arriba para ingresar el pago...
+                          </span>
+                        ) : (
+                          tableSelectedBills.map((bill, idx) => {
+                            const conf = TABLE_BILL_CONFIG[bill] || {
+                              badgeBg: "bg-gray-800",
+                              badgeColor: "text-gray-200 border-gray-700",
+                            };
+                            return (
+                              <div
+                                key={idx}
+                                className={`flex items-center gap-1 px-2 py-0.5 rounded-lg border text-[10px] font-black shadow-sm ${conf.badgeBg} ${conf.badgeColor}`}
+                              >
+                                <span>{formatPrice(bill)}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveTableBillAt(idx)}
+                                  className="w-3.5 h-3.5 rounded-full bg-black/40 hover:bg-rose-600 text-white flex items-center justify-center text-[9px] font-bold"
+                                  title="Quitar billete"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+
+                      {/* Resumen Financiero: Total Recibido vs Vueltas */}
+                      <div className="pt-1.5 border-t border-gray-800 flex justify-between items-center text-xs">
+                        <div>
+                          <span className="text-[10px] text-gray-400 block font-bold">Total Recibido:</span>
+                          <span className="font-bold text-white">
+                            {formatPrice(
+                              tableTotalCashReceived ||
+                                (checkoutPaymentMethod === "MIXED"
+                                  ? tableMixedCash
+                                  : selectedTable.session.total)
+                            )}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] text-emerald-400 block font-extrabold uppercase">
+                            VUELTAS / CAMBIO:
+                          </span>
+                          <span className="text-base font-black text-emerald-400">
+                            {formatPrice(tableCashChange)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 6. Botón Principal de Cobro */}
                   <button
                     type="button"
                     onClick={() =>
@@ -1517,7 +1893,7 @@ export default function AdminTablesCashierPage() {
                     <CheckCircle2 className="w-5 h-5" />
                     <span>
                       {isActionLoading
-                        ? "Procesando pago..."
+                        ? "Procesando cobro..."
                         : `Cobrar ${formatPrice(selectedTable.session.total)} y Liberar Mesa #${selectedTable.tableNumber}`}
                     </span>
                   </button>

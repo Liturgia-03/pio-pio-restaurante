@@ -1309,6 +1309,33 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación limpia con **código de salida 0** en las 26 rutas.
 
+### Hito 75: Integración del Sistema Táctil y Completo de Formas de Pago en Mesas (Idéntico a Barra Rápida)
+- **Solicitud del usuario:** Agregar las mismas opciones de pago que se usan en la barra rápida para cobrar las cuentas de las mesas.
+- **Solución Quirúrgica Implementada:**
+  1. **Actualización de la Interfaz de Cobro de Mesas ([src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)):**
+     - Se reemplazó el selector básico anterior por el sistema interactivo de 4 formas de pago idéntico al de Barra Rápida:
+       - 💵 **Efectivo (`CASH`):**
+         - Botonera de auto-suma táctil con 6 billetes oficiales colombianos ($100k, $50k, $20k, $10k, $5k, $2k) con códigos de color y emojis.
+         - Botón "Exacto" para asignar el cobro exacto sin cambio.
+         - Botón "Limpiar" para reiniciar los billetes entregados.
+         - Bandeja de billetes entregados con chips desmontables (botón individual `✕` para corregir billetes agregados por error).
+         - Cálculo reactivo en vivo de **Total Recibido ($)** vs **Vueltas / Cambio ($)** en verde fosforescente de alta visibilidad.
+       - 📱 **Nequi / Daviplata (`NEQUI`):**
+         - Panel temático púrpura con el monto exacto a transferir y recordatorio de validar la acreditación antes de liberar la mesa.
+       - 💳 **Datáfono / Tarjeta (`CARD`):**
+         - Panel temático azul con el valor exacto a ingresar en el terminal físico y recordatorio de verificar la aprobación del voucher.
+       - 🔀 **Pago Mixto (`MIXED`):**
+         - Panel de división con botón rápido de división "50% / 50%".
+         - Dos campos sincronizados (Parte Efectivo y Parte Digital).
+         - Calculadora de billetes y cálculo de vueltas exclusivo para la fracción en efectivo.
+     - Inicialización reactiva: al seleccionar cualquier mesa en el salón, se recalcula y adapta la base para pagos mixtos y se limpian los billetes acumulados.
+  2. **Actualización del Endpoint de Cobro ([src/app/api/tables/[sessionId]/checkout/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/tables/[sessionId]/checkout/route.ts)):**
+     - Soporta `paymentMethod`, `cashPaidAmount`, `cashChange`, `mixedCash` y `mixedTransfer`.
+     - Genera la cadena descriptiva de pago en `closedBy` compatible con el parser de Caja & Contabilidad (ej. `Admin en Caja • Pago Mixto (Efectivo: $30.000 + Nequi: $25.000)` o `Admin en Caja • Efectivo (Paga: $50.000, Cambio: $10.000)`).
+     - Alimenta directamente y sin desfase los arqueos de caja en vivo, balances de turnos y reportes contables.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas estáticas y dinámicas.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

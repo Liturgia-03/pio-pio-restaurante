@@ -10,7 +10,14 @@ export async function POST(
   try {
     const { sessionId } = await params;
     const body = await request.json().catch(() => ({}));
-    const closedBy = body.closedBy || "Admin en Caja";
+    const {
+      closedBy = "Admin en Caja",
+      paymentMethod = "CASH",
+      cashPaidAmount,
+      cashChange,
+      mixedCash,
+      mixedTransfer,
+    } = body;
 
     const session = await prisma.tableSession.findUnique({
       where: { id: sessionId },
@@ -35,6 +42,30 @@ export async function POST(
     const validItems = session.items.filter((it) => it.status !== "CANCELLED");
     const finalTotal = validItems.reduce((acc, it) => acc + Number(it.subtotal), 0);
 
+    // Formatear texto descriptivo de la forma de pago para el arqueo de caja
+    let paymentDesc = "Efectivo";
+    if (paymentMethod === "CASH") {
+      paymentDesc = `Efectivo${
+        cashPaidAmount
+          ? ` (Paga: $${Number(cashPaidAmount).toLocaleString()}, Cambio: $${Number(cashChange || 0).toLocaleString()})`
+          : ""
+      }`;
+    } else if (paymentMethod === "NEQUI") {
+      paymentDesc = "Nequi/Daviplata";
+    } else if (paymentMethod === "CARD") {
+      paymentDesc = "Datáfono/Tarjeta";
+    } else if (paymentMethod === "MIXED") {
+      const changeStr =
+        cashChange && Number(cashChange) > 0
+          ? `, Cambio: $${Number(cashChange).toLocaleString()}`
+          : "";
+      paymentDesc = `Pago Mixto (Efectivo: $${Number(mixedCash || 0).toLocaleString()}${changeStr} + Nequi: $${Number(
+        mixedTransfer || 0
+      ).toLocaleString()})`;
+    }
+
+    const fullClosedBy = `${closedBy} • ${paymentDesc}`;
+
     // Cerrar sesión y liberar la mesa inmediatamente
     const closedSession = await prisma.tableSession.update({
       where: { id: sessionId },
@@ -42,17 +73,18 @@ export async function POST(
         status: "CLOSED",
         total: finalTotal,
         closedAt: new Date(),
-        closedBy,
+        closedBy: fullClosedBy,
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: `¡Mesa #${session.tableNumber} cobrada y liberada con éxito!`,
+      message: `¡Mesa #${session.tableNumber} cobrada y liberada con éxito (${paymentDesc})!`,
       data: {
         tableNumber: session.tableNumber,
         total: finalTotal,
         closedAt: closedSession.closedAt,
+        closedBy: fullClosedBy,
       },
     });
   } catch (error: any) {

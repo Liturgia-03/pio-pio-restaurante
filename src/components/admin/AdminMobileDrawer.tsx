@@ -22,9 +22,10 @@ import { toast } from "sonner";
 interface AdminMobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  userRole?: string | null;
 }
 
-export function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawerProps) {
+export function AdminMobileDrawer({ isOpen, onClose, userRole }: AdminMobileDrawerProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isClosing, setIsClosing] = useState(false);
@@ -105,19 +106,26 @@ export function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawerProps) {
     }
   };
 
-  const menuItems = [
-    { label: "👑 Panel del Dueño", href: "/admin/owner", icon: Crown },
-    { label: "Dashboard Resumen", href: "/admin/dashboard", icon: LayoutDashboard },
-    { label: "Barra Rápida", href: "/admin/barra", icon: Zap },
-    { label: "Control de Mesas & Caja", href: "/admin/tables", icon: UtensilsCrossed },
-    { label: "Caja & Contabilidad", href: "/admin/caja", icon: WalletCards },
-    { label: "Gestión de Platos", href: "/admin/dishes", icon: UtensilsCrossed },
-    { label: "Nuevo Plato", href: "/admin/dishes/new", icon: PlusCircle },
-    { label: "Categorías", href: "/admin/categories", icon: FolderTree },
-    { label: "Ajustes Menú", href: "/admin/promo-modal", icon: Sparkles },
-    { label: "Códigos QR Mesas", href: "/admin/qr", icon: QrCode },
-    { label: "Ajustes Asadero", href: "/admin/settings", icon: Settings },
-  ];
+  const isSuperAdmin = userRole === "SUPER_ADMIN";
+
+  const menuItems = isSuperAdmin
+    ? [
+        { label: "👑 Panel Ejecutivo del Dueño", href: "/admin/owner", icon: Crown },
+        { label: "Caja & Contabilidad", href: "/admin/caja", icon: WalletCards },
+        { label: "Ajustes Generales del Asadero", href: "/admin/settings", icon: Settings },
+      ]
+    : [
+        { label: "Dashboard Resumen", href: "/admin/dashboard", icon: LayoutDashboard },
+        { label: "Barra Rápida", href: "/admin/barra", icon: Zap },
+        { label: "Control de Mesas & Caja", href: "/admin/tables", icon: UtensilsCrossed },
+        { label: "Caja & Contabilidad", href: "/admin/caja", icon: WalletCards },
+        { label: "Gestión de Platos", href: "/admin/dishes", icon: UtensilsCrossed },
+        { label: "Nuevo Plato", href: "/admin/dishes/new", icon: PlusCircle },
+        { label: "Categorías", href: "/admin/categories", icon: FolderTree },
+        { label: "Ajustes Menú", href: "/admin/promo-modal", icon: Sparkles },
+        { label: "Códigos QR Mesas", href: "/admin/qr", icon: QrCode },
+        { label: "Ajustes Asadero", href: "/admin/settings", icon: Settings },
+      ];
 
   return (
     <div
@@ -150,7 +158,7 @@ export function AdminMobileDrawer({ isOpen, onClose }: AdminMobileDrawerProps) {
               <div>
                 <h3 className="text-sm font-bold text-white">Pío Pío Admin</h3>
                 <span className="text-[10px] text-amber-400 font-semibold uppercase">
-                  Staff & Cocina
+                  {isSuperAdmin ? "SUPER ADMIN • DUEÑO" : "Staff & Cocina"}
                 </span>
               </div>
             </div>

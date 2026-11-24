@@ -1381,6 +1381,29 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas estáticas y dinámicas.
 
+### Hito 83: Menú Exclusivo y Simplificado a 3 Pestañas para el Super Admin
+- **Requerimiento:**
+  1. El usuario confirmó que le agrada plenamente todo el contenido mostrado en el **Panel Ejecutivo del Dueño (Super Admin)**.
+  2. En el rol `SUPER_ADMIN` se debían eliminar todas las opciones operativas innecesarias (no debe haber Barra rápida, ni Crear platos, ni Categorías, ni Códigos QR, ni Mesas).
+  3. Al Super Admin únicamente le interesa la contabilidad y movimientos diarios del negocio.
+  4. Su menú debe componerse **estricta y exclusivamente de 3 pestañas**:
+     - 👑 **Panel Ejecutivo del Dueño** (`/admin/owner`)
+     - 💵 **Caja & Contabilidad** (`/admin/caja`)
+     - ⚙️ **Ajustes Generales del Asadero** (`/admin/settings`)
+- **Solución Implementada:**
+  1. **Detección Dinámica de Rol en Shell ([src/components/admin/AdminShell.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminShell.tsx)):**
+     - Consulta al montar `/api/admin/auth/me` para obtener el rol del usuario conectado (`userRole`).
+     - Si es `SUPER_ADMIN`, se oculta completamente el cajón desplegable lateral de Barra Rápida (`AdminBarraDrawer`).
+     - Propaga la propiedad `userRole` hacia los componentes de navegación.
+  2. **Barra Lateral de Escritorio ([src/components/admin/AdminNavSidebar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminNavSidebar.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, muestra únicamente las 3 opciones solicitadas y un distintivo de cabecera *"SUPER ADMIN • DUEÑO"*.
+  3. **Menú Desplegable Táctil ([src/components/admin/AdminMobileDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminMobileDrawer.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, el cajón solo despliega las 3 pestañas ejecutivas, suprimiendo platos, categorías, mesas, barra rápida y códigos QR.
+  4. **Barra Inferior Móvil ([src/components/admin/AdminBottomBar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBottomBar.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, renderiza una barra minimalista y ergonómica de 3 accesos directos (👑 Dueño, 💵 Caja, ⚙️ Ajustes), eliminando el botón central flotante (+) de agregar platos.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas.
+
 
 ### Hito 77: Suite Integral de Pruebas de Rendimiento, Estrés y Concurrencia Multimodular
 - **Fecha:** 24 de Noviembre de 2026
@@ -1479,6 +1502,29 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas estáticas y dinámicas.
 
+### Hito 83: Menú Exclusivo y Simplificado a 3 Pestañas para el Super Admin
+- **Requerimiento:**
+  1. El usuario confirmó que le agrada plenamente todo el contenido mostrado en el **Panel Ejecutivo del Dueño (Super Admin)**.
+  2. En el rol `SUPER_ADMIN` se debían eliminar todas las opciones operativas innecesarias (no debe haber Barra rápida, ni Crear platos, ni Categorías, ni Códigos QR, ni Mesas).
+  3. Al Super Admin únicamente le interesa la contabilidad y movimientos diarios del negocio.
+  4. Su menú debe componerse **estricta y exclusivamente de 3 pestañas**:
+     - 👑 **Panel Ejecutivo del Dueño** (`/admin/owner`)
+     - 💵 **Caja & Contabilidad** (`/admin/caja`)
+     - ⚙️ **Ajustes Generales del Asadero** (`/admin/settings`)
+- **Solución Implementada:**
+  1. **Detección Dinámica de Rol en Shell ([src/components/admin/AdminShell.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminShell.tsx)):**
+     - Consulta al montar `/api/admin/auth/me` para obtener el rol del usuario conectado (`userRole`).
+     - Si es `SUPER_ADMIN`, se oculta completamente el cajón desplegable lateral de Barra Rápida (`AdminBarraDrawer`).
+     - Propaga la propiedad `userRole` hacia los componentes de navegación.
+  2. **Barra Lateral de Escritorio ([src/components/admin/AdminNavSidebar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminNavSidebar.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, muestra únicamente las 3 opciones solicitadas y un distintivo de cabecera *"SUPER ADMIN • DUEÑO"*.
+  3. **Menú Desplegable Táctil ([src/components/admin/AdminMobileDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminMobileDrawer.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, el cajón solo despliega las 3 pestañas ejecutivas, suprimiendo platos, categorías, mesas, barra rápida y códigos QR.
+  4. **Barra Inferior Móvil ([src/components/admin/AdminBottomBar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBottomBar.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, renderiza una barra minimalista y ergonómica de 3 accesos directos (👑 Dueño, 💵 Caja, ⚙️ Ajustes), eliminando el botón central flotante (+) de agregar platos.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas.
+
 
 ### Hito 80: Registro de Base Dejada para Próximo Turno, Efectivo Retirado y Cálculo Automático de Base con Caja Cerrada
 - **Requerimiento:**
@@ -1556,6 +1602,29 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
      - `AdminNavSidebar.tsx` y `AdminMobileDrawer.tsx`: Enlace destacado `👑 Panel del Dueño` (`/admin/owner`).
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas estáticas y dinámicas.
+
+### Hito 83: Menú Exclusivo y Simplificado a 3 Pestañas para el Super Admin
+- **Requerimiento:**
+  1. El usuario confirmó que le agrada plenamente todo el contenido mostrado en el **Panel Ejecutivo del Dueño (Super Admin)**.
+  2. En el rol `SUPER_ADMIN` se debían eliminar todas las opciones operativas innecesarias (no debe haber Barra rápida, ni Crear platos, ni Categorías, ni Códigos QR, ni Mesas).
+  3. Al Super Admin únicamente le interesa la contabilidad y movimientos diarios del negocio.
+  4. Su menú debe componerse **estricta y exclusivamente de 3 pestañas**:
+     - 👑 **Panel Ejecutivo del Dueño** (`/admin/owner`)
+     - 💵 **Caja & Contabilidad** (`/admin/caja`)
+     - ⚙️ **Ajustes Generales del Asadero** (`/admin/settings`)
+- **Solución Implementada:**
+  1. **Detección Dinámica de Rol en Shell ([src/components/admin/AdminShell.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminShell.tsx)):**
+     - Consulta al montar `/api/admin/auth/me` para obtener el rol del usuario conectado (`userRole`).
+     - Si es `SUPER_ADMIN`, se oculta completamente el cajón desplegable lateral de Barra Rápida (`AdminBarraDrawer`).
+     - Propaga la propiedad `userRole` hacia los componentes de navegación.
+  2. **Barra Lateral de Escritorio ([src/components/admin/AdminNavSidebar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminNavSidebar.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, muestra únicamente las 3 opciones solicitadas y un distintivo de cabecera *"SUPER ADMIN • DUEÑO"*.
+  3. **Menú Desplegable Táctil ([src/components/admin/AdminMobileDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminMobileDrawer.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, el cajón solo despliega las 3 pestañas ejecutivas, suprimiendo platos, categorías, mesas, barra rápida y códigos QR.
+  4. **Barra Inferior Móvil ([src/components/admin/AdminBottomBar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBottomBar.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, renderiza una barra minimalista y ergonómica de 3 accesos directos (👑 Dueño, 💵 Caja, ⚙️ Ajustes), eliminando el botón central flotante (+) de agregar platos.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas.
 
 
 
@@ -1633,6 +1702,29 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas estáticas y dinámicas.
 
+### Hito 83: Menú Exclusivo y Simplificado a 3 Pestañas para el Super Admin
+- **Requerimiento:**
+  1. El usuario confirmó que le agrada plenamente todo el contenido mostrado en el **Panel Ejecutivo del Dueño (Super Admin)**.
+  2. En el rol `SUPER_ADMIN` se debían eliminar todas las opciones operativas innecesarias (no debe haber Barra rápida, ni Crear platos, ni Categorías, ni Códigos QR, ni Mesas).
+  3. Al Super Admin únicamente le interesa la contabilidad y movimientos diarios del negocio.
+  4. Su menú debe componerse **estricta y exclusivamente de 3 pestañas**:
+     - 👑 **Panel Ejecutivo del Dueño** (`/admin/owner`)
+     - 💵 **Caja & Contabilidad** (`/admin/caja`)
+     - ⚙️ **Ajustes Generales del Asadero** (`/admin/settings`)
+- **Solución Implementada:**
+  1. **Detección Dinámica de Rol en Shell ([src/components/admin/AdminShell.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminShell.tsx)):**
+     - Consulta al montar `/api/admin/auth/me` para obtener el rol del usuario conectado (`userRole`).
+     - Si es `SUPER_ADMIN`, se oculta completamente el cajón desplegable lateral de Barra Rápida (`AdminBarraDrawer`).
+     - Propaga la propiedad `userRole` hacia los componentes de navegación.
+  2. **Barra Lateral de Escritorio ([src/components/admin/AdminNavSidebar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminNavSidebar.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, muestra únicamente las 3 opciones solicitadas y un distintivo de cabecera *"SUPER ADMIN • DUEÑO"*.
+  3. **Menú Desplegable Táctil ([src/components/admin/AdminMobileDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminMobileDrawer.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, el cajón solo despliega las 3 pestañas ejecutivas, suprimiendo platos, categorías, mesas, barra rápida y códigos QR.
+  4. **Barra Inferior Móvil ([src/components/admin/AdminBottomBar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBottomBar.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, renderiza una barra minimalista y ergonómica de 3 accesos directos (👑 Dueño, 💵 Caja, ⚙️ Ajustes), eliminando el botón central flotante (+) de agregar platos.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas.
+
 
 ### Hito 77: Suite Integral de Pruebas de Rendimiento, Estrés y Concurrencia Multimodular
 - **Fecha:** 24 de Noviembre de 2026
@@ -1731,6 +1823,29 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas estáticas y dinámicas.
 
+### Hito 83: Menú Exclusivo y Simplificado a 3 Pestañas para el Super Admin
+- **Requerimiento:**
+  1. El usuario confirmó que le agrada plenamente todo el contenido mostrado en el **Panel Ejecutivo del Dueño (Super Admin)**.
+  2. En el rol `SUPER_ADMIN` se debían eliminar todas las opciones operativas innecesarias (no debe haber Barra rápida, ni Crear platos, ni Categorías, ni Códigos QR, ni Mesas).
+  3. Al Super Admin únicamente le interesa la contabilidad y movimientos diarios del negocio.
+  4. Su menú debe componerse **estricta y exclusivamente de 3 pestañas**:
+     - 👑 **Panel Ejecutivo del Dueño** (`/admin/owner`)
+     - 💵 **Caja & Contabilidad** (`/admin/caja`)
+     - ⚙️ **Ajustes Generales del Asadero** (`/admin/settings`)
+- **Solución Implementada:**
+  1. **Detección Dinámica de Rol en Shell ([src/components/admin/AdminShell.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminShell.tsx)):**
+     - Consulta al montar `/api/admin/auth/me` para obtener el rol del usuario conectado (`userRole`).
+     - Si es `SUPER_ADMIN`, se oculta completamente el cajón desplegable lateral de Barra Rápida (`AdminBarraDrawer`).
+     - Propaga la propiedad `userRole` hacia los componentes de navegación.
+  2. **Barra Lateral de Escritorio ([src/components/admin/AdminNavSidebar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminNavSidebar.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, muestra únicamente las 3 opciones solicitadas y un distintivo de cabecera *"SUPER ADMIN • DUEÑO"*.
+  3. **Menú Desplegable Táctil ([src/components/admin/AdminMobileDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminMobileDrawer.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, el cajón solo despliega las 3 pestañas ejecutivas, suprimiendo platos, categorías, mesas, barra rápida y códigos QR.
+  4. **Barra Inferior Móvil ([src/components/admin/AdminBottomBar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBottomBar.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, renderiza una barra minimalista y ergonómica de 3 accesos directos (👑 Dueño, 💵 Caja, ⚙️ Ajustes), eliminando el botón central flotante (+) de agregar platos.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas.
+
 
 ### Hito 80: Registro de Base Dejada para Próximo Turno, Efectivo Retirado y Cálculo Automático de Base con Caja Cerrada
 - **Requerimiento:**
@@ -1809,7 +1924,53 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas estáticas y dinámicas.
 
+### Hito 83: Menú Exclusivo y Simplificado a 3 Pestañas para el Super Admin
+- **Requerimiento:**
+  1. El usuario confirmó que le agrada plenamente todo el contenido mostrado en el **Panel Ejecutivo del Dueño (Super Admin)**.
+  2. En el rol `SUPER_ADMIN` se debían eliminar todas las opciones operativas innecesarias (no debe haber Barra rápida, ni Crear platos, ni Categorías, ni Códigos QR, ni Mesas).
+  3. Al Super Admin únicamente le interesa la contabilidad y movimientos diarios del negocio.
+  4. Su menú debe componerse **estricta y exclusivamente de 3 pestañas**:
+     - 👑 **Panel Ejecutivo del Dueño** (`/admin/owner`)
+     - 💵 **Caja & Contabilidad** (`/admin/caja`)
+     - ⚙️ **Ajustes Generales del Asadero** (`/admin/settings`)
+- **Solución Implementada:**
+  1. **Detección Dinámica de Rol en Shell ([src/components/admin/AdminShell.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminShell.tsx)):**
+     - Consulta al montar `/api/admin/auth/me` para obtener el rol del usuario conectado (`userRole`).
+     - Si es `SUPER_ADMIN`, se oculta completamente el cajón desplegable lateral de Barra Rápida (`AdminBarraDrawer`).
+     - Propaga la propiedad `userRole` hacia los componentes de navegación.
+  2. **Barra Lateral de Escritorio ([src/components/admin/AdminNavSidebar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminNavSidebar.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, muestra únicamente las 3 opciones solicitadas y un distintivo de cabecera *"SUPER ADMIN • DUEÑO"*.
+  3. **Menú Desplegable Táctil ([src/components/admin/AdminMobileDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminMobileDrawer.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, el cajón solo despliega las 3 pestañas ejecutivas, suprimiendo platos, categorías, mesas, barra rápida y códigos QR.
+  4. **Barra Inferior Móvil ([src/components/admin/AdminBottomBar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBottomBar.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, renderiza una barra minimalista y ergonómica de 3 accesos directos (👑 Dueño, 💵 Caja, ⚙️ Ajustes), eliminando el botón central flotante (+) de agregar platos.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas.
 
+
+
+### Hito 83: Menú Exclusivo y Simplificado a 3 Pestañas para el Super Admin
+- **Requerimiento:**
+  1. El usuario confirmó su plena satisfacción con todo lo que se muestra en el **Panel Ejecutivo del Dueño (Super Admin)**.
+  2. En el rol `SUPER_ADMIN` se debían eliminar todas las opciones operativas innecesarias (no debe haber Barra rápida, ni Crear platos, ni Categorías, ni Códigos QR, ni Mesas).
+  3. Al Super Admin únicamente le interesa la contabilidad y movimientos diarios del negocio.
+  4. Su menú debe componerse **estricta y exclusivamente de 3 pestañas**:
+     - 👑 **Panel Ejecutivo del Dueño** (`/admin/owner`)
+     - 💵 **Caja & Contabilidad** (`/admin/caja`)
+     - ⚙️ **Ajustes Generales del Asadero** (`/admin/settings`)
+- **Solución Implementada:**
+  1. **Detección Dinámica de Rol en Shell ([src/components/admin/AdminShell.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminShell.tsx)):**
+     - Consulta al montar `/api/admin/auth/me` para obtener el rol del usuario conectado (`userRole`).
+     - Si es `SUPER_ADMIN`, se oculta completamente el cajón desplegable lateral de Barra Rápida (`AdminBarraDrawer`).
+     - Propaga la propiedad `userRole` hacia los componentes de navegación.
+  2. **Barra Lateral de Escritorio ([src/components/admin/AdminNavSidebar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminNavSidebar.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, muestra únicamente las 3 opciones solicitadas y un distintivo de cabecera *"SUPER ADMIN • DUEÑO"*.
+  3. **Menú Desplegable Táctil ([src/components/admin/AdminMobileDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminMobileDrawer.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, el cajón solo despliega las 3 pestañas ejecutivas, suprimiendo platos, categorías, mesas, barra rápida y códigos QR.
+  4. **Barra Inferior Móvil ([src/components/admin/AdminBottomBar.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBottomBar.tsx)):**
+     - Si `userRole === "SUPER_ADMIN"`, renderiza una barra minimalista y ergonómica de 3 accesos directos (👑 Dueño, 💵 Caja, ⚙️ Ajustes), eliminando el botón central flotante (+) de agregar platos.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 27 rutas.
 
 ---
 

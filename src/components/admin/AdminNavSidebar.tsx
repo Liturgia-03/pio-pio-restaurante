@@ -17,7 +17,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-export function AdminNavSidebar() {
+interface AdminNavSidebarProps {
+  userRole?: string | null;
+}
+
+export function AdminNavSidebar({ userRole }: AdminNavSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -32,18 +36,29 @@ export function AdminNavSidebar() {
     }
   };
 
-  const navItems = [
-    { label: "👑 Panel del Dueño", href: "/admin/owner", icon: Crown },
-    { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-    { label: "Mesas & Caja", href: "/admin/tables", icon: UtensilsCrossed },
-    { label: "Caja & Contabilidad", href: "/admin/caja", icon: WalletCards },
-    { label: "Platos & Disponibilidad", href: "/admin/dishes", icon: UtensilsCrossed },
-    { label: "Crear Nuevo Plato", href: "/admin/dishes/new", icon: PlusCircle },
-    { label: "Categorías", href: "/admin/categories", icon: FolderTree },
-    { label: "Ajustes Menú", href: "/admin/promo-modal", icon: Sparkles },
-    { label: "Códigos QR Mesas", href: "/admin/qr", icon: QrCode },
-    { label: "Ajustes Asadero", href: "/admin/settings", icon: Settings },
-  ];
+  const isSuperAdmin = userRole === "SUPER_ADMIN";
+
+  // Si es Super Admin, SOLO ve las 3 pestañas solicitadas:
+  // 1. Panel Ejecutivo del Dueño (/admin/owner)
+  // 2. Caja & Contabilidad (/admin/caja)
+  // 3. Ajustes Generales del Asadero (/admin/settings)
+  const navItems = isSuperAdmin
+    ? [
+        { label: "👑 Panel Ejecutivo del Dueño", href: "/admin/owner", icon: Crown },
+        { label: "Caja & Contabilidad", href: "/admin/caja", icon: WalletCards },
+        { label: "Ajustes Generales del Asadero", href: "/admin/settings", icon: Settings },
+      ]
+    : [
+        { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+        { label: "Mesas & Caja", href: "/admin/tables", icon: UtensilsCrossed },
+        { label: "Caja & Contabilidad", href: "/admin/caja", icon: WalletCards },
+        { label: "Platos & Disponibilidad", href: "/admin/dishes", icon: UtensilsCrossed },
+        { label: "Crear Nuevo Plato", href: "/admin/dishes/new", icon: PlusCircle },
+        { label: "Categorías", href: "/admin/categories", icon: FolderTree },
+        { label: "Ajustes Menú", href: "/admin/promo-modal", icon: Sparkles },
+        { label: "Códigos QR Mesas", href: "/admin/qr", icon: QrCode },
+        { label: "Ajustes Asadero", href: "/admin/settings", icon: Settings },
+      ];
 
   return (
     <aside className="hidden md:flex flex-col justify-between w-64 bg-[#14161a] border-r border-gray-800 p-5 min-h-screen fixed top-0 left-0 bottom-0 z-30">
@@ -60,7 +75,7 @@ export function AdminNavSidebar() {
           <div>
             <h2 className="text-sm font-extrabold text-white leading-tight">Pío Pío</h2>
             <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider block">
-              Panel Administrativo
+              {isSuperAdmin ? "SUPER ADMIN • DUEÑO" : "Panel Administrativo"}
             </span>
           </div>
         </div>

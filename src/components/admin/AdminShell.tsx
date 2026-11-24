@@ -11,6 +11,19 @@ import { AdminHeader } from "@/components/admin/AdminHeader";
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  // Consultar el rol del usuario autenticado actual
+  useEffect(() => {
+    fetch("/api/admin/auth/me")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          setUserRole(json.data.role);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Cerrar el drawer automáticamente cada vez que cambia la ruta
   useEffect(() => {
@@ -30,7 +43,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   // Título según la ruta (en mayúsculas)
   let pageTitle = "DASHBOARD";
-  if (pathname.includes("/admin/dishes/new")) pageTitle = "NUEVO PLATO";
+  if (pathname.includes("/admin/owner")) pageTitle = "PANEL EJECUTIVO DEL DUEÑO";
+  else if (pathname.includes("/admin/dishes/new")) pageTitle = "NUEVO PLATO";
   else if (pathname.includes("/admin/dishes")) pageTitle = "GESTIÓN DE PLATOS";
   else if (pathname.includes("/admin/categories")) pageTitle = "CATEGORÍAS";
   else if (pathname.includes("/admin/promo-modal")) pageTitle = "AJUSTES MENÚ";
@@ -40,16 +54,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   else if (pathname.includes("/admin/barra")) pageTitle = "BARRA RÁPIDA & MOSTRADOR";
   else if (pathname.includes("/admin/tables")) pageTitle = "CONTROL DE MESAS Y CAJA";
 
+  const isSuperAdmin = userRole === "SUPER_ADMIN";
+
   return (
     <div className="min-h-screen bg-[#0f1115] text-gray-100 flex flex-col md:flex-row">
-      <AdminNavSidebar />
+      <AdminNavSidebar userRole={userRole} />
 
-      {/* Barra de Pedidos Rápidos y Mostrador anclada junto al Sidebar desplegable hacia la derecha */}
-      <AdminBarraDrawer />
+      {/* Barra de Pedidos Rápidos y Mostrador: solo para personal operativo (no Super Admin) */}
+      {!isSuperAdmin && <AdminBarraDrawer />}
 
       <AdminMobileDrawer
         isOpen={drawerOpen}
         onClose={() => setDrawerOpen(false)}
+        userRole={userRole}
       />
 
       <div className="flex-1 md:pl-64 flex flex-col min-h-screen pb-20 md:pb-6">
@@ -65,7 +82,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
-      <AdminBottomBar />
+      <AdminBottomBar userRole={userRole} />
     </div>
   );
 }

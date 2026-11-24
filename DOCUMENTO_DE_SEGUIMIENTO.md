@@ -1142,6 +1142,21 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 25 rutas del proyecto.
 
+### Hito 67: Transición Dinámica y Suave de Despliegue y Retracción de Barra Rápida
+- **Solicitud del usuario:** Agregar un efecto dinámico y suave en el momento en que se despliega y se retrae la barra rápida de escritorio.
+- **Solución Quirúrgica Implementada:**
+  1. **Curva de Animación Dinámica Cinematográfica ([src/components/admin/AdminBarraDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraDrawer.tsx)):**
+     - Se implementó una curva de aceleración/desaceleración suave tipo resorte natural `cubic-bezier(0.16, 1, 0.3, 1)` con duración de 500ms en el panel desplegable, la franja táctil y el telón de fondo (`backdrop`).
+  2. **Persistencia de Contenido y Prevención de Reflows:**
+     - Se añadió un contenedor interior con ancho fijo `shrink-0 w-[960px] max-w-[calc(100vw-54px)]` para que los platos, botones y campos no se compriman ni salten durante el deslizamiento.
+     - Se mantuvo el contenido montado en memoria tras la primera apertura (`hasBeenOpened`), logrando que la retracción sea un cierre cortina 100% visible y fluido sin vaciarse de golpe a un rectángulo negro.
+  3. **Rotación Suave del Chevron:**
+     - El botón central con la flecha rota suavemente 180° (`rotate-180`) mediante `transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]` en lugar de alternar componentes bruscamente.
+  4. **Transición Suave de Telón de Fondo:**
+     - El backdrop oscurecido ahora desvanece su opacidad gradualmente (`opacity-0` a `opacity-100`) durante los 500ms en sincronía milimétrica con la franja y el cajón.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 25 rutas del proyecto.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

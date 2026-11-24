@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
-import { ChevronRight, ChevronLeft, Zap } from "lucide-react";
+import { ChevronRight, Zap } from "lucide-react";
 import { AdminBarraView } from "@/components/admin/AdminBarraView";
 
 export function AdminBarraDrawer() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [hasBeenOpened, setHasBeenOpened] = useState<boolean>(false);
   const [pendingOrdersCount, setPendingOrdersCount] = useState<number>(0);
 
   // Consultar pedidos activos para el contador del badge en la franja
@@ -27,6 +28,18 @@ export function AdminBarraDrawer() {
     return () => clearInterval(interval);
   }, [fetchBarraCount]);
 
+  const handleToggle = () => {
+    setIsOpen((prev) => {
+      const next = !prev;
+      if (next) setHasBeenOpened(true);
+      return next;
+    });
+  };
+
+  const handleClose = () => {
+    setIsOpen(false);
+  };
+
   // Si estamos en la página dedicada de Barra, no mostrar el drawer deslizante duplicado
   if (pathname === "/admin/barra") {
     return null;
@@ -38,39 +51,46 @@ export function AdminBarraDrawer() {
       {/* 1. FRANJA VERTICAL FIJA Y PANEL DESPLEGABLE (EXCLUSIVO ESCRITORIO MD+)    */}
       {/* ========================================================================= */}
       <div
-        className={`hidden md:flex fixed left-64 top-0 bottom-0 z-40 items-stretch select-none pointer-events-none ${
+        className={`hidden md:flex fixed left-64 top-0 bottom-0 z-40 items-stretch select-none pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           isOpen ? "pointer-events-auto" : ""
         }`}
       >
         {/* ======================================================================= */}
-        {/* PANEL DESPLEGADO HACIA LA DERECHA (IMAGEN 02)                           */}
+        {/* PANEL DESPLEGADO HACIA LA DERECHA (DESLIZAMIENTO FLUIDO Y DINÁMICO)     */}
         {/* ======================================================================= */}
         <div
           onClick={(e) => e.stopPropagation()}
-          className={`pointer-events-auto h-full bg-[#101217] border-r border-gray-800/80 flex shadow-2xl transition-all duration-300 overflow-hidden ${
+          className={`pointer-events-auto h-full bg-[#101217] border-r border-gray-800/80 flex shadow-2xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden ${
             isOpen
-              ? "w-[960px] max-w-[calc(100vw-54px)] opacity-100"
+              ? "w-[960px] max-w-[calc(100vw-54px)] opacity-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)]"
               : "w-0 opacity-0 pointer-events-none"
           }`}
         >
-          {isOpen && (
-            <AdminBarraView isDrawer onClose={() => setIsOpen(false)} />
+          {/* Contenedor interno con ancho fijo para evitar reflows bruscos durante la animación */}
+          {(isOpen || hasBeenOpened) && (
+            <div className="w-[960px] max-w-[calc(100vw-54px)] h-full shrink-0 flex flex-col">
+              <AdminBarraView isDrawer onClose={handleClose} />
+            </div>
           )}
         </div>
 
         {/* ======================================================================= */}
-        {/* FRANJA VERTICAL TÁCTIL (DISEÑO EXACTO DE IMÁGENES 01 Y 02)              */}
+        {/* FRANJA VERTICAL TÁCTIL (DISEÑO EXACTO CON ANIMACIÓN CINEMÁTICA)         */}
         {/* ======================================================================= */}
         <div
           onClick={(e) => {
             e.stopPropagation();
-            setIsOpen((prev) => !prev);
+            handleToggle();
           }}
-          className="pointer-events-auto w-12 bg-gradient-to-b from-[#f59e0b] via-[#f97316] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f97316] text-black cursor-pointer flex flex-col items-center justify-between py-6 shadow-2xl rounded-r-3xl border-r-2 border-amber-300/40 transition-all active:scale-98 group"
+          className={`pointer-events-auto w-12 bg-gradient-to-b from-[#f59e0b] via-[#f97316] to-[#ea580c] hover:from-[#fbbf24] hover:to-[#f97316] text-black cursor-pointer flex flex-col items-center justify-between py-6 rounded-r-3xl border-r-2 border-amber-300/40 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-98 group ${
+            isOpen
+              ? "shadow-[0_0_35px_rgba(249,115,22,0.35)]"
+              : "shadow-2xl hover:shadow-[0_0_20px_rgba(245,158,11,0.25)]"
+          }`}
           title={isOpen ? "Ocultar barra" : "Desplegar Barra Rápida hacia la derecha"}
         >
           {/* Badge superior: contador de pedidos pendientes */}
-          <div className="w-6 h-6 rounded-full bg-[#7c2d12] text-amber-300 border border-amber-400/80 font-black text-[11px] flex items-center justify-center shadow">
+          <div className="w-6 h-6 rounded-full bg-[#7c2d12] text-amber-300 border border-amber-400/80 font-black text-[11px] flex items-center justify-center shadow transition-transform duration-300 group-hover:scale-105">
             {pendingOrdersCount}
           </div>
 
@@ -83,9 +103,13 @@ export function AdminBarraDrawer() {
             <span>A</span>
           </div>
 
-          {/* Botón Central Circular con Flecha */}
-          <div className="w-9 h-9 rounded-full bg-black text-[#f97316] border-2 border-[#ea580c] flex items-center justify-center font-black text-sm shadow-xl group-hover:scale-110 transition-transform">
-            {isOpen ? <ChevronLeft className="w-5 h-5 stroke-[3]" /> : <ChevronRight className="w-5 h-5 stroke-[3]" />}
+          {/* Botón Central Circular con Flecha Rotativa Fluida */}
+          <div className="w-9 h-9 rounded-full bg-black text-[#f97316] border-2 border-[#ea580c] flex items-center justify-center font-black text-sm shadow-xl group-hover:scale-110 transition-all duration-300">
+            <ChevronRight
+              className={`w-5 h-5 stroke-[3] transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                isOpen ? "rotate-180" : "rotate-0"
+              }`}
+            />
           </div>
 
           {/* Texto vertical: R A P I D A */}
@@ -98,23 +122,23 @@ export function AdminBarraDrawer() {
             <span>A</span>
           </div>
 
-          {/* Icono inferior: Rayo ⚡ */}
-          <div className="w-6 h-6 rounded-full bg-black/25 flex items-center justify-center font-black text-xs shadow-inner">
+          {/* Icono inferior: Rayo ⚡ con animación de brillo suave */}
+          <div className="w-6 h-6 rounded-full bg-black/25 flex items-center justify-center font-black text-xs shadow-inner transition-transform duration-300 group-hover:scale-110">
             <Zap className="w-3.5 h-3.5 fill-black" />
           </div>
         </div>
       </div>
 
-      {/* Backdrop oscuro cuando el drawer está expandido */}
-      {isOpen && (
-        <div
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsOpen(false);
-          }}
-          className="hidden md:block fixed inset-0 bg-black/40 backdrop-blur-[1px] z-30 transition-opacity"
-        />
-      )}
+      {/* Backdrop oscuro con transición de opacidad ultra-suave */}
+      <div
+        onClick={(e) => {
+          e.stopPropagation();
+          handleClose();
+        }}
+        className={`hidden md:block fixed inset-0 bg-black/55 backdrop-blur-[2px] z-30 transition-opacity duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+      />
     </>
   );
 }

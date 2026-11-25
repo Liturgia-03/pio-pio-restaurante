@@ -2053,6 +2053,22 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas.
 
+### Hito 88: Cintillo Compacto de Venta Total Consolidada en Caja & Contabilidad
+- **Requerimiento:**
+  1. Agregar la métrica de Venta Total del Turno (consolidando todos los métodos de pago recibidos: efectivo, digital y datáfono) en la vista de Caja & Contabilidad (`/admin/caja`).
+  2. Requisito estricto: no crear una 5ta tarjeta grande para no alterar ni deformar la cuadrícula compacta 2x2 establecida, sino diseñar un elemento compacto, elegante y relevante.
+- **Solución Implementada:**
+  1. **Cintillo Compacto Superior ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)):**
+     - Se ubicó una barra horizontal esbelta (`h ~ 44px`) con fondo degradado sutil (`bg-gradient-to-r from-amber-500/15 via-[#181b24] to-emerald-500/10 border border-amber-500/30 rounded-2xl`) justo encima de la cuadrícula de 4 tarjetas.
+     - Extremo izquierdo: icono de `DollarSign` en caja ámbar, etiqueta *"Venta Total del Turno (todos los métodos)"* y conteo de pedidos cobrados.
+     - Extremo derecho: cifra total destacada `{formatPrice(liveData?.totalSales || 0)}` en tipografía font-black limpia.
+  2. **Integración en la Cabecera:**
+     - Se añadió también el total de ventas en la tira informativa del turno activo (`• Ventas: $ X.XXX.XXX`).
+  3. **Resultado:**
+     - La cuadrícula 2x2 de tarjetas de arqueo permanece completamente intacta e inalterada, complementada por la métrica de venta global inmediatamente visible.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

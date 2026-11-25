@@ -749,7 +749,7 @@ export function AdminCajaView() {
             </div>
             <p className="text-[10px] sm:text-[11px] text-gray-400 truncate">
               {activeShift
-                ? `Abierto por ${activeShift.openedBy} a las ${formatTime(activeShift.openedAt)} (${formatDate(activeShift.openedAt)}) • Base: ${formatPrice(activeShift.initialCash)}`
+                ? `Abierto por ${activeShift.openedBy} a las ${formatTime(activeShift.openedAt)} (${formatDate(activeShift.openedAt)}) • Base: ${formatPrice(activeShift.initialCash)} • Ventas: ${formatPrice(liveData?.totalSales || 0)}`
                 : "No hay un turno de caja activo en este momento"}
             </p>
           </div>
@@ -939,6 +939,28 @@ export function AdminCajaView() {
           ) : (
             /* Estado cuando la caja está abierta */
             <>
+              {/* Cintillo Compacto: Venta Total Consolidada del Turno (Todos los Métodos de Pago) */}
+              <div className="bg-gradient-to-r from-amber-500/15 via-[#181b24] to-emerald-500/10 border border-amber-500/30 rounded-2xl p-2.5 sm:px-4 sm:py-2.5 flex items-center justify-between shadow-md">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 flex-shrink-0">
+                    <DollarSign className="w-4 h-4 stroke-[2.5]" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] sm:text-xs font-black text-amber-300 uppercase tracking-wider block truncate">
+                      Venta Total del Turno <span className="text-gray-400 font-normal lowercase hidden sm:inline">(todos los métodos)</span>
+                    </span>
+                    <span className="text-[9px] sm:text-[10px] text-gray-400 truncate block">
+                      {liveData?.salesCount || 0} pedidos cobrados en este turno
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0 pl-2">
+                  <span className="text-base sm:text-xl font-black text-white tracking-tight">
+                    {formatPrice(liveData?.totalSales || 0)}
+                  </span>
+                </div>
+              </div>
+
               {/* Tarjetas KPI de Arqueo en Vivo: Cuadrícula compacta 2x2 en móvil y 4 cols en escritorio */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
                 {/* 1. Efectivo en Caja Esperado */}

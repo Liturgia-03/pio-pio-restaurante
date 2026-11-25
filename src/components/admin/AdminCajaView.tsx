@@ -44,6 +44,7 @@ import { toast } from "sonner";
 import { formatPrice, formatDateTime, formatTime, formatDate } from "@/lib/formatters";
 import { EXPENSE_CATEGORIES } from "@/lib/caja-helpers";
 import { AdminAuthModal } from "@/components/admin/AdminAuthModal";
+import { downloadTicketImage, shareTicketImage } from "@/lib/ticket-image-generator";
 
 interface CashShiftData {
   id: string;
@@ -116,6 +117,7 @@ export function AdminCajaView() {
   const [activeTab, setActiveTab] = useState<"shift" | "expenses" | "reports" | "audit">("shift");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isExportingTicket, setIsExportingTicket] = useState<boolean>(false);
 
   // Navegación de pestañas con Swipe horizontal y auto-scroll
   const CAJA_TABS = useMemo<Array<"shift" | "expenses" | "reports" | "audit">>(
@@ -361,60 +363,81 @@ export function AdminCajaView() {
     [getShiftExpenses]
   );
 
-  // Descargar tirilla en archivo .txt
+  // Descargar tirilla en imagen PNG de alta resolución (Opción 1)
   const handleDownloadTicket = useCallback(
-    (shift: CashShiftData) => {
+    async (shift: CashShiftData) => {
       try {
-        const text = generateTicketText(shift);
-        const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-        const dateStr = (shift.closedAt ? new Date(shift.closedAt) : new Date())
-          .toISOString()
-          .slice(0, 10);
-        const fileName = `Tirilla-Liquidacion-PioPio-${dateStr}.txt`;
-
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        toast.success("Tirilla descargada exitosamente en formato de texto.");
+        setIsExportingTicket(true);
+        const expenses = getShiftExpenses(shift);
+        await downloadTicketImage(shift, expenses as any);
+        toast.success("🖼️ Comprobante descargado en imagen PNG de alta resolución.");
       } catch (e: any) {
-        console.error(e);
-        toast.error("No se pudo descargar la tirilla.");
+        console.error("Error al generar imagen de tirilla, descargando como texto:", e);
+        try {
+          const text = generateTicketText(shift);
+          const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+          const dateStr = (shift.closedAt ? new Date(shift.closedAt) : new Date())
+            .toISOString()
+            .slice(0, 10);
+          const fileName = `Tirilla-Liquidacion-PioPio-${dateStr}.txt`;
+
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          toast.success("Tirilla descargada en formato de texto.");
+        } catch {
+          toast.error("No se pudo descargar la tirilla.");
+        }
+      } finally {
+        setIsExportingTicket(false);
       }
     },
-    [generateTicketText]
+    [getShiftExpenses, generateTicketText]
   );
 
-  // Compartir tirilla mediante Web Share API o copiar al portapapeles
+  // Compartir tirilla mediante Web Share API como archivo de imagen
   const handleShareTicket = useCallback(
     async (shift: CashShiftData) => {
-      const text = generateTicketText(shift);
-      const title = `Tirilla de Liquidación - Pío Pío (${shift.closedAt ? formatDate(shift.closedAt) : "Hoy"})`;
-
-      if (typeof navigator !== "undefined" && navigator.share) {
-        try {
-          await navigator.share({
-            title,
-            text,
-          });
-          toast.success("Tirilla compartida exitosamente.");
-          return;
-        } catch (err: any) {
-          if (err.name === "AbortError") return;
-        }
-      }
-
-      // Fallback: Copiar al portapapeles
       try {
+        setIsExportingTicket(true);
+        const expenses = getShiftExpenses(shift);
+        const res = await shareTicketImage(shift, expenses as any);
+        if (res.sharedAsFile) {
+          toast.success("Comprobante gráfico compartido exitosamente.");
+        } else {
+          toast.info("🖼️ Imagen descargada en tu dispositivo para adjuntar.");
+        }
+      } catch (err: any) {
+        console.error(err);
+        // Fallback: Copiar al portapapeles
+        try {
+          const text = generateTicketText(shift);
+          await navigator.clipboard.writeText(text);
+          toast.success("📋 ¡Tirilla copiada al portapapeles! Lista para pegar.");
+        } catch {
+          toast.error("No se pudo compartir ni copiar la tirilla.");
+        }
+      } finally {
+        setIsExportingTicket(false);
+      }
+    },
+    [getShiftExpenses, generateTicketText]
+  );
+
+  // Copiar resumen en texto al portapapeles
+  const handleCopyTicketText = useCallback(
+    async (shift: CashShiftData) => {
+      try {
+        const text = generateTicketText(shift);
         await navigator.clipboard.writeText(text);
-        toast.success("📋 ¡Tirilla copiada al portapapeles! Lista para pegar y compartir.");
+        toast.success("📋 Resumen copiado al portapapeles.");
       } catch {
-        toast.error("No se pudo compartir ni copiar la tirilla.");
+        toast.error("No se pudo copiar al portapapeles.");
       }
     },
     [generateTicketText]
@@ -2377,10 +2400,15 @@ export function AdminCajaView() {
       )}
 
       {/* ======================================================================= */}
-      {/* MODAL 4: TIRILLA DE CIERRE Y LIQUIDACIÓN (IMPRIMIBLE / DESCARGABLE / COMPARTIBLE) */}
+      {/* MODAL 4: TIRILLA DE CIERRE Y LIQUIDACIÓN (OPCIÓN 1: FACTURA POS PREMIUM) */}
       {/* ======================================================================= */}
       {printShift && (() => {
         const shiftExpenses = getShiftExpenses(printShift);
+        const diffVal = printShift.difference || 0;
+        const withdrawnVal =
+          printShift.withdrawnCash !== null && printShift.withdrawnCash !== undefined
+            ? printShift.withdrawnCash
+            : Math.max(0, (printShift.actualCash || 0) - (printShift.baseLeftForNext || 0));
 
         return (
           <div
@@ -2388,90 +2416,115 @@ export function AdminCajaView() {
             onClick={() => setPrintShift(null)}
           >
             <div
-              className="w-full max-w-sm sm:max-w-md bg-white text-black rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 font-mono text-xs max-h-[92vh] overflow-y-auto"
+              className="w-full max-w-md bg-white text-gray-900 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-3.5 text-xs max-h-[94vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Cabecera Tipo Factura Térmica */}
-              <div className="text-center border-b border-dashed border-gray-400 pb-3 space-y-1">
-                <h2 className="font-black text-sm uppercase tracking-wider text-black">
+              {/* Cabecera Tipo Factura POS Premium */}
+              <div className="text-center pb-2 border-b border-gray-200 space-y-1">
+                <img
+                  src="/logo-pio-pio.png"
+                  alt="Pío Pío"
+                  className="w-12 h-12 mx-auto rounded-2xl shadow-sm mb-1.5 object-cover"
+                />
+                <h2 className="font-black text-sm uppercase tracking-wider text-gray-900">
                   PÍO PÍO ASADERO & RESTAURANTE
                 </h2>
-                <p className="text-[10px] text-gray-700 font-bold">
-                  COMPROBANTE DE CIERRE Y LIQUIDACIÓN DE CAJA
+                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                  Comprobante Oficial de Cierre y Liquidación de Caja
                 </p>
-                <div className="text-[10px] text-gray-600 space-y-0.5 pt-1">
-                  <p>
-                    Apertura: {formatDateTime(printShift.openedAt)} ({printShift.openedBy})
-                  </p>
-                  <p>
-                    Cierre: {printShift.closedAt ? formatDateTime(printShift.closedAt) : formatDateTime(new Date())}
-                  </p>
-                  <p className="font-bold text-gray-800">
-                    Liquidado por: {printShift.closedBy || printShift.openedBy}
-                  </p>
+
+                {/* Caja de Datos del Turno */}
+                <div className="mt-2 text-left bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-[11px] space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 font-medium">Apertura:</span>
+                    <span className="font-bold text-gray-800">
+                      {formatDateTime(printShift.openedAt)} ({printShift.openedBy})
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500 font-medium">Cierre:</span>
+                    <span className="font-bold text-gray-800">
+                      {printShift.closedAt ? formatDateTime(printShift.closedAt) : formatDateTime(new Date())}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pt-0.5 border-t border-gray-200">
+                    <span className="text-gray-500 font-medium">Liquidado por:</span>
+                    <span className="font-black text-amber-700 uppercase bg-amber-100 px-2 py-0.5 rounded-lg text-[10px]">
+                      {printShift.closedBy || printShift.openedBy || "Administrador"}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Desglose Contable de Ventas */}
-              <div className="space-y-1.5 border-b border-dashed border-gray-400 pb-3 text-xs">
-                <span className="font-black text-[10px] uppercase tracking-wider text-gray-500 block">
-                  RESUMEN DE VENTAS E INGRESOS:
-                </span>
-                <div className="flex justify-between">
-                  <span>Base Inicial en Caja:</span>
-                  <span className="font-bold">{formatPrice(printShift.initialCash)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Ventas en Efectivo:</span>
-                  <span className="font-bold">{formatPrice(printShift.totalSalesCash)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Ventas Nequi / Daviplata:</span>
-                  <span className="font-bold">{formatPrice(printShift.totalSalesDigital)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Ventas Datáfono / Tarjeta:</span>
-                  <span className="font-bold">{formatPrice(printShift.totalSalesCard)}</span>
-                </div>
-                <div className="flex justify-between font-black border-t border-gray-300 pt-1 text-sm">
-                  <span>VENTAS TOTALES:</span>
-                  <span>{formatPrice(printShift.totalSales)}</span>
-                </div>
-              </div>
-
-              {/* Sección de Gastos con Desglose Detallado */}
-              <div className="space-y-2 border-b border-dashed border-gray-400 pb-3 text-xs">
-                <div className="flex justify-between items-center font-bold">
-                  <span className="font-black text-[10px] uppercase tracking-wider text-gray-500">
-                    DETALLE DE GASTOS ({shiftExpenses.length}):
+              {/* BLOQUE 1: RESUMEN DE VENTAS E INGRESOS (AMBAR / DORADO) */}
+              <div className="bg-amber-50/60 border border-amber-300/70 rounded-2xl p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                    <DollarSign className="w-3.5 h-3.5 text-amber-600" />
+                    <span>1. Resumen de Ingresos y Ventas</span>
                   </span>
-                  <span className="text-red-600 font-black">
+                </div>
+
+                <div className="space-y-1 text-[11px]">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Base Inicial en Caja:</span>
+                    <span className="font-bold text-gray-900">{formatPrice(printShift.initialCash)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Ventas en Efectivo:</span>
+                    <span className="font-bold text-emerald-700">+{formatPrice(printShift.totalSalesCash)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Ventas Nequi / Transf.:</span>
+                    <span className="font-bold text-blue-700">+{formatPrice(printShift.totalSalesDigital)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Ventas Datáfono (Tarjeta):</span>
+                    <span className="font-bold text-purple-700">+{formatPrice(printShift.totalSalesCard)}</span>
+                  </div>
+                </div>
+
+                {/* Cintillo de Total Ventas Recaudadas */}
+                <div className="flex justify-between items-center bg-amber-100/90 border border-amber-400/60 rounded-xl px-2.5 py-1.5 text-xs font-black text-amber-950">
+                  <span>VENTAS TOTALES DEL TURNO:</span>
+                  <span className="text-sm font-black text-amber-800">{formatPrice(printShift.totalSales)}</span>
+                </div>
+              </div>
+
+              {/* BLOQUE 2: DETALLE DE GASTOS OPERATIVOS (ROJO SUAVE) */}
+              <div className="bg-rose-50/60 border border-rose-300/70 rounded-2xl p-3 space-y-2">
+                <div className="flex justify-between items-center font-black">
+                  <span className="text-[10px] uppercase tracking-wider text-rose-900 flex items-center gap-1.5">
+                    <TrendingDown className="w-3.5 h-3.5 text-rose-600" />
+                    <span>2. Gastos Operativos ({shiftExpenses.length})</span>
+                  </span>
+                  <span className="text-rose-700 font-black text-xs">
                     -{formatPrice(printShift.totalExpenses)}
                   </span>
                 </div>
 
                 {/* Lista de Gastos Individuales */}
                 {shiftExpenses.length > 0 ? (
-                  <div className="space-y-2 bg-gray-50 p-2.5 rounded-2xl border border-gray-200 max-h-48 overflow-y-auto">
+                  <div className="space-y-1.5 bg-white p-2.5 rounded-xl border border-rose-200/80 max-h-40 overflow-y-auto">
                     {shiftExpenses.map((exp, idx) => {
                       const catInfo = EXPENSE_CATEGORIES[exp.category];
                       return (
                         <div
                           key={exp.id || idx}
-                          className="border-b border-gray-200 last:border-b-0 pb-1.5 last:pb-0 text-[11px] space-y-0.5"
+                          className="border-b border-gray-100 last:border-b-0 pb-1.5 last:pb-0 text-[11px] space-y-0.5"
                         >
                           <div className="flex justify-between items-start gap-2">
-                            <span className="font-bold text-gray-800 leading-tight">
+                            <span className="font-bold text-gray-900 leading-tight">
                               {idx + 1}. {exp.description}
                             </span>
-                            <span className="font-black text-red-600 whitespace-nowrap">
+                            <span className="font-black text-rose-600 whitespace-nowrap">
                               -{formatPrice(exp.amount)}
                             </span>
                           </div>
                           <div className="flex flex-wrap justify-between text-[10px] text-gray-500 gap-x-2">
                             <span>
                               {catInfo?.label || exp.category} •{" "}
-                              {exp.paymentMethod === "CASH" ? "💵 Efectivo" : "📱 Nequi/Transf."}
+                              {exp.paymentMethod === "CASH" ? "💵 Efectivo" : "📱 Digital"}
                             </span>
                             {exp.responsible && (
                               <span className="italic">Resp: {exp.responsible}</span>
@@ -2487,110 +2540,121 @@ export function AdminCajaView() {
                     })}
                   </div>
                 ) : (
-                  <div className="text-[10px] text-gray-500 italic bg-gray-50 p-2.5 rounded-2xl text-center border border-gray-200">
+                  <div className="text-[10px] text-gray-500 italic bg-white p-2 rounded-xl text-center border border-gray-200">
                     Sin egresos registrados en este turno ($0).
                   </div>
                 )}
 
-                {/* Totales y Subtotales de Gastos */}
-                <div className="space-y-1 pt-1 text-[11px]">
-                  <div className="flex justify-between text-gray-600">
-                    <span>Gastos pagados en Efectivo:</span>
-                    <span className="font-bold">-{formatPrice(printShift.totalExpensesCash)}</span>
-                  </div>
-                  <div className="flex justify-between text-gray-600">
-                    <span>Gastos por Transferencia:</span>
-                    <span className="font-bold">-{formatPrice(printShift.totalExpensesDigital)}</span>
-                  </div>
-                  <div className="flex justify-between font-black border-t border-gray-300 pt-1 text-red-600 text-xs">
-                    <span>GASTOS TOTALES:</span>
-                    <span>-{formatPrice(printShift.totalExpenses)}</span>
-                  </div>
+                {/* Subtotales de Gastos */}
+                <div className="flex justify-between items-center text-[10px] text-gray-600 pt-0.5 font-semibold">
+                  <span>Efectivo: -{formatPrice(printShift.totalExpensesCash)}</span>
+                  <span>Digital: -{formatPrice(printShift.totalExpensesDigital)}</span>
                 </div>
               </div>
 
-              {/* Arqueo de Efectivo Físico */}
-              <div className="space-y-1.5 border-b border-dashed border-gray-400 pb-3 text-xs bg-gray-50 p-3 rounded-2xl border border-gray-200">
-                <span className="font-black text-[10px] uppercase tracking-wider text-gray-500 block">
-                  ARQUEO DE CAJA FÍSICA:
+              {/* BLOQUE 3: ARQUEO DE CAJA FÍSICA & CONCILIACIÓN */}
+              <div className="bg-slate-50 border border-slate-300 rounded-2xl p-3 space-y-2.5">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                  <Banknote className="w-3.5 h-3.5 text-slate-600" />
+                  <span>3. Arqueo de Caja Física & Conciliación</span>
                 </span>
-                <div className="flex justify-between font-bold">
-                  <span>Efectivo Físico Esperado:</span>
-                  <span>{formatPrice(printShift.expectedCash || 0)}</span>
+
+                {/* Cajas Comparativas */}
+                <div className="grid grid-cols-2 gap-2 text-center">
+                  <div className="bg-white border border-gray-200 rounded-xl p-2">
+                    <span className="text-[9px] font-bold text-gray-500 uppercase block">Efectivo Esperado</span>
+                    <span className="text-xs sm:text-sm font-black text-gray-900">
+                      {formatPrice(printShift.expectedCash || 0)}
+                    </span>
+                  </div>
+                  <div className="bg-white border border-gray-200 rounded-xl p-2">
+                    <span className="text-[9px] font-bold text-gray-500 uppercase block">Efectivo Contado</span>
+                    <span className="text-xs sm:text-sm font-black text-gray-900">
+                      {formatPrice(printShift.actualCash || 0)}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between font-bold">
-                  <span>Efectivo Real Contado:</span>
-                  <span>{formatPrice(printShift.actualCash || 0)}</span>
+
+                {/* Badge de Estado de Cuadre */}
+                <div
+                  className={`text-center py-1.5 px-2.5 rounded-xl text-[11px] font-black border ${
+                    diffVal === 0
+                      ? "bg-emerald-100 border-emerald-300 text-emerald-800"
+                      : diffVal > 0
+                      ? "bg-blue-100 border-blue-300 text-blue-800"
+                      : "bg-rose-100 border-rose-300 text-rose-800"
+                  }`}
+                >
+                  {diffVal === 0
+                    ? "✓ CUADRE EXACTO ($ 0)"
+                    : diffVal > 0
+                    ? `▲ SOBRANTE DE DINERO (+${formatPrice(diffVal)})`
+                    : `▼ FALTANTE EN CAJA (-${formatPrice(Math.abs(diffVal))})`}
                 </div>
-                <div className="flex justify-between font-black text-sm border-t border-gray-300 pt-1.5">
-                  <span>DIFERENCIA:</span>
-                  <span
-                    className={
-                      (printShift.difference || 0) === 0
-                        ? "text-emerald-700 font-black"
-                        : (printShift.difference || 0) > 0
-                        ? "text-blue-700 font-black"
-                        : "text-rose-700 font-black"
-                    }
-                  >
-                    {(printShift.difference || 0) === 0
-                      ? "$ 0 (CUADRE EXACTO)"
-                      : (printShift.difference || 0) > 0
-                      ? `+${formatPrice(printShift.difference || 0)} (SOBRANTE)`
-                      : `-${formatPrice(Math.abs(printShift.difference || 0))} (FALTANTE)`}
-                  </span>
-                </div>
-                <div className="flex justify-between font-bold text-gray-800 border-t border-dashed border-gray-300 pt-1.5 text-xs">
-                  <span>Base Dejada en Caja (Próx. Turno):</span>
-                  <span className="font-black text-amber-700">{formatPrice(printShift.baseLeftForNext || 0)}</span>
-                </div>
-                <div className="flex justify-between font-bold text-gray-800 text-xs">
-                  <span>Efectivo Retirado / Consignado:</span>
-                  <span className="font-black text-emerald-800">
-                    {formatPrice(
-                      printShift.withdrawnCash !== null && printShift.withdrawnCash !== undefined
-                        ? printShift.withdrawnCash
-                        : Math.max(0, (printShift.actualCash || 0) - (printShift.baseLeftForNext || 0))
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between font-bold text-gray-700 border-t border-dashed border-gray-300 pt-1 text-[11px]">
-                  <span>Utilidad Neta del Turno:</span>
-                  <span className="font-black text-black">{formatPrice(printShift.netProfit)}</span>
+
+                {/* Destino del Dinero: Base y Retiro */}
+                <div className="space-y-1 text-[11px] pt-1 border-t border-gray-200">
+                  <div className="flex justify-between text-gray-700">
+                    <span>Base que queda en Caja (Próx. Turno):</span>
+                    <span className="font-black text-amber-700">{formatPrice(printShift.baseLeftForNext || 0)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs text-emerald-800 font-bold bg-emerald-50 p-2 rounded-xl border border-emerald-200">
+                    <span className="flex items-center gap-1 font-black">
+                      <WalletCards className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>💵 Efectivo a Retirar / Consignar:</span>
+                    </span>
+                    <span className="font-black text-sm text-emerald-900">{formatPrice(withdrawnVal)}</span>
+                  </div>
                 </div>
               </div>
 
+              {/* BLOQUE 4: UTILIDAD NETA DEL TURNO */}
+              <div className="bg-emerald-500/10 border border-emerald-500/40 rounded-2xl p-3 flex justify-between items-center">
+                <div>
+                  <span className="text-[9px] font-black uppercase text-emerald-800 block">
+                    Utilidad Neta del Turno (Ventas - Gastos)
+                  </span>
+                  <span className="text-xl font-black text-emerald-900">{formatPrice(printShift.netProfit)}</span>
+                </div>
+                <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-800 font-black text-xs">
+                  ✓ Balance
+                </span>
+              </div>
+
+              {/* Observaciones si las hay */}
               {printShift.notes && (
-                <div className="text-[10px] text-gray-600 bg-gray-50 p-2 rounded-xl border border-gray-200">
-                  <strong className="block text-gray-700">Observaciones:</strong>
+                <div className="text-[10px] text-gray-700 bg-gray-50 p-2.5 rounded-xl border border-gray-200">
+                  <strong className="block text-gray-900 mb-0.5">Observaciones de Cierre:</strong>
                   <span>{printShift.notes}</span>
                 </div>
               )}
 
-              <div className="text-center text-[10px] text-gray-500 pt-1">
-                *** Documento generado por Sistema Pío Pío POS ***
+              <div className="text-center text-[9px] text-gray-400">
+                Documento generado por Sistema Pío Pío POS • Auditoría #{printShift.id.slice(0, 12)}
               </div>
 
-              {/* Botonera de Acciones: Descargar, Compartir, WhatsApp e Imprimir */}
-              <div className="space-y-2 pt-2">
+              {/* BOTONERA DE ACCIONES: DESCARGAR (HD), COMPARTIR, WHATSAPP E IMPRIMIR */}
+              <div className="space-y-2 pt-1 border-t border-gray-200">
                 <div className="grid grid-cols-2 gap-2">
-                  {/* Botón Descargar Tirilla en Archivo .txt */}
+                  {/* Botón Descargar Imagen HD (PNG) */}
                   <button
                     type="button"
+                    disabled={isExportingTicket}
                     onClick={() => handleDownloadTicket(printShift)}
-                    className="py-2.5 px-3 rounded-xl bg-gray-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
-                    title="Descargar comprobante en formato texto"
+                    className="py-2.5 px-3 rounded-xl bg-gray-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all disabled:opacity-50"
+                    title="Descargar comprobante en imagen de alta resolución"
                   >
                     <Download className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Descargar</span>
+                    <span>{isExportingTicket ? "Generando..." : "Descargar (PNG)"}</span>
                   </button>
 
-                  {/* Botón Compartir Tirilla */}
+                  {/* Botón Compartir Recibo Gráfico */}
                   <button
                     type="button"
+                    disabled={isExportingTicket}
                     onClick={() => handleShareTicket(printShift)}
-                    className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
-                    title="Compartir tirilla por cualquier aplicación"
+                    className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all disabled:opacity-50"
+                    title="Compartir comprobante por cualquier aplicación"
                   >
                     <Share2 className="w-3.5 h-3.5 text-white" />
                     <span>Compartir</span>
@@ -2598,18 +2662,18 @@ export function AdminCajaView() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  {/* Botón Compartir Directo a WhatsApp */}
+                  {/* Botón WhatsApp */}
                   <button
                     type="button"
                     onClick={() => handleWhatsAppShare(printShift)}
                     className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all"
-                    title="Enviar resumen de liquidación por WhatsApp"
+                    title="Enviar resumen contable por WhatsApp"
                   >
                     <MessageCircle className="w-3.5 h-3.5 text-white" />
                     <span>WhatsApp</span>
                   </button>
 
-                  {/* Botón Imprimir Tirilla Física */}
+                  {/* Botón Imprimir / Guardar como PDF */}
                   <button
                     type="button"
                     onClick={() => window.print()}
@@ -2617,18 +2681,28 @@ export function AdminCajaView() {
                     title="Imprimir en impresora térmica o guardar como PDF"
                   >
                     <Printer className="w-3.5 h-3.5 text-gray-800" />
-                    <span>Imprimir</span>
+                    <span>Imprimir / PDF</span>
                   </button>
                 </div>
 
-                {/* Botón Cerrar */}
-                <button
-                  type="button"
-                  onClick={() => setPrintShift(null)}
-                  className="w-full py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs transition-all"
-                >
-                  Cerrar Comprobante
-                </button>
+                {/* Acciones Secundarias: Copiar Texto y Cerrar */}
+                <div className="flex gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => handleCopyTicketText(printShift)}
+                    className="flex-1 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold text-[11px] flex items-center justify-center gap-1 transition-all"
+                  >
+                    <Copy className="w-3 h-3 text-gray-500" />
+                    <span>Copiar Texto</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPrintShift(null)}
+                    className="flex-1 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold text-[11px] transition-all"
+                  >
+                    ✕ Cerrar
+                  </button>
+                </div>
               </div>
             </div>
           </div>

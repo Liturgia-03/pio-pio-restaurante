@@ -2082,6 +2082,35 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas.
 
+### Hito 90: Implementación de la Tirilla Gráfica de Liquidación HD Estilo Factura POS Premium (Opción 1)
+- **Requerimiento:**
+  1. Rediseñar la presentación de la tirilla de liquidación y cierre de caja al descargarla o compartirla por WhatsApp o redes.
+  2. Superar el formato de texto plano simple para ofrecer un diseño estructurado, elegante y visualmente impactante sin perder ningún dato contable.
+  3. Implementar la **Opción 1**: Comprobante gráfico en alta resolución (PNG/PDF) con distribución modular por bloques temáticos.
+- **Solución Implementada:**
+  1. **Motor de Renderizado Gráfico en Alta Resolución ([src/lib/ticket-image-generator.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/lib/ticket-image-generator.ts)):**
+     - Motor nativo Canvas 2D con factor Retina 2x (`DPR = 2`, 1240px de ancho) para máxima nitidez en cualquier teléfono, tableta o PC.
+     - Carga asíncrona del logotipo oficial (`/logo-pio-pio.png`) con enmarcado circular.
+     - Altura dinámica calculada al milímetro según la cantidad de egresos y observaciones.
+     - Exportación a `Blob` de imagen PNG de alta calidad sin dependencias pesadas de terceros.
+     - Helpers dedicados `downloadTicketImage` y `shareTicketImage` (con Web Share API de archivos para WhatsApp/apps y fallback automático).
+  2. **Estructuración y Jerarquía Visual de 4 Bloques:**
+     - **Cabecera Institucional:** Logotipo, nombre comercial del asadero, subtítulo oficial y recuadro de apertura, cierre y cajero liquidador.
+     - **Bloque 1 · Resumen de Ventas (Borde Ámbar):** Desglose ordenado de Base Inicial, Efectivo, Nequi/Digital, Datáfono y cintillo destacado de *VENTAS TOTALES DEL TURNO*.
+     - **Bloque 2 · Detalle de Gastos (Borde Rosa/Carmesí):** Listado pormenorizado de cada egreso con numeración, descripción, categoría con badge, medio de pago, solicitante, soporte y subtotales efectivo/digital.
+     - **Bloque 3 · Arqueo de Caja Física (Borde Pizarra):** Comparativa lado a lado (*Efectivo Esperado* vs *Efectivo Real Contado*), insignia visual de estado de cuadre (`✓ CUADRE EXACTO`, `▲ SOBRANTE` o `▼ FALTANTE`), base que queda en caja y efectivo a retirar/consignar.
+     - **Bloque 4 · Utilidad Neta (Borde Verde Esmeralda):** Monto destacado en tipografía font-black grande y observaciones de cierre.
+  3. **Renovación del Modal en Pantalla ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)):**
+     - La interfaz del modal refleja con fidelidad la misma distribución premium.
+     - Botonera renovada con 4 acciones maestras:
+       - 🖼️ **Descargar (PNG):** Descarga la imagen nítida en el dispositivo.
+       - 📤 **Compartir:** Abre el selector nativo adjuntando la imagen del comprobante.
+       - 💬 **WhatsApp:** Enlace directo de chat con balance contable y emojis.
+       - 🖨️ **Imprimir / PDF:** Diálogo de impresión térmica o exportación PDF.
+       - 📋 **Copiar Texto:** Acceso rápido al portapapeles.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

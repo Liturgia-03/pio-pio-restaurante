@@ -509,13 +509,13 @@ export function OwnerDashboardView() {
               </div>
             </div>
 
-            {/* 2. EFECTIVO EN CAJÓN */}
+            {/* 2. EFECTIVO EN CAJA */}
             <div className="bg-[#161a24] border border-emerald-500/30 p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl flex flex-col justify-between shadow-lg">
               <div>
                 <div className="flex justify-between items-center mb-1 sm:mb-1.5">
                   <span className="text-[9px] sm:text-[10px] font-black text-emerald-400 uppercase tracking-wider block truncate">
-                    <span className="hidden sm:inline">EFECTIVO EN CAJÓN</span>
-                    <span className="sm:hidden">EN CAJÓN</span>
+                    <span className="hidden sm:inline">EFECTIVO EN CAJA</span>
+                    <span className="sm:hidden">EN CAJA</span>
                   </span>
                   <span className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-emerald-500/20 text-emerald-300 flex-shrink-0">
                     <WalletCards className="w-3.5 h-3.5 sm:w-4 sm:h-4" />

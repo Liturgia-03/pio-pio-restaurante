@@ -904,7 +904,7 @@ export function AdminCajaView() {
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-black text-amber-400 uppercase text-[10px] flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Efectivo Acumulado en Cajón</span>
+                      <span>Efectivo Acumulado en Caja</span>
                     </span>
                     <span className="font-black text-amber-300 text-xs">
                       {formatPrice(interShiftSummary.suggestedInitialCash)}
@@ -2115,7 +2115,7 @@ export function AdminCajaView() {
                   <span>Base que Queda en Caja (Próx. Turno)</span>
                 </label>
                 <span className="text-[10px] text-gray-400 font-bold">
-                  En Cajón: {formatPrice(countedCash)}
+                  En Caja: {formatPrice(countedCash)}
                 </span>
               </div>
 

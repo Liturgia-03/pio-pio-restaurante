@@ -2069,6 +2069,19 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas.
 
+### Hito 89: Estandarización Terminológica de "Efectivo en Caja" en los Paneles de Administración
+- **Requerimiento:**
+  1. Reemplazar la palabra "efectivo en cajon" por "Efectivo en caja" en la tarjeta #2 del Panel Ejecutivo del Dueño (`/admin/owner`).
+  2. Mantener la armonización visual y coherencia terminológica en toda la interfaz administrativa.
+- **Solución Implementada:**
+  1. **Panel Ejecutivo del Dueño ([src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx)):**
+     - Actualizado el título de la tarjeta #2 de `EFECTIVO EN CAJÓN` a `EFECTIVO EN CAJA` (para pantallas medianas y grandes) y de `EN CAJÓN` a `EN CAJA` (para móviles).
+  2. **Módulo de Caja & Contabilidad ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)):**
+     - Actualizada etiqueta en el banner de dinero disponible inter-turno a `Efectivo Acumulado en Caja`.
+     - Actualizada etiqueta en el modal de liquidación a `En Caja: $ ...`.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

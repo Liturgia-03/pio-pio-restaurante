@@ -2111,6 +2111,21 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
 
+### Hito 91: Corrección de Viewport, Portal y Bloqueo de Scroll en Modal de Liquidación
+- **Requerimiento:**
+  1. Al abrir la tirilla de liquidación en móvil y hacer scroll, se presentaban franjas negras vacías gigantescas arriba y abajo, y el modal se desplazaba con la página de fondo en vez de quedarse fijo.
+  2. Garantizar que la tirilla permanezca perfectamente centrada, cubriendo el viewport con z-index absoluto y que el scroll ocurra exclusivamente dentro de la tarjeta blanca del comprobante.
+- **Solución Implementada:**
+  1. **Montaje vía React Portal ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)):**
+     - Se extrajo el modal del árbol de `<main>` (que creaba un stacking context aislado por su animación de entrada `animate-[fadeInUpSoft]`) usando `createPortal(..., document.body)`.
+     - Capa de presentación con `z-[9999]` y `fixed inset-0` que cubre el 100% de la pantalla del dispositivo por encima de cualquier barra fija.
+  2. **Bloqueo de Scroll de Fondo (Body Scroll Lock):**
+     - Se añadió un efecto reactivo que congela `document.body.style.overflow = "hidden"` mientras el comprobante esté abierto, restaurándolo al cerrar.
+  3. **Contenedor Móvil Ergonómico:**
+     - Tarjeta con `max-h-[90dvh] sm:max-h-[92vh] overflow-y-auto overscroll-contain my-auto`, permitiendo que el desplazamiento táctil ocurra con total fluidez únicamente dentro del comprobante sin dejar espacios vacíos.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

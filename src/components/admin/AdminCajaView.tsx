@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import {
   WalletCards,
   DollarSign,
@@ -269,6 +270,17 @@ export function AdminCajaView() {
   const [expReceipt, setExpReceipt] = useState<string>("");
 
   const [printShift, setPrintShift] = useState<CashShiftData | null>(null);
+
+  // Bloquear el scroll de fondo del body mientras el comprobante esté abierto
+  useEffect(() => {
+    if (printShift) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow || "unset";
+      };
+    }
+  }, [printShift]);
 
   // Helper para resolver los gastos detallados asociados a un turno de caja
   const getShiftExpenses = useCallback(
@@ -2402,23 +2414,26 @@ export function AdminCajaView() {
       {/* ======================================================================= */}
       {/* MODAL 4: TIRILLA DE CIERRE Y LIQUIDACIÓN (OPCIÓN 1: FACTURA POS PREMIUM) */}
       {/* ======================================================================= */}
-      {printShift && (() => {
-        const shiftExpenses = getShiftExpenses(printShift);
-        const diffVal = printShift.difference || 0;
-        const withdrawnVal =
-          printShift.withdrawnCash !== null && printShift.withdrawnCash !== undefined
-            ? printShift.withdrawnCash
-            : Math.max(0, (printShift.actualCash || 0) - (printShift.baseLeftForNext || 0));
+      {printShift &&
+        typeof document !== "undefined" &&
+        createPortal(
+          (() => {
+            const shiftExpenses = getShiftExpenses(printShift);
+            const diffVal = printShift.difference || 0;
+            const withdrawnVal =
+              printShift.withdrawnCash !== null && printShift.withdrawnCash !== undefined
+                ? printShift.withdrawnCash
+                : Math.max(0, (printShift.actualCash || 0) - (printShift.baseLeftForNext || 0));
 
-        return (
-          <div
-            className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-in fade-in"
-            onClick={() => setPrintShift(null)}
-          >
-            <div
-              className="w-full max-w-md bg-white text-gray-900 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-3.5 text-xs max-h-[94vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
+            return (
+              <div
+                className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex items-center justify-center p-2.5 sm:p-4 overscroll-contain animate-in fade-in"
+                onClick={() => setPrintShift(null)}
+              >
+                <div
+                  className="w-full max-w-md bg-white text-gray-900 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-3.5 text-xs max-h-[90dvh] sm:max-h-[92vh] overflow-y-auto overscroll-contain my-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
               {/* Cabecera Tipo Factura POS Premium */}
               <div className="text-center pb-2 border-b border-gray-200 space-y-1">
                 <img
@@ -2707,7 +2722,9 @@ export function AdminCajaView() {
             </div>
           </div>
         );
-      })()}
+      })(),
+      document.body
+    )}
 
       {/* MODAL 5: CONFIRMACIÓN PREVIA PARA LIMPIEZA DE HISTORIAL */}
       {showClearHistoryModal && (

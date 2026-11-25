@@ -725,45 +725,45 @@ export function AdminCajaView() {
       {/* ======================================================================= */}
       {/* 1. CABECERA PRINCIPAL Y STATUS DEL TURNO                                */}
       {/* ======================================================================= */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-6 py-3.5 bg-[#14161f] border-b border-gray-800 gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-black font-black shadow-lg shadow-amber-500/20">
-            <WalletCards className="w-5 h-5 stroke-[2.5]" />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3.5 bg-[#14161f] border-b border-gray-800 gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-black font-black shadow-md shadow-amber-500/20 flex-shrink-0">
+            <WalletCards className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="text-sm sm:text-base font-black text-white">
+              <h1 className="text-xs sm:text-base font-black text-white truncate">
                 Caja & Contabilidad
               </h1>
               {activeShift ? (
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-extrabold text-[10px] border border-emerald-500/30 flex items-center gap-1">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-extrabold text-[9px] sm:text-[10px] border border-emerald-500/30 flex items-center gap-1 flex-shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   TURNO ABIERTO
                 </span>
               ) : (
-                <span className="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-extrabold text-[10px] border border-rose-500/30 flex items-center gap-1">
+                <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-extrabold text-[9px] sm:text-[10px] border border-rose-500/30 flex items-center gap-1 flex-shrink-0">
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
                   CAJA CERRADA
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-gray-400">
+            <p className="text-[10px] sm:text-[11px] text-gray-400 truncate">
               {activeShift
-                ? `Abierto por ${activeShift.openedBy} a las ${formatTime(activeShift.openedAt)} (${formatDate(activeShift.openedAt)}) • Base inicial: ${formatPrice(activeShift.initialCash)}`
+                ? `Abierto por ${activeShift.openedBy} a las ${formatTime(activeShift.openedAt)} (${formatDate(activeShift.openedAt)}) • Base: ${formatPrice(activeShift.initialCash)}`
                 : "No hay un turno de caja activo en este momento"}
             </p>
           </div>
         </div>
 
         {/* Botones de acción según estado */}
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+        <div className="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto justify-end">
           <button
             type="button"
             onClick={fetchShiftData}
-            className="p-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-all"
+            className="p-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-all flex-shrink-0"
             title="Refrescar datos en vivo"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
 
           {activeShift ? (
@@ -771,7 +771,7 @@ export function AdminCajaView() {
               <button
                 type="button"
                 onClick={() => setShowExpenseModal(true)}
-                className="px-3.5 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 font-bold text-xs border border-rose-800/50 flex items-center gap-1.5 active:scale-95 transition-all shadow-sm"
+                className="flex-1 sm:flex-initial px-3 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 font-bold text-xs border border-rose-800/50 flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-sm"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
                 <span>Registrar Gasto</span>
@@ -785,17 +785,17 @@ export function AdminCajaView() {
                   setBaseLeftForNext(Math.min(activeShift.initialCash, expCash));
                   setShowCloseModal(true);
                 }}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black text-xs flex items-center gap-1.5 active:scale-95 transition-all shadow-md"
+                className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md"
               >
-                <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
-                <span>Liquidar & Cerrar Caja</span>
+                <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+                <span className="truncate">Liquidar & Cerrar</span>
               </button>
             </>
           ) : (
             <button
               type="button"
               onClick={() => setShowOpenModal(true)}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-black text-xs flex items-center gap-1.5 active:scale-95 transition-all shadow-md"
+              className="w-full sm:w-auto px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-black text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-md"
             >
               <Banknote className="w-4 h-4 stroke-[2.5]" />
               <span>Abrir Turno de Caja</span>

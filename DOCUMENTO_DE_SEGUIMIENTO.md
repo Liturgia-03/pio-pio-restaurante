@@ -2030,6 +2030,29 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas.
 
+### Hito 87: Cuadrícula Compacta 2x2 y Navegación con Desplazamiento Horizontal (Swipe) en Caja & Contabilidad
+- **Requerimiento:**
+  1. Reorganizar las 4 tarjetas grandes de finanzas de la sección de Caja & Contabilidad (`/admin/caja`) para que utilicen la misma cuadrícula compacta 2x2 en móviles que se implementó en el panel del dueño, reduciendo el scroll vertical.
+  2. Habilitar el desplazamiento táctil con scroll/swipe de izquierda a derecha para alternar de forma natural y fluida entre las 4 secciones principales:
+     - *Turno & Arqueo en Vivo*
+     - *Libro de Gastos*
+     - *Histórico & Reportes Contables*
+     - *Auditoría & Seguridad PIN*
+- **Solución Implementada:**
+  1. **Cuadrícula Compacta 2x2 ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)):**
+     - Se reemplazó `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` por `grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5`.
+     - Fila 1: **En Caja Esperado** | **Digital / Nequi**
+     - Fila 2: **Datáfono** | **Utilidad Neta**
+     - Cifras principales con tipografía balanceada `text-base sm:text-2xl font-black truncate` y filas de detalle con formato compacto `text-[9px] sm:text-[10px]`.
+  2. **Navegación Horizontal por Gestos Táctiles (Swipe):**
+     - Se implementaron los controladores táctiles `onTouchStart`, `onTouchMove` y `onTouchEnd` sobre el contenedor principal de pestañas.
+     - Al deslizar con el dedo de derecha a izquierda o de izquierda a derecha (con umbral de 40px), el sistema transiciona inmediatamente hacia la siguiente o anterior pestaña.
+  3. **Barra de Pestañas con Desplazamiento Fluido y Auto-Centrado:**
+     - Barra de pestañas equipada con `overflow-x-auto no-scrollbar scroll-smooth touch-pan-x`.
+     - Referencias `tabButtonRefs` y `tabContainerRef` con efecto reactivo que centra automáticamente el botón de la pestaña activa cada vez que se cambia de sección.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

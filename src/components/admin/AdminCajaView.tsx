@@ -117,6 +117,84 @@ export function AdminCajaView() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  // Navegación de pestañas con Swipe horizontal y auto-scroll
+  const CAJA_TABS = useMemo<Array<"shift" | "expenses" | "reports" | "audit">>(
+    () => ["shift", "expenses", "reports", "audit"],
+    []
+  );
+
+  const tabContainerRef = React.useRef<HTMLDivElement>(null);
+  const tabButtonRefs = React.useRef<{ [key: string]: HTMLButtonElement | null }>({});
+
+  useEffect(() => {
+    const activeBtn = tabButtonRefs.current[activeTab];
+    const container = tabContainerRef.current;
+    if (activeBtn && container) {
+      const btnLeft = activeBtn.offsetLeft;
+      const btnWidth = activeBtn.offsetWidth;
+      const containerWidth = container.offsetWidth;
+      const targetScrollLeft = btnLeft - containerWidth / 2 + btnWidth / 2;
+      container.scrollTo({ left: Math.max(0, targetScrollLeft), behavior: "smooth" });
+    }
+  }, [activeTab]);
+
+  const currentTabIndex = CAJA_TABS.indexOf(activeTab);
+
+  const handleNextTab = useCallback(() => {
+    if (currentTabIndex < CAJA_TABS.length - 1) {
+      setActiveTab(CAJA_TABS[currentTabIndex + 1]);
+    }
+  }, [currentTabIndex, CAJA_TABS]);
+
+  const handlePrevTab = useCallback(() => {
+    if (currentTabIndex > 0) {
+      setActiveTab(CAJA_TABS[currentTabIndex - 1]);
+    }
+  }, [currentTabIndex, CAJA_TABS]);
+
+  const touchStartPos = React.useRef<{ x: number; y: number } | null>(null);
+  const isHorizontalSwipe = React.useRef<boolean | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartPos.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
+    isHorizontalSwipe.current = null;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartPos.current) return;
+    const diffX = e.touches[0].clientX - touchStartPos.current.x;
+    const diffY = e.touches[0].clientY - touchStartPos.current.y;
+
+    if (isHorizontalSwipe.current === null) {
+      if (Math.abs(diffX) > 10 || Math.abs(diffY) > 10) {
+        isHorizontalSwipe.current = Math.abs(diffX) > Math.abs(diffY) * 1.35;
+      }
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartPos.current || !isHorizontalSwipe.current) {
+      touchStartPos.current = null;
+      isHorizontalSwipe.current = null;
+      return;
+    }
+
+    const diffX = e.changedTouches[0].clientX - touchStartPos.current.x;
+    if (Math.abs(diffX) > 40) {
+      if (diffX < 0) {
+        handleNextTab();
+      } else {
+        handlePrevTab();
+      }
+    }
+
+    touchStartPos.current = null;
+    isHorizontalSwipe.current = null;
+  };
+
   // Datos del turno activo
   const [activeShift, setActiveShift] = useState<CashShiftData | null>(null);
   const [liveData, setLiveData] = useState<any>(null);
@@ -727,15 +805,19 @@ export function AdminCajaView() {
       </div>
 
       {/* ======================================================================= */}
-      {/* 2. BARRA DE NAVEGACIÓN EN PESTAÑAS                                     */}
+      {/* 2. BARRA DE NAVEGACIÓN EN PESTAÑAS (Scroll Horizontal & Auto-Scroll)    */}
       {/* ======================================================================= */}
-      <div className="flex items-center px-4 sm:px-6 border-b border-gray-800 bg-[#12141c] gap-2 overflow-x-auto">
+      <div
+        ref={tabContainerRef}
+        className="flex items-center px-3 sm:px-6 border-b border-gray-800 bg-[#12141c] gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth touch-pan-x select-none"
+      >
         <button
+          ref={(el) => { tabButtonRefs.current["shift"] = el; }}
           type="button"
           onClick={() => setActiveTab("shift")}
-          className={`py-3 px-3.5 font-bold text-xs flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+          className={`py-3 px-3.5 font-bold text-xs flex items-center gap-2 border-b-2 transition-all whitespace-nowrap flex-shrink-0 active:scale-95 ${
             activeTab === "shift"
-              ? "border-amber-500 text-amber-400 font-black"
+              ? "border-amber-500 text-amber-400 font-black bg-amber-500/10 rounded-t-xl"
               : "border-transparent text-gray-400 hover:text-gray-200"
           }`}
         >
@@ -744,11 +826,12 @@ export function AdminCajaView() {
         </button>
 
         <button
+          ref={(el) => { tabButtonRefs.current["expenses"] = el; }}
           type="button"
           onClick={() => setActiveTab("expenses")}
-          className={`py-3 px-3.5 font-bold text-xs flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+          className={`py-3 px-3.5 font-bold text-xs flex items-center gap-2 border-b-2 transition-all whitespace-nowrap flex-shrink-0 active:scale-95 ${
             activeTab === "expenses"
-              ? "border-amber-500 text-amber-400 font-black"
+              ? "border-amber-500 text-amber-400 font-black bg-amber-500/10 rounded-t-xl"
               : "border-transparent text-gray-400 hover:text-gray-200"
           }`}
         >
@@ -757,11 +840,12 @@ export function AdminCajaView() {
         </button>
 
         <button
+          ref={(el) => { tabButtonRefs.current["reports"] = el; }}
           type="button"
           onClick={() => setActiveTab("reports")}
-          className={`py-3 px-3.5 font-bold text-xs flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+          className={`py-3 px-3.5 font-bold text-xs flex items-center gap-2 border-b-2 transition-all whitespace-nowrap flex-shrink-0 active:scale-95 ${
             activeTab === "reports"
-              ? "border-amber-500 text-amber-400 font-black"
+              ? "border-amber-500 text-amber-400 font-black bg-amber-500/10 rounded-t-xl"
               : "border-transparent text-gray-400 hover:text-gray-200"
           }`}
         >
@@ -770,11 +854,12 @@ export function AdminCajaView() {
         </button>
 
         <button
+          ref={(el) => { tabButtonRefs.current["audit"] = el; }}
           type="button"
           onClick={() => setActiveTab("audit")}
-          className={`py-3 px-3.5 font-bold text-xs flex items-center gap-2 border-b-2 transition-all whitespace-nowrap ${
+          className={`py-3 px-3.5 font-bold text-xs flex items-center gap-2 border-b-2 transition-all whitespace-nowrap flex-shrink-0 active:scale-95 ${
             activeTab === "audit"
-              ? "border-amber-500 text-amber-400 font-black"
+              ? "border-amber-500 text-amber-400 font-black bg-amber-500/10 rounded-t-xl"
               : "border-transparent text-gray-400 hover:text-gray-200"
           }`}
         >
@@ -782,6 +867,16 @@ export function AdminCajaView() {
           <span>Auditoría & Seguridad PIN</span>
         </button>
       </div>
+
+      {/* ======================================================================= */}
+      {/* CONTENEDOR CON SOPORTE TÁCTIL DE DESPLAZAMIENTO (SWIPE) IZQUIERDA/DERECHA */}
+      {/* ======================================================================= */}
+      <div
+        className="flex-1 flex flex-col min-h-0 overflow-y-auto touch-pan-y"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
 
       {/* ======================================================================= */}
       {/* 3. PESTAÑA 1: TURNO Y ARQUEO EN VIVO                                    */}
@@ -844,94 +939,118 @@ export function AdminCajaView() {
           ) : (
             /* Estado cuando la caja está abierta */
             <>
-              {/* Tarjetas KPI de Arqueo en Vivo */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {/* Tarjetas KPI de Arqueo en Vivo: Cuadrícula compacta 2x2 en móvil y 4 cols en escritorio */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
                 {/* 1. Efectivo en Caja Esperado */}
-                <div className="bg-[#161a24] border border-amber-500/40 p-4 rounded-2xl space-y-2 relative overflow-hidden shadow-lg">
-                  <div className="flex justify-between items-start">
-                    <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider block">
-                      EFECTIVO EN CAJA ESPERADO
-                    </span>
-                    <span className="p-1.5 rounded-lg bg-amber-500/20 text-amber-300">
-                      <Banknote className="w-4 h-4" />
-                    </span>
-                  </div>
-                  <div className="text-2xl font-black text-white">
-                    {formatPrice(liveData?.expectedCash || 0)}
-                  </div>
-                  <div className="text-[10px] text-gray-400 pt-1 border-t border-gray-800 space-y-0.5">
-                    <div className="flex justify-between">
-                      <span>Base Inicial:</span>
-                      <span className="text-gray-200 font-bold">{formatPrice(activeShift.initialCash)}</span>
+                <div className="bg-[#161a24] border border-amber-500/40 p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl flex flex-col justify-between shadow-lg">
+                  <div>
+                    <div className="flex justify-between items-center mb-1 sm:mb-1.5">
+                      <span className="text-[9px] sm:text-[10px] font-black text-amber-400 uppercase tracking-wider block truncate">
+                        <span className="hidden sm:inline">EFECTIVO EN CAJA ESPERADO</span>
+                        <span className="sm:hidden">EN CAJA ESPERADO</span>
+                      </span>
+                      <span className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-amber-500/20 text-amber-300 flex-shrink-0">
+                        <Banknote className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>+ Ventas Efectivo:</span>
-                      <span className="text-emerald-400 font-bold">{formatPrice(liveData?.salesCash || 0)}</span>
+                    <div className="text-base sm:text-2xl font-black text-white truncate">
+                      {formatPrice(liveData?.expectedCash || 0)}
                     </div>
-                    <div className="flex justify-between">
-                      <span>- Gastos Efectivo:</span>
-                      <span className="text-rose-400 font-bold">{formatPrice(liveData?.expensesCash || 0)}</span>
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] text-gray-400 pt-1.5 sm:pt-2 mt-1 sm:mt-2 border-t border-gray-800 space-y-0.5">
+                    <div className="flex justify-between items-center">
+                      <span className="truncate">Base:</span>
+                      <span className="text-gray-200 font-bold ml-1">{formatPrice(activeShift.initialCash)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="truncate">+Ventas:</span>
+                      <span className="text-emerald-400 font-bold ml-1">{formatPrice(liveData?.salesCash || 0)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="truncate">-Gastos:</span>
+                      <span className="text-rose-400 font-bold ml-1">{formatPrice(liveData?.expensesCash || 0)}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* 2. Ventas Digitales (Nequi / Daviplata) */}
-                <div className="bg-[#171626] border border-indigo-500/30 p-4 rounded-2xl space-y-2 shadow-lg">
-                  <div className="flex justify-between items-start">
-                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-wider block">
-                      VENTAS DIGITALES (NEQUI)
-                    </span>
-                    <span className="p-1.5 rounded-lg bg-indigo-500/20 text-indigo-300">
-                      <Smartphone className="w-4 h-4" />
-                    </span>
+                <div className="bg-[#171626] border border-indigo-500/30 p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl flex flex-col justify-between shadow-lg">
+                  <div>
+                    <div className="flex justify-between items-center mb-1 sm:mb-1.5">
+                      <span className="text-[9px] sm:text-[10px] font-black text-indigo-300 uppercase tracking-wider block truncate">
+                        <span className="hidden sm:inline">VENTAS DIGITALES (NEQUI)</span>
+                        <span className="sm:hidden">DIGITAL / NEQUI</span>
+                      </span>
+                      <span className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-indigo-500/20 text-indigo-300 flex-shrink-0">
+                        <Smartphone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      </span>
+                    </div>
+                    <div className="text-base sm:text-2xl font-black text-indigo-200 truncate">
+                      {formatPrice(liveData?.salesDigital || 0)}
+                    </div>
                   </div>
-                  <div className="text-2xl font-black text-indigo-200">
-                    {formatPrice(liveData?.salesDigital || 0)}
+                  <div className="text-[9px] sm:text-[10px] text-gray-400 pt-1.5 sm:pt-2 mt-1 sm:mt-2 border-t border-gray-800 space-y-0.5">
+                    <div className="flex justify-between items-center">
+                      <span className="truncate">Canal:</span>
+                      <span className="text-indigo-300 font-bold ml-1">Transferencias</span>
+                    </div>
+                    <div className="text-[8px] sm:text-[9px] text-gray-500 pt-0.5 truncate">
+                      Acreditaciones bancarias
+                    </div>
                   </div>
-                  <p className="text-[10px] text-gray-400 pt-1 border-t border-gray-800">
-                    Acreditaciones recibidas en cuenta bancaria del asadero
-                  </p>
                 </div>
 
                 {/* 3. Ventas Datáfono / Tarjeta */}
-                <div className="bg-[#121c29] border border-sky-500/30 p-4 rounded-2xl space-y-2 shadow-lg">
-                  <div className="flex justify-between items-start">
-                    <span className="text-[10px] font-black text-sky-300 uppercase tracking-wider block">
-                      VENTAS TARJETA (DATÁFONO)
-                    </span>
-                    <span className="p-1.5 rounded-lg bg-sky-500/20 text-sky-300">
-                      <CreditCard className="w-4 h-4" />
-                    </span>
+                <div className="bg-[#121c29] border border-sky-500/30 p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl flex flex-col justify-between shadow-lg">
+                  <div>
+                    <div className="flex justify-between items-center mb-1 sm:mb-1.5">
+                      <span className="text-[9px] sm:text-[10px] font-black text-sky-300 uppercase tracking-wider block truncate">
+                        <span className="hidden sm:inline">VENTAS TARJETA (DATÁFONO)</span>
+                        <span className="sm:hidden">DATÁFONO</span>
+                      </span>
+                      <span className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-sky-500/20 text-sky-300 flex-shrink-0">
+                        <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      </span>
+                    </div>
+                    <div className="text-base sm:text-2xl font-black text-sky-200 truncate">
+                      {formatPrice(liveData?.salesCard || 0)}
+                    </div>
                   </div>
-                  <div className="text-2xl font-black text-sky-200">
-                    {formatPrice(liveData?.salesCard || 0)}
+                  <div className="text-[9px] sm:text-[10px] text-gray-400 pt-1.5 sm:pt-2 mt-1 sm:mt-2 border-t border-gray-800 space-y-0.5">
+                    <div className="flex justify-between items-center">
+                      <span className="truncate">Vouchers:</span>
+                      <span className="text-sky-300 font-bold ml-1">Datáfono físico</span>
+                    </div>
+                    <div className="text-[8px] sm:text-[9px] text-gray-500 pt-0.5 truncate">
+                      Tarjetas débito / crédito
+                    </div>
                   </div>
-                  <p className="text-[10px] text-gray-400 pt-1 border-t border-gray-800">
-                    Vouchers aprobados en datáfono físico
-                  </p>
                 </div>
 
                 {/* 4. Utilidad Neta del Turno */}
-                <div className="bg-[#131d1a] border border-emerald-500/30 p-4 rounded-2xl space-y-2 shadow-lg">
-                  <div className="flex justify-between items-start">
-                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider block">
-                      UTILIDAD NETA DEL TURNO
-                    </span>
-                    <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-300">
-                      <TrendingUp className="w-4 h-4" />
-                    </span>
-                  </div>
-                  <div className="text-2xl font-black text-emerald-300">
-                    {formatPrice(liveData?.netProfit || 0)}
-                  </div>
-                  <div className="text-[10px] text-gray-400 pt-1 border-t border-gray-800 space-y-0.5">
-                    <div className="flex justify-between">
-                      <span>Ventas Totales:</span>
-                      <span className="text-white font-bold">{formatPrice(liveData?.totalSales || 0)}</span>
+                <div className="bg-[#131d1a] border border-emerald-500/30 p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl flex flex-col justify-between shadow-lg">
+                  <div>
+                    <div className="flex justify-between items-center mb-1 sm:mb-1.5">
+                      <span className="text-[9px] sm:text-[10px] font-black text-emerald-400 uppercase tracking-wider block truncate">
+                        <span className="hidden sm:inline">UTILIDAD NETA DEL TURNO</span>
+                        <span className="sm:hidden">UTILIDAD NETA</span>
+                      </span>
+                      <span className="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-emerald-500/20 text-emerald-300 flex-shrink-0">
+                        <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Gastos Totales:</span>
-                      <span className="text-rose-400 font-bold">{formatPrice(liveData?.totalExpenses || 0)}</span>
+                    <div className="text-base sm:text-2xl font-black text-emerald-300 truncate">
+                      {formatPrice(liveData?.netProfit || 0)}
+                    </div>
+                  </div>
+                  <div className="text-[9px] sm:text-[10px] text-gray-400 pt-1.5 sm:pt-2 mt-1 sm:mt-2 border-t border-gray-800 space-y-0.5">
+                    <div className="flex justify-between items-center">
+                      <span className="truncate">Ventas:</span>
+                      <span className="text-white font-bold ml-1">{formatPrice(liveData?.totalSales || 0)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="truncate">Gastos:</span>
+                      <span className="text-rose-400 font-bold ml-1">{formatPrice(liveData?.totalExpenses || 0)}</span>
                     </div>
                   </div>
                 </div>
@@ -1710,6 +1829,7 @@ export function AdminCajaView() {
           )}
         </div>
       )}
+      </div>
 
       {/* ======================================================================= */}
       {/* MODAL 1: APERTURA DE TURNO DE CAJA (BASE INICIAL)                       */}

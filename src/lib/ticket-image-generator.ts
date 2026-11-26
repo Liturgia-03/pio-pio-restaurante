@@ -6,7 +6,7 @@
  * compartir por WhatsApp o imprimir, con resolución optimizada para pantallas retina.
  */
 
-import { formatPrice, formatDateTime } from "./formatters";
+import { formatPrice, formatDateTime, getBogotaDateString } from "./formatters";
 import { EXPENSE_CATEGORIES } from "./caja-helpers";
 
 export interface CashShiftDataForTicket {
@@ -568,9 +568,7 @@ export async function downloadTicketImage(
   expenses: ExpenseItemForTicket[] = []
 ): Promise<void> {
   const blob = await generateTicketImageBlob(shift, expenses);
-  const dateStr = (shift.closedAt ? new Date(shift.closedAt) : new Date())
-    .toISOString()
-    .slice(0, 10);
+  const dateStr = getBogotaDateString(shift.closedAt || new Date());
   const fileName = `Tirilla-Liquidacion-PioPio-${dateStr}.png`;
 
   const url = URL.createObjectURL(blob);
@@ -591,9 +589,7 @@ export async function shareTicketImage(
   expenses: ExpenseItemForTicket[] = []
 ): Promise<{ sharedAsFile: boolean }> {
   const blob = await generateTicketImageBlob(shift, expenses);
-  const dateStr = (shift.closedAt ? new Date(shift.closedAt) : new Date())
-    .toISOString()
-    .slice(0, 10);
+  const dateStr = getBogotaDateString(shift.closedAt || new Date());
   const fileName = `Tirilla-Liquidacion-PioPio-${dateStr}.png`;
 
   const file = new File([blob], fileName, { type: "image/png" });

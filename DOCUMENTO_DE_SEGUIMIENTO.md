@@ -2182,6 +2182,26 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 
 ---
 
+### Hito 97: Corrección de Zona Horaria en Fechas por Defecto (America/Bogota UTC-5)
+- **Fecha:** 25 de Noviembre de 2026
+- **Archivos Modificados:**
+  - [src/lib/formatters.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/lib/formatters.ts)
+  - [src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)
+  - [src/lib/ticket-image-generator.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/lib/ticket-image-generator.ts)
+  - [DOCUMENTO_DE_SEGUIMIENTO.md](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/DOCUMENTO_DE_SEGUIMIENTO.md)
+- **Alcance y Cambios Realizados:**
+  1. **Solución al Salto Prematuro de Fecha en UTC:**
+     - Se identificó que `new Date().toISOString().split("T")[0]` tomaba el huso horario UTC (GMT+0), provocando que a partir de las 7:00 p.m. en Colombia los filtros de fecha aparecieran automáticamente con la fecha de mañana.
+     - Se creó e implementó `getBogotaDateString()` en [src/lib/formatters.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/lib/formatters.ts) con formato `en-CA` anclado a `America/Bogota` (UTC-5), garantizando que siempre se inicialice con la fecha real actual de Colombia sin importar la hora del día.
+  2. **Estandarización en Todos los Filtros de Caja & Contabilidad:**
+     - Filtro del Libro de Gastos (`expenseCustomDate`, `expenseStartDate`, `expenseEndDate`).
+     - Filtro del Histórico & Reportes Contables (`customDate`, `customStartDate`, `customEndDate`).
+     - Diálogo de limpieza de registros y nombres de archivos de tirilla de liquidación.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
+
+---
+
 ### Hito 96: Implementación de Filtrado por Período en el Libro de Gastos (Día, Semana, Mes, Año, Personalizado)
 - **Fecha:** 25 de Noviembre de 2026
 - **Archivos Modificados:**

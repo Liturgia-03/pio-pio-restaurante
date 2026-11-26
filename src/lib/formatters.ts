@@ -160,5 +160,22 @@ export function getBogotaPeriodBounds(
   return getBogotaDayBounds(targetDateStr || undefined);
 }
 
+/**
+ * Retorna una fecha (o la fecha actual real en Colombia si no se especifica)
+ * formateada como "YYYY-MM-DD" según la zona horaria oficial "America/Bogota" (UTC-5).
+ * Previene el salto al día siguiente que ocurre en UTC a partir de las 7:00 PM.
+ */
+export function getBogotaDateString(date?: Date | number | string | null): string {
+  const d = date ? (typeof date === "string" ? new Date(date) : new Date(date)) : new Date();
+  if (isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: BOGOTA_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+}
+
+
 
 

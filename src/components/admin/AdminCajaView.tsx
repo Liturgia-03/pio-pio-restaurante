@@ -42,7 +42,7 @@ import {
   ArrowDownRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { formatPrice, formatDateTime, formatTime, formatDate } from "@/lib/formatters";
+import { formatPrice, formatDateTime, formatTime, formatDate, getBogotaDateString } from "@/lib/formatters";
 import { EXPENSE_CATEGORIES } from "@/lib/caja-helpers";
 import { AdminAuthModal } from "@/components/admin/AdminAuthModal";
 import { downloadTicketImage, shareTicketImage } from "@/lib/ticket-image-generator";
@@ -211,10 +211,10 @@ export function AdminCajaView() {
 
   // Modal para limpieza de historial
   const [showClearHistoryModal, setShowClearHistoryModal] = useState<boolean>(false);
-  const [clearStartDate, setClearStartDate] = useState<string>(
-    new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  const [clearStartDate, setClearStartDate] = useState<string>(() =>
+    getBogotaDateString(Date.now() - 30 * 24 * 60 * 60 * 1000)
   );
-  const [clearEndDate, setClearEndDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [clearEndDate, setClearEndDate] = useState<string>(() => getBogotaDateString());
   const [clearIncludeExpenses, setClearIncludeExpenses] = useState<boolean>(false);
 
   // Modal de autorización administrativa con PIN
@@ -239,20 +239,20 @@ export function AdminCajaView() {
   const [expensesList, setExpensesList] = useState<ExpenseItem[]>([]);
   const [selectedExpenseCat, setSelectedExpenseCat] = useState<string>("ALL");
   const [expensePeriod, setExpensePeriod] = useState<"day" | "week" | "month" | "year" | "custom">("day");
-  const [expenseCustomDate, setExpenseCustomDate] = useState<string>(new Date().toISOString().split("T")[0]);
-  const [expenseStartDate, setExpenseStartDate] = useState<string>(
-    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  const [expenseCustomDate, setExpenseCustomDate] = useState<string>(() => getBogotaDateString());
+  const [expenseStartDate, setExpenseStartDate] = useState<string>(() =>
+    getBogotaDateString(Date.now() - 7 * 24 * 60 * 60 * 1000)
   );
-  const [expenseEndDate, setExpenseEndDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [expenseEndDate, setExpenseEndDate] = useState<string>(() => getBogotaDateString());
   const [isExpensesLoading, setIsExpensesLoading] = useState<boolean>(false);
 
   // Datos de reportes
   const [reportPeriod, setReportPeriod] = useState<"day" | "week" | "month" | "year" | "custom">("day");
-  const [customDate, setCustomDate] = useState<string>(new Date().toISOString().split("T")[0]);
-  const [customStartDate, setCustomStartDate] = useState<string>(
-    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  const [customDate, setCustomDate] = useState<string>(() => getBogotaDateString());
+  const [customStartDate, setCustomStartDate] = useState<string>(() =>
+    getBogotaDateString(Date.now() - 7 * 24 * 60 * 60 * 1000)
   );
-  const [customEndDate, setCustomEndDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [customEndDate, setCustomEndDate] = useState<string>(() => getBogotaDateString());
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isReportLoading, setIsReportLoading] = useState<boolean>(false);
 
@@ -396,9 +396,7 @@ export function AdminCajaView() {
         try {
           const text = generateTicketText(shift);
           const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-          const dateStr = (shift.closedAt ? new Date(shift.closedAt) : new Date())
-            .toISOString()
-            .slice(0, 10);
+          const dateStr = getBogotaDateString(shift.closedAt || new Date());
           const fileName = `Tirilla-Liquidacion-PioPio-${dateStr}.txt`;
 
           const url = URL.createObjectURL(blob);

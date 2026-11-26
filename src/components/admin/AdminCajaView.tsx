@@ -235,9 +235,16 @@ export function AdminCajaView() {
     detailsBadge?: string;
   } | null>(null);
 
-  // Datos de gastos
+  // Datos de gastos y filtros de período
   const [expensesList, setExpensesList] = useState<ExpenseItem[]>([]);
   const [selectedExpenseCat, setSelectedExpenseCat] = useState<string>("ALL");
+  const [expensePeriod, setExpensePeriod] = useState<"day" | "week" | "month" | "year" | "custom">("day");
+  const [expenseCustomDate, setExpenseCustomDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [expenseStartDate, setExpenseStartDate] = useState<string>(
+    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+  );
+  const [expenseEndDate, setExpenseEndDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [isExpensesLoading, setIsExpensesLoading] = useState<boolean>(false);
 
   // Datos de reportes
   const [reportPeriod, setReportPeriod] = useState<"day" | "week" | "month" | "year" | "custom">("day");
@@ -490,18 +497,27 @@ export function AdminCajaView() {
     }
   }, []);
 
-  // 2. Cargar gastos
+  // 2. Cargar gastos con filtros por período (día, semana, mes, año, personalizado)
   const fetchExpenses = useCallback(async () => {
+    setIsExpensesLoading(true);
     try {
-      const res = await fetch("/api/admin/caja/expenses");
+      let url = `/api/admin/caja/expenses?period=${expensePeriod}`;
+      if (expensePeriod === "custom") {
+        url += `&startDate=${expenseStartDate}&endDate=${expenseEndDate}`;
+      } else {
+        url += `&date=${expenseCustomDate}`;
+      }
+      const res = await fetch(url);
       const json = await res.json();
       if (json.success && json.data) {
         setExpensesList(json.data);
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsExpensesLoading(false);
     }
-  }, []);
+  }, [expensePeriod, expenseCustomDate, expenseStartDate, expenseEndDate]);
 
   // 3. Cargar reportes contables
   const fetchReport = useCallback(async () => {
@@ -534,7 +550,10 @@ export function AdminCajaView() {
     if (activeTab === "reports") {
       fetchReport();
     }
-  }, [activeTab, fetchReport]);
+    if (activeTab === "expenses") {
+      fetchExpenses();
+    }
+  }, [activeTab, fetchReport, fetchExpenses]);
 
   // 4. Cargar bitácora de auditoría
   const fetchAuditLogs = useCallback(async () => {
@@ -755,6 +774,25 @@ export function AdminCajaView() {
     if (selectedExpenseCat === "ALL") return expensesList;
     return expensesList.filter((e) => e.category === selectedExpenseCat);
   }, [expensesList, selectedExpenseCat]);
+
+  // Totales consolidados de los gastos en el período seleccionado
+  const expensesPeriodTotals = useMemo(() => {
+    let total = 0;
+    let totalCash = 0;
+    let totalTransfer = 0;
+    filteredExpenses.forEach((exp) => {
+      const amt = Number(exp.amount) || 0;
+      total += amt;
+      if (exp.paymentMethod === "CASH") totalCash += amt;
+      else totalTransfer += amt;
+    });
+    return {
+      total,
+      totalCash,
+      totalTransfer,
+      count: filteredExpenses.length,
+    };
+  }, [filteredExpenses]);
 
   return (
     <div className="w-full bg-[#101217] border border-gray-800/80 rounded-3xl flex flex-col shadow-2xl overflow-hidden min-h-[calc(100vh-140px)]">
@@ -1329,6 +1367,7 @@ export function AdminCajaView() {
       {/* ======================================================================= */}
       {activeTab === "expenses" && (
         <div className="p-4 sm:p-6 space-y-4 overflow-y-auto">
+          {/* Encabezado */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-gray-800">
             <div>
               <h2 className="text-sm font-black text-white flex items-center gap-2">
@@ -1349,6 +1388,159 @@ export function AdminCajaView() {
             </button>
           </div>
 
+          {/* Selector de Períodos: Día, Semana, Mes, Año y Personalizado */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-2 border-b border-gray-800/80">
+            <div className="flex items-center gap-1.5 bg-[#161a22] p-1 rounded-2xl border border-gray-800 overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => setExpensePeriod("day")}
+                className={`py-1.5 px-3 rounded-xl text-xs font-black transition-all whitespace-nowrap ${
+                  expensePeriod === "day"
+                    ? "bg-amber-500 text-black shadow-md"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Día
+              </button>
+              <button
+                type="button"
+                onClick={() => setExpensePeriod("week")}
+                className={`py-1.5 px-3 rounded-xl text-xs font-black transition-all whitespace-nowrap ${
+                  expensePeriod === "week"
+                    ? "bg-amber-500 text-black shadow-md"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Semana
+              </button>
+              <button
+                type="button"
+                onClick={() => setExpensePeriod("month")}
+                className={`py-1.5 px-3 rounded-xl text-xs font-black transition-all whitespace-nowrap ${
+                  expensePeriod === "month"
+                    ? "bg-amber-500 text-black shadow-md"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Mes
+              </button>
+              <button
+                type="button"
+                onClick={() => setExpensePeriod("year")}
+                className={`py-1.5 px-3 rounded-xl text-xs font-black transition-all whitespace-nowrap ${
+                  expensePeriod === "year"
+                    ? "bg-amber-500 text-black shadow-md"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Año
+              </button>
+              <button
+                type="button"
+                onClick={() => setExpensePeriod("custom")}
+                className={`py-1.5 px-3 rounded-xl text-xs font-black transition-all whitespace-nowrap flex items-center gap-1 ${
+                  expensePeriod === "custom"
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-md"
+                    : "text-amber-400/80 hover:text-amber-300"
+                }`}
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Personalizado</span>
+              </button>
+            </div>
+
+            {/* Selector de Fechas Según Período */}
+            {expensePeriod === "custom" ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1.5 bg-[#181b24] border border-gray-800 rounded-xl px-2.5 py-1">
+                  <span className="text-[10px] text-gray-400 font-bold uppercase">Desde:</span>
+                  <input
+                    type="date"
+                    value={expenseStartDate}
+                    onChange={(e) => setExpenseStartDate(e.target.value)}
+                    className="bg-transparent text-white text-xs outline-none font-mono"
+                  />
+                </div>
+                <div className="flex items-center gap-1.5 bg-[#181b24] border border-gray-800 rounded-xl px-2.5 py-1">
+                  <span className="text-[10px] text-gray-400 font-bold uppercase">Hasta:</span>
+                  <input
+                    type="date"
+                    value={expenseEndDate}
+                    onChange={(e) => setExpenseEndDate(e.target.value)}
+                    className="bg-transparent text-white text-xs outline-none font-mono"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={fetchExpenses}
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs shadow transition-all active:scale-95 flex items-center gap-1"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isExpensesLoading ? "animate-spin" : ""}`} />
+                  <span>Filtrar</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400 font-bold">
+                  {expensePeriod === "day"
+                    ? "Fecha:"
+                    : expensePeriod === "week"
+                    ? "Semana de:"
+                    : expensePeriod === "month"
+                    ? "Mes de referencia:"
+                    : "Año:"}
+                </span>
+                <input
+                  type="date"
+                  value={expenseCustomDate}
+                  onChange={(e) => setExpenseCustomDate(e.target.value)}
+                  className="bg-[#181b24] border border-gray-800 text-white text-xs px-3 py-1.5 rounded-xl outline-none focus:border-amber-500"
+                />
+                <button
+                  type="button"
+                  onClick={fetchExpenses}
+                  className="p-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 transition-colors"
+                  title="Actualizar gastos"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isExpensesLoading ? "animate-spin" : ""}`} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Tarjeta Resumen Consolidado del Período */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#14161f] border border-gray-800/80 rounded-2xl p-3.5 sm:p-4 shadow-md">
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                Total Gastos ({expensePeriod === "day" ? "Día" : expensePeriod === "week" ? "Semana" : expensePeriod === "month" ? "Mes" : expensePeriod === "year" ? "Año" : "Personalizado"})
+              </span>
+              <div className="text-xl sm:text-2xl font-black text-rose-400 tracking-tight">
+                -{formatPrice(expensesPeriodTotals.total)}
+              </div>
+              <span className="text-[10px] text-gray-500 font-medium block">
+                {expensesPeriodTotals.count} {expensesPeriodTotals.count === 1 ? "salida registrada" : "salidas registradas"}
+              </span>
+            </div>
+            <div className="space-y-1 sm:border-l sm:border-gray-800 sm:pl-4">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                Efectivo de Caja
+              </span>
+              <div className="text-base sm:text-lg font-black text-white">
+                {formatPrice(expensesPeriodTotals.totalCash)}
+              </div>
+              <span className="text-[10px] text-gray-500 block">Salidas directas del cajón</span>
+            </div>
+            <div className="space-y-1 sm:border-l sm:border-gray-800 sm:pl-4">
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                Transferencias / Digital
+              </span>
+              <div className="text-base sm:text-lg font-black text-white">
+                {formatPrice(expensesPeriodTotals.totalTransfer)}
+              </div>
+              <span className="text-[10px] text-gray-500 block">Pagos por Nequi / Bancolombia</span>
+            </div>
+          </div>
+
           {/* Filtros rápidos por categoría de gasto */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
             <button
@@ -1356,34 +1548,45 @@ export function AdminCajaView() {
               onClick={() => setSelectedExpenseCat("ALL")}
               className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all ${
                 selectedExpenseCat === "ALL"
-                  ? "bg-amber-500 text-black font-black"
+                  ? "bg-amber-500 text-black font-black shadow-sm"
                   : "bg-gray-800 text-gray-400 hover:text-white"
               }`}
             >
               Todas ({expensesList.length})
             </button>
-            {Object.keys(EXPENSE_CATEGORIES).map((k) => (
-              <button
-                key={k}
-                type="button"
-                onClick={() => setSelectedExpenseCat(k)}
-                className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all flex items-center gap-1 ${
-                  selectedExpenseCat === k
-                    ? "bg-amber-500 text-black font-black"
-                    : "bg-gray-800 text-gray-400 hover:text-white"
-                }`}
-              >
-                <span>{EXPENSE_CATEGORIES[k].icon}</span>
-                <span>{EXPENSE_CATEGORIES[k].label}</span>
-              </button>
-            ))}
+            {Object.keys(EXPENSE_CATEGORIES).map((k) => {
+              const catCount = expensesList.filter((e) => e.category === k).length;
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setSelectedExpenseCat(k)}
+                  className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition-all flex items-center gap-1 ${
+                    selectedExpenseCat === k
+                      ? "bg-amber-500 text-black font-black shadow-sm"
+                      : "bg-gray-800 text-gray-400 hover:text-white"
+                  }`}
+                >
+                  <span>{EXPENSE_CATEGORIES[k].icon}</span>
+                  <span>{EXPENSE_CATEGORIES[k].label}</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${selectedExpenseCat === k ? "bg-black/30 text-black font-black" : "bg-gray-700 text-gray-300"}`}>
+                    {catCount}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Lista de Gastos */}
-          {filteredExpenses.length === 0 ? (
+          {isExpensesLoading ? (
+            <div className="py-16 text-center text-gray-500 space-y-2">
+              <RefreshCw className="w-7 h-7 text-amber-500 mx-auto animate-spin" />
+              <p className="text-xs font-bold text-gray-400">Cargando libro de gastos...</p>
+            </div>
+          ) : filteredExpenses.length === 0 ? (
             <div className="py-16 text-center text-gray-500 space-y-2">
               <TrendingDown className="w-8 h-8 text-gray-600 mx-auto" />
-              <p className="text-xs font-bold">No hay gastos registrados en esta categoría</p>
+              <p className="text-xs font-bold">No hay gastos registrados en este período y categoría</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

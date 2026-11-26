@@ -94,4 +94,71 @@ export function getBogotaDayBounds(dateStr?: string): { startDate: Date; endDate
   return { startDate, endDate };
 }
 
+/**
+ * Retorna los límites de inicio y fin en UTC de un período calendario en Colombia (UTC-5).
+ * Períodos soportados: "day" | "week" | "month" | "year" | "custom"
+ */
+export function getBogotaPeriodBounds(
+  period: "day" | "week" | "month" | "year" | "custom" | string,
+  targetDateStr?: string | null,
+  startParam?: string | null,
+  endParam?: string | null
+): { startDate: Date; endDate: Date } {
+  if (period === "custom") {
+    const startBounds = getBogotaDayBounds(startParam || undefined);
+    const endBounds = getBogotaDayBounds(endParam || undefined);
+    if (startBounds.startDate > endBounds.endDate) {
+      return { startDate: endBounds.startDate, endDate: startBounds.endDate };
+    }
+    return { startDate: startBounds.startDate, endDate: endBounds.endDate };
+  }
+
+  if (period === "day") {
+    return getBogotaDayBounds(targetDateStr || undefined);
+  }
+
+  let y: number, m: number, d: number;
+  if (targetDateStr && targetDateStr.includes("-")) {
+    const parts = targetDateStr.split("-").map(Number);
+    y = parts[0];
+    m = parts[1];
+    d = parts[2];
+  } else {
+    const nowBogota = new Intl.DateTimeFormat("en-CA", {
+      timeZone: BOGOTA_TIMEZONE,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date());
+    const parts = nowBogota.split("-").map(Number);
+    y = parts[0];
+    m = parts[1];
+    d = parts[2];
+  }
+
+  if (period === "week") {
+    const baseDate = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+    const dayOfWeek = baseDate.getUTCDay(); // 0 = Domingo, 1 = Lunes, ..., 6 = Sábado
+    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    const startDate = new Date(Date.UTC(y, m - 1, d + diffToMonday, 5, 0, 0, 0));
+    const endDate = new Date(Date.UTC(y, m - 1, d + diffToMonday + 7, 4, 59, 59, 999));
+    return { startDate, endDate };
+  }
+
+  if (period === "month") {
+    const startDate = new Date(Date.UTC(y, m - 1, 1, 5, 0, 0, 0));
+    const endDate = new Date(Date.UTC(y, m, 1, 4, 59, 59, 999));
+    return { startDate, endDate };
+  }
+
+  if (period === "year") {
+    const startDate = new Date(Date.UTC(y, 0, 1, 5, 0, 0, 0));
+    const endDate = new Date(Date.UTC(y + 1, 0, 1, 4, 59, 59, 999));
+    return { startDate, endDate };
+  }
+
+  return getBogotaDayBounds(targetDateStr || undefined);
+}
+
+
 

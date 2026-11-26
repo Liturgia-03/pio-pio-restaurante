@@ -2182,6 +2182,31 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 
 ---
 
+### Hito 96: Implementación de Filtrado por Período en el Libro de Gastos (Día, Semana, Mes, Año, Personalizado)
+- **Fecha:** 25 de Noviembre de 2026
+- **Archivos Modificados:**
+  - [src/lib/formatters.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/lib/formatters.ts)
+  - [src/app/api/admin/caja/expenses/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/expenses/route.ts)
+  - [src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)
+  - [DOCUMENTO_DE_SEGUIMIENTO.md](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/DOCUMENTO_DE_SEGUIMIENTO.md)
+- **Alcance y Cambios Realizados:**
+  1. **Motor de Fechas y Zona Horaria Bogotá ([src/lib/formatters.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/lib/formatters.ts)):**
+     - Se creó y exportó la función `getBogotaPeriodBounds` para calcular con exactitud astronómica los límites `[startDate, endDate]` en hora oficial de Colombia (UTC-5) para `"day"`, `"week"`, `"month"`, `"year"` y `"custom"`.
+  2. **Backend de Gastos ([src/app/api/admin/caja/expenses/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/expenses/route.ts)):**
+     - Se integró el soporte para query params `period`, `date`, `startDate`, `endDate`.
+     - Filtrado nativo en Prisma por `where.date = { gte: startDate, lte: endDate }`.
+     - Se calculó el resumen consolidado del período (`totalAmount`, `totalCash`, `totalTransfer`, `count`).
+  3. **Frontend Libro de Gastos ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)):**
+     - Se integró la barra de períodos con botones interactivos: **Día**, **Semana**, **Mes**, **Año** y **Personalizado**.
+     - Selector contextual de fechas (`Desde` y `Hasta` para rango personalizado; selector de fecha base y botón refrescar para períodos fijos).
+     - Tarjeta ejecutiva con totales consolidados del período (total en rojo, desglose en efectivo de cajón vs transferencias y contador de salidas).
+     - Contadores numéricos por categoría de gasto sincronizados en vivo con el período activo.
+     - Animación suave de carga con spinner mientras se obtienen los gastos del período.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
+
+---
+
 ## 📁 5. Estructura de Archivos Clave del Proyecto
 
 ```text

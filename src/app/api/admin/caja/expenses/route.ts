@@ -1,24 +1,40 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getBogotaPeriodBounds } from "@/lib/formatters";
 
 export const dynamic = "force-dynamic";
 
-// GET: Listar gastos con filtros opcionales
+// GET: Listar gastos con filtros opcionales (período: día, semana, mes, año, personalizado)
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+    const period = searchParams.get("period"); // "day" | "week" | "month" | "year" | "custom"
+    const targetDateStr = searchParams.get("date");
+    const startParam = searchParams.get("startDate");
+    const endParam = searchParams.get("endDate");
     const shiftId = searchParams.get("shiftId");
     const category = searchParams.get("category");
-    const limit = parseInt(searchParams.get("limit") || "50", 10);
+    const limitParam = searchParams.get("limit");
 
     const where: any = {};
     if (shiftId) where.cashShiftId = shiftId;
-    if (category) where.category = category;
+    if (category && category !== "ALL") where.category = category;
+
+    let periodBounds: { startDate: Date; endDate: Date } | null = null;
+    if (period) {
+      periodBounds = getBogotaPeriodBounds(period, targetDateStr, startParam, endParam);
+      where.date = {
+        gte: periodBounds.startDate,
+        lte: periodBounds.endDate,
+      };
+    }
+
+    const takeLimit = limitParam ? parseInt(limitParam, 10) : (period ? undefined : 100);
 
     const expenses = await prisma.expense.findMany({
       where,
       orderBy: { date: "desc" },
-      take: limit,
+      ...(takeLimit ? { take: takeLimit } : {}),
       include: {
         cashShift: {
           select: {
@@ -30,9 +46,33 @@ export async function GET(request: Request) {
       },
     });
 
+    // Calcular resumen consolidado
+    let totalAmount = 0;
+    let totalCash = 0;
+    let totalTransfer = 0;
+    for (const exp of expenses) {
+      const amt = Number(exp.amount) || 0;
+      totalAmount += amt;
+      if (exp.paymentMethod === "CASH") {
+        totalCash += amt;
+      } else {
+        totalTransfer += amt;
+      }
+    }
+
     return NextResponse.json({
       success: true,
       data: expenses,
+      summary: {
+        totalAmount,
+        totalCash,
+        totalTransfer,
+        count: expenses.length,
+      },
+      periodBounds: periodBounds ? {
+        startDate: periodBounds.startDate.toISOString(),
+        endDate: periodBounds.endDate.toISOString(),
+      } : null,
     });
   } catch (error: any) {
     console.error("Error al obtener gastos:", error);

@@ -2202,6 +2202,12 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
      - En la pestaña de Auditoría & Seguridad, se reemplazó la tarjeta scroleable residual (`max-h-96 overflow-y-auto`) por una tarjeta-botón ejecutiva con halo ámbar que resume la cantidad de eventos auditados, el último evento registrado y abre el visor forense completo en pantalla completa (`showAllAuditModal`) con buscador por acción, aprobador y motivo.
   3. **Backend de Caja ([src/app/api/admin/caja/shift/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/shift/route.ts)):**
      - Se eliminó el `.slice(0, 15)` en `recentSessions` y `recentExpenses`, garantizando la entrega del 100% de movimientos del turno al frontend.
+  4. **Accesibilidad y Salida Rápida (Mecanismos de Cierre Reforzados):**
+     - Se aseguró que todas las vistas de pantalla completa (Ventas, Gastos y Auditoría) en Admin y Superadmin cuenten con botones de salida visibles en móviles y ordenadores:
+       - Botón superior derecho con icono y texto explícito `✕ Cerrar` sin recortes en pantallas pequeñas.
+       - Botón superior izquierdo de retroceso `← Volver`.
+       - Botón inferior fijo ergonómico `✕ Cerrar / Salir` para el pulgar en móviles.
+       - Listener de tecla `Escape` para cierre rápido desde teclado físico.
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
 

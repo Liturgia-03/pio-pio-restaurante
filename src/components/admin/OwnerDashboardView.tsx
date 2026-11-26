@@ -227,6 +227,19 @@ export function OwnerDashboardView() {
     if (activeTab === "audit") fetchAudit();
   }, [activeTab, fetchStaff, fetchAudit]);
 
+  // Manejar tecla Escape para cerrar modales de pantalla completa
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (showAllSalesModal) setShowAllSalesModal(false);
+        if (showAllExpensesModal) setShowAllExpensesModal(false);
+        if (showAllAuditModal) setShowAllAuditModal(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showAllSalesModal, showAllExpensesModal, showAllAuditModal]);
+
   // Handlers para Personal
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1361,10 +1374,11 @@ export function OwnerDashboardView() {
             <button
               type="button"
               onClick={() => setShowAllSalesModal(false)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gray-800 hover:bg-rose-950/40 text-gray-200 hover:text-rose-400 border border-gray-700 font-bold text-xs transition-all shrink-0 active:scale-95 cursor-pointer shadow-sm"
+              title="Cerrar ventana"
             >
-              <X className="w-4 h-4" />
-              <span className="hidden sm:inline">Cerrar</span>
+              <X className="w-4 h-4 text-rose-400" />
+              <span>Cerrar</span>
             </button>
           </header>
 
@@ -1523,9 +1537,10 @@ export function OwnerDashboardView() {
             <button
               type="button"
               onClick={() => setShowAllSalesModal(false)}
-              className="px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer flex items-center gap-2 border border-gray-700 shadow-md"
             >
-              Cerrar
+              <X className="w-4 h-4 text-rose-400" />
+              <span>Cerrar / Salir</span>
             </button>
           </footer>
         </div>
@@ -1567,10 +1582,11 @@ export function OwnerDashboardView() {
             <button
               type="button"
               onClick={() => setShowAllExpensesModal(false)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gray-800 hover:bg-rose-950/40 text-gray-200 hover:text-rose-400 border border-gray-700 font-bold text-xs transition-all shrink-0 active:scale-95 cursor-pointer shadow-sm"
+              title="Cerrar ventana"
             >
-              <X className="w-4 h-4" />
-              <span className="hidden sm:inline">Cerrar</span>
+              <X className="w-4 h-4 text-rose-400" />
+              <span>Cerrar</span>
             </button>
           </header>
 
@@ -1723,9 +1739,10 @@ export function OwnerDashboardView() {
             <button
               type="button"
               onClick={() => setShowAllExpensesModal(false)}
-              className="px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer flex items-center gap-2 border border-gray-700 shadow-md"
             >
-              Cerrar
+              <X className="w-4 h-4 text-rose-400" />
+              <span>Cerrar / Salir</span>
             </button>
           </footer>
         </div>
@@ -1775,10 +1792,11 @@ export function OwnerDashboardView() {
               <button
                 type="button"
                 onClick={() => setShowAllAuditModal(false)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-gray-800 hover:bg-rose-950/40 text-gray-200 hover:text-rose-400 border border-gray-700 font-bold text-xs transition-all shrink-0 active:scale-95 cursor-pointer shadow-sm"
+                title="Cerrar ventana"
               >
-                <X className="w-4 h-4" />
-                <span className="hidden sm:inline">Cerrar</span>
+                <X className="w-4 h-4 text-rose-400" />
+                <span>Cerrar</span>
               </button>
             </div>
           </header>
@@ -1864,9 +1882,10 @@ export function OwnerDashboardView() {
             <button
               type="button"
               onClick={() => setShowAllAuditModal(false)}
-              className="px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer"
+              className="px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer flex items-center gap-2 border border-gray-700 shadow-md"
             >
-              Cerrar
+              <X className="w-4 h-4 text-rose-400" />
+              <span>Cerrar / Salir</span>
             </button>
           </footer>
         </div>

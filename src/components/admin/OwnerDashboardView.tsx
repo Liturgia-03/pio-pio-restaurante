@@ -27,6 +27,11 @@ import {
   UserX,
   Receipt,
   Sparkles,
+  ChevronRight,
+  ChevronLeft,
+  Search,
+  X,
+  Filter,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice, formatDateTime, formatTime, formatDate } from "@/lib/formatters";
@@ -136,8 +141,22 @@ export function OwnerDashboardView() {
   const [showEditPinModal, setShowEditPinModal] = useState(false);
   const [newPinVal, setNewPinVal] = useState("");
 
+  // Estados para modales de pantalla completa (Ventas y Gastos)
+  const [showAllSalesModal, setShowAllSalesModal] = useState(false);
+  const [salesSearchQuery, setSalesSearchQuery] = useState("");
+  const [salesMethodFilter, setSalesMethodFilter] = useState<"ALL" | "CASH" | "DIGITAL">("ALL");
+
+  const [showAllExpensesModal, setShowAllExpensesModal] = useState(false);
+  const [expensesSearchQuery, setExpensesSearchQuery] = useState("");
+  const [expensesCategoryFilter, setExpensesCategoryFilter] = useState<string>("ALL");
+
   const isAnyModalOpen = Boolean(
-    showCreateUserModal || showChangePassModal || showCreateWaiterModal || showEditPinModal
+    showCreateUserModal ||
+    showChangePassModal ||
+    showCreateWaiterModal ||
+    showEditPinModal ||
+    showAllSalesModal ||
+    showAllExpensesModal
   );
   useBodyScrollLock(isAnyModalOpen);
 
@@ -357,6 +376,41 @@ export function OwnerDashboardView() {
       toast.error(err.message || "Error al eliminar");
     }
   };
+
+  // Filtrado de cobros para el modal de pantalla completa
+  const filteredSales = (stats?.recentSales || []).filter((s) => {
+    const matchesSearch =
+      salesSearchQuery.trim() === "" ||
+      s.tableNumber.toLowerCase().includes(salesSearchQuery.toLowerCase()) ||
+      s.closedBy.toLowerCase().includes(salesSearchQuery.toLowerCase()) ||
+      String(s.total).includes(salesSearchQuery);
+
+    const matchesMethod =
+      salesMethodFilter === "ALL" ||
+      (salesMethodFilter === "CASH" && s.cash > 0) ||
+      (salesMethodFilter === "DIGITAL" && s.digital > 0);
+
+    return matchesSearch && matchesMethod;
+  });
+
+  const totalFilteredSales = filteredSales.reduce((acc, s) => acc + s.total, 0);
+
+  // Filtrado de gastos para el modal de pantalla completa
+  const filteredExpenses = (stats?.recentExpenses || []).filter((e) => {
+    const matchesSearch =
+      expensesSearchQuery.trim() === "" ||
+      e.description.toLowerCase().includes(expensesSearchQuery.toLowerCase()) ||
+      e.responsible?.toLowerCase().includes(expensesSearchQuery.toLowerCase()) ||
+      e.receiptNumber?.toLowerCase().includes(expensesSearchQuery.toLowerCase()) ||
+      String(e.amount).includes(expensesSearchQuery);
+
+    const matchesCategory =
+      expensesCategoryFilter === "ALL" || e.category === expensesCategoryFilter;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  const totalFilteredExpenses = filteredExpenses.reduce((acc, e) => acc + e.amount, 0);
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-4 pb-12">
@@ -652,100 +706,85 @@ export function OwnerDashboardView() {
             </div>
           </div>
 
-          {/* Feeds Divididos: Últimas Ventas vs Últimos Gastos */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Feed de Ventas */}
-            <div className="bg-[#14161f] border border-gray-800 rounded-3xl p-4 space-y-3">
-              <div className="flex justify-between items-center border-b border-gray-800 pb-2">
-                <h3 className="text-xs font-black text-white flex items-center gap-1.5">
-                  <ShoppingBag className="w-4 h-4 text-emerald-400" />
-                  <span>Últimos Cobros en Vivo</span>
-                </h3>
-                <span className="text-[10px] text-gray-400">
-                  Total cobrado: {formatPrice(stats?.kpis.salesTotal || 0)}
+          {/* ======================================================================= */}
+          {/* BOTONES INTERACTIVOS DE MOVIMIENTOS (ABREN PANTALLA COMPLETA)           */}
+          {/* ======================================================================= */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {/* Tarjeta-Botón 1: Movimientos de Ventas */}
+            <button
+              type="button"
+              onClick={() => setShowAllSalesModal(true)}
+              className="group relative text-left bg-gradient-to-br from-[#14161f] via-[#161a25] to-[#14161f] hover:to-[#1a2030] border border-gray-800 hover:border-emerald-500/50 p-4 sm:p-5 rounded-3xl shadow-xl transition-all duration-200 active:scale-[0.98] flex flex-col justify-between overflow-hidden cursor-pointer"
+            >
+              {/* Resplandor decorativo */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-emerald-500/10 transition-colors" />
+
+              <div className="flex items-start justify-between gap-3 relative z-10 w-full">
+                <div className="w-11 h-11 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform shadow-md">
+                  <ShoppingBag className="w-5 h-5" />
+                </div>
+                <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full group-hover:bg-emerald-500/20 transition-colors">
+                  <span>Ver Todos</span>
+                  <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                 </span>
               </div>
 
-              <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-                {stats?.recentSales.length === 0 ? (
-                  <p className="text-xs text-gray-500 py-6 text-center italic">
-                    Sin ventas cerradas hoy todavía.
-                  </p>
-                ) : (
-                  stats?.recentSales.map((s) => (
-                    <div
-                      key={s.id}
-                      className="bg-[#181b24] p-2.5 rounded-2xl border border-gray-800 flex justify-between items-center text-xs"
-                    >
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-black text-amber-400 text-xs">
-                            {s.tableNumber}
-                          </span>
-                          <span className="text-[10px] text-gray-400">
-                            {formatTime(s.closedAt)}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-gray-400">
-                          {s.cash > 0 && `💵 Ef: ${formatPrice(s.cash)} `}
-                          {s.digital > 0 && `📱 Dig: ${formatPrice(s.digital)} `}
-                          • Por: {s.closedBy}
-                        </p>
-                      </div>
-                      <span className="font-black text-white text-xs">
-                        {formatPrice(s.total)}
-                      </span>
-                    </div>
-                  ))
-                )}
+              <div className="mt-4 space-y-1 relative z-10 w-full">
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">
+                  Movimientos de Ventas
+                </span>
+                <div className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                  {formatPrice(stats?.kpis.salesTotal || 0)}
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-400 pt-1.5 border-t border-gray-800/80">
+                  <span className="text-emerald-400 font-bold">
+                    {stats?.recentSales.length || 0} cobros hoy
+                  </span>
+                  <span>•</span>
+                  <span className="truncate text-[11px]">
+                    Ef: {formatPrice(stats?.kpis.salesCash || 0)} | Dig: {formatPrice(stats?.kpis.salesDigital || 0)}
+                  </span>
+                </div>
               </div>
-            </div>
+            </button>
 
-            {/* Feed de Gastos */}
-            <div className="bg-[#14161f] border border-gray-800 rounded-3xl p-4 space-y-3">
-              <div className="flex justify-between items-center border-b border-gray-800 pb-2">
-                <h3 className="text-xs font-black text-white flex items-center gap-1.5">
-                  <TrendingDown className="w-4 h-4 text-rose-400" />
-                  <span>Últimas Salidas de Dinero</span>
-                </h3>
-                <span className="text-[10px] text-gray-400">
-                  Total egresos: -{formatPrice(stats?.kpis.expensesTotal || 0)}
+            {/* Tarjeta-Botón 2: Movimientos de Gastos */}
+            <button
+              type="button"
+              onClick={() => setShowAllExpensesModal(true)}
+              className="group relative text-left bg-gradient-to-br from-[#14161f] via-[#1d161a] to-[#14161f] hover:to-[#25191f] border border-gray-800 hover:border-rose-500/50 p-4 sm:p-5 rounded-3xl shadow-xl transition-all duration-200 active:scale-[0.98] flex flex-col justify-between overflow-hidden cursor-pointer"
+            >
+              {/* Resplandor decorativo */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-rose-500/10 transition-colors" />
+
+              <div className="flex items-start justify-between gap-3 relative z-10 w-full">
+                <div className="w-11 h-11 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 group-hover:scale-105 transition-transform shadow-md">
+                  <TrendingDown className="w-5 h-5" />
+                </div>
+                <span className="flex items-center gap-1 text-[11px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 rounded-full group-hover:bg-rose-500/20 transition-colors">
+                  <span>Ver Todos</span>
+                  <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                 </span>
               </div>
 
-              <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
-                {stats?.recentExpenses.length === 0 ? (
-                  <p className="text-xs text-gray-500 py-6 text-center italic">
-                    Sin gastos registrados hoy.
-                  </p>
-                ) : (
-                  stats?.recentExpenses.map((e) => {
-                    const cat = EXPENSE_CATEGORIES[e.category] || { label: e.category, icon: "🏷️" };
-                    return (
-                      <div
-                        key={e.id}
-                        className="bg-[#181b24] p-2.5 rounded-2xl border border-gray-800 flex justify-between items-center text-xs"
-                      >
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-1.5">
-                            <span>{cat.icon}</span>
-                            <span className="font-bold text-gray-200 line-clamp-1 truncate">
-                              {e.description}
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-gray-400">
-                            {formatTime(e.date)} • {e.paymentMethod === "CASH" ? "💵 Efectivo" : "📱 Transferencia"} • Por: {e.responsible || "Caja"}
-                          </p>
-                        </div>
-                        <span className="font-black text-rose-400 text-xs whitespace-nowrap ml-2">
-                          -{formatPrice(e.amount)}
-                        </span>
-                      </div>
-                    );
-                  })
-                )}
+              <div className="mt-4 space-y-1 relative z-10 w-full">
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">
+                  Movimientos de Gastos
+                </span>
+                <div className="text-xl sm:text-2xl font-black text-rose-400 tracking-tight">
+                  -{formatPrice(stats?.kpis.expensesTotal || 0)}
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-400 pt-1.5 border-t border-gray-800/80">
+                  <span className="text-rose-400 font-bold">
+                    {stats?.recentExpenses.length || 0} salidas hoy
+                  </span>
+                  <span>•</span>
+                  <span className="truncate text-[11px]">
+                    Ef: {formatPrice(stats?.kpis.expensesCash || 0)} | Transf: {formatPrice(stats?.kpis.expensesDigital || 0)}
+                  </span>
+                </div>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       )}
@@ -1266,6 +1305,412 @@ export function OwnerDashboardView() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* ======================================================================= */}
+      {/* MODAL PANTALLA COMPLETA: TODOS LOS COBROS Y VENTAS DE HOY                */}
+      {/* ======================================================================= */}
+      {showAllSalesModal && (
+        <div className="fixed inset-0 z-50 bg-[#0b0c10] text-white flex flex-col animate-in fade-in overscroll-contain">
+          {/* Header Superior Fijo */}
+          <header className="sticky top-0 z-20 bg-[#12141c]/95 backdrop-blur-md border-b border-gray-800 px-4 py-3 sm:px-6 sm:py-4 shadow-lg flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                type="button"
+                onClick={() => setShowAllSalesModal(false)}
+                className="w-10 h-10 rounded-2xl bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shadow-sm shrink-0 cursor-pointer"
+                title="Volver al panel"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-2 truncate">
+                    <ShoppingBag className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Todos los Cobros de Hoy</span>
+                  </h2>
+                  <span className="text-[10px] sm:text-xs bg-emerald-500/15 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-500/30 shrink-0">
+                    {stats?.recentSales.length || 0} movimientos
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-400 truncate">
+                  Total: <strong className="text-white font-black">{formatPrice(stats?.kpis.salesTotal || 0)}</strong>
+                  {" • "}Ef: {formatPrice(stats?.kpis.salesCash || 0)} • Dig: {formatPrice(stats?.kpis.salesDigital || 0)}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowAllSalesModal(false)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+              <span className="hidden sm:inline">Cerrar</span>
+            </button>
+          </header>
+
+          {/* Barra de Filtros y Búsqueda */}
+          <div className="bg-[#101218] border-b border-gray-800/80 px-4 py-2.5 sm:px-6 space-y-2">
+            <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between max-w-5xl mx-auto">
+              {/* Buscador */}
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={salesSearchQuery}
+                  onChange={(e) => setSalesSearchQuery(e.target.value)}
+                  placeholder="Buscar por mesa (ej: 12, Barra #40), cajero o valor..."
+                  className="w-full bg-[#181b24] border border-gray-800 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-emerald-500 transition-colors"
+                />
+                {salesSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSalesSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Chips de filtro por método de pago */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                <button
+                  type="button"
+                  onClick={() => setSalesMethodFilter("ALL")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer ${
+                    salesMethodFilter === "ALL"
+                      ? "bg-emerald-500 text-black shadow-sm"
+                      : "bg-gray-800/60 text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Todos ({stats?.recentSales.length || 0})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSalesMethodFilter("CASH")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer ${
+                    salesMethodFilter === "CASH"
+                      ? "bg-emerald-500 text-black shadow-sm"
+                      : "bg-gray-800/60 text-gray-400 hover:text-white"
+                  }`}
+                >
+                  💵 Efectivo ({stats?.recentSales.filter((s) => s.cash > 0).length || 0})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSalesMethodFilter("DIGITAL")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer ${
+                    salesMethodFilter === "DIGITAL"
+                      ? "bg-emerald-500 text-black shadow-sm"
+                      : "bg-gray-800/60 text-gray-400 hover:text-white"
+                  }`}
+                >
+                  📱 Digital ({stats?.recentSales.filter((s) => s.digital > 0).length || 0})
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Listado de Movimientos de Ventas */}
+          <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-2">
+            {filteredSales.length === 0 ? (
+              <div className="text-center py-20 space-y-3">
+                <ShoppingBag className="w-12 h-12 text-gray-600 mx-auto" />
+                <p className="text-sm font-bold text-gray-400">
+                  {stats?.recentSales.length === 0
+                    ? "Sin ventas registradas hoy todavía"
+                    : "No se encontraron cobros con ese filtro"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {stats?.recentSales.length === 0
+                    ? "Los cobros de mesas y barra se sincronizarán aquí automáticamente en tiempo real."
+                    : "Intenta con otro término de búsqueda o cambia el filtro de método."}
+                </p>
+              </div>
+            ) : (
+              <div className="max-w-4xl mx-auto space-y-2">
+                {filteredSales.map((s, index) => (
+                  <div
+                    key={s.id || index}
+                    className="bg-[#14161f] border border-gray-800 hover:border-gray-700 p-3 sm:p-4 rounded-2xl flex items-center justify-between gap-3 shadow-md transition-all"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 font-mono font-black text-xs shrink-0">
+                        {s.tableNumber}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-white text-xs sm:text-sm truncate">
+                            {s.tableNumber.toUpperCase().includes("BARRA")
+                              ? s.tableNumber
+                              : `Mesa #${s.tableNumber}`}
+                          </span>
+                          <span className="text-[10px] text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full shrink-0">
+                            {formatTime(s.closedAt)}
+                          </span>
+                          {s.itemsCount > 0 && (
+                            <span className="text-[10px] text-gray-400 hidden sm:inline">
+                              • {s.itemsCount} productos
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-0.5 flex-wrap">
+                          {s.cash > 0 && (
+                            <span className="text-emerald-400 font-medium">
+                              💵 Ef: {formatPrice(s.cash)}
+                            </span>
+                          )}
+                          {s.digital > 0 && (
+                            <span className="text-purple-400 font-medium">
+                              📱 Dig: {formatPrice(s.digital)}
+                            </span>
+                          )}
+                          <span className="text-gray-400 truncate">
+                            • Por: <strong className="text-gray-300 font-semibold">{s.closedBy}</strong>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-sm sm:text-base font-black text-white block">
+                        {formatPrice(s.total)}
+                      </span>
+                      <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full inline-block mt-0.5 border border-emerald-500/20">
+                        Cobrado
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Footer Fijo */}
+          <footer className="sticky bottom-0 bg-[#12141c]/95 backdrop-blur-md border-t border-gray-800 px-4 py-3 sm:px-6 flex items-center justify-between gap-3 shadow-2xl">
+            <div>
+              <span className="text-[10px] text-gray-400 block uppercase font-bold">Total mostrado</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-base sm:text-lg font-black text-emerald-400">
+                  {formatPrice(totalFilteredSales)}
+                </span>
+                <span className="text-[11px] text-gray-400">
+                  ({filteredSales.length} de {stats?.recentSales.length || 0})
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowAllSalesModal(false)}
+              className="px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer"
+            >
+              Cerrar
+            </button>
+          </footer>
+        </div>
+      )}
+
+      {/* ======================================================================= */}
+      {/* MODAL PANTALLA COMPLETA: TODOS LOS GASTOS Y SALIDAS DE HOY              */}
+      {/* ======================================================================= */}
+      {showAllExpensesModal && (
+        <div className="fixed inset-0 z-50 bg-[#0b0c10] text-white flex flex-col animate-in fade-in overscroll-contain">
+          {/* Header Superior Fijo */}
+          <header className="sticky top-0 z-20 bg-[#12141c]/95 backdrop-blur-md border-b border-gray-800 px-4 py-3 sm:px-6 sm:py-4 shadow-lg flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                type="button"
+                onClick={() => setShowAllExpensesModal(false)}
+                className="w-10 h-10 rounded-2xl bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shadow-sm shrink-0 cursor-pointer"
+                title="Volver al panel"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-2 truncate">
+                    <TrendingDown className="w-4 h-4 text-rose-400 shrink-0" />
+                    <span>Todos los Gastos de Hoy</span>
+                  </h2>
+                  <span className="text-[10px] sm:text-xs bg-rose-500/15 text-rose-300 font-bold px-2 py-0.5 rounded-full border border-rose-500/30 shrink-0">
+                    {stats?.recentExpenses.length || 0} registros
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-400 truncate">
+                  Total: <strong className="text-rose-400 font-black">-{formatPrice(stats?.kpis.expensesTotal || 0)}</strong>
+                  {" • "}Ef: -{formatPrice(stats?.kpis.expensesCash || 0)} • Transf: -{formatPrice(stats?.kpis.expensesDigital || 0)}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowAllExpensesModal(false)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+              <span className="hidden sm:inline">Cerrar</span>
+            </button>
+          </header>
+
+          {/* Barra de Filtros y Búsqueda */}
+          <div className="bg-[#101218] border-b border-gray-800/80 px-4 py-2.5 sm:px-6 space-y-2">
+            <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between max-w-5xl mx-auto">
+              {/* Buscador */}
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={expensesSearchQuery}
+                  onChange={(e) => setExpensesSearchQuery(e.target.value)}
+                  placeholder="Buscar por descripción (ej: pollo, carbón, nómina), responsable o factura..."
+                  className="w-full bg-[#181b24] border border-gray-800 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-rose-500 transition-colors"
+                />
+                {expensesSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setExpensesSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Chips de filtro por categoría */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                <button
+                  type="button"
+                  onClick={() => setExpensesCategoryFilter("ALL")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer ${
+                    expensesCategoryFilter === "ALL"
+                      ? "bg-rose-500 text-white shadow-sm"
+                      : "bg-gray-800/60 text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Todas ({stats?.recentExpenses.length || 0})
+                </button>
+                {Object.entries(EXPENSE_CATEGORIES).map(([catKey, catVal]) => {
+                  const countInCat = (stats?.recentExpenses || []).filter((e) => e.category === catKey).length;
+                  if (countInCat === 0) return null;
+                  return (
+                    <button
+                      key={catKey}
+                      type="button"
+                      onClick={() => setExpensesCategoryFilter(catKey)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 flex items-center gap-1 cursor-pointer ${
+                        expensesCategoryFilter === catKey
+                          ? "bg-rose-500 text-white shadow-sm"
+                          : "bg-gray-800/60 text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      <span>{catVal.icon}</span>
+                      <span>{catVal.label} ({countInCat})</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Listado de Movimientos de Gastos */}
+          <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-2">
+            {filteredExpenses.length === 0 ? (
+              <div className="text-center py-20 space-y-3">
+                <TrendingDown className="w-12 h-12 text-gray-600 mx-auto" />
+                <p className="text-sm font-bold text-gray-400">
+                  {stats?.recentExpenses.length === 0
+                    ? "Sin gastos registrados hoy"
+                    : "No se encontraron egresos con ese filtro"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {stats?.recentExpenses.length === 0
+                    ? "Cada salida o egreso registrado en Caja aparecerá aquí al instante."
+                    : "Intenta con otro término de búsqueda o selecciona otra categoría."}
+                </p>
+              </div>
+            ) : (
+              <div className="max-w-4xl mx-auto space-y-2">
+                {filteredExpenses.map((e, index) => {
+                  const cat = EXPENSE_CATEGORIES[e.category] || { label: e.category, icon: "🏷️" };
+                  return (
+                    <div
+                      key={e.id || index}
+                      className="bg-[#14161f] border border-gray-800 hover:border-gray-700 p-3 sm:p-4 rounded-2xl flex items-center justify-between gap-3 shadow-md transition-all"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 text-lg shrink-0">
+                          {cat.icon}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-white text-xs sm:text-sm truncate">
+                              {e.description}
+                            </span>
+                            <span className="text-[10px] text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full shrink-0">
+                              {formatTime(e.date)}
+                            </span>
+                            <span className="text-[10px] text-amber-400/90 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full hidden sm:inline">
+                              {cat.label}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-0.5 flex-wrap">
+                            <span className={e.paymentMethod === "CASH" ? "text-emerald-400 font-medium" : "text-purple-400 font-medium"}>
+                              {e.paymentMethod === "CASH" ? "💵 Efectivo" : "📱 Transferencia"}
+                            </span>
+                            <span className="text-gray-400 truncate">
+                              • Por: <strong className="text-gray-300 font-semibold">{e.responsible || "Caja"}</strong>
+                            </span>
+                            {e.receiptNumber && (
+                              <span className="text-gray-500 text-[10px] hidden sm:inline">
+                                • Fact/Voucher: #{e.receiptNumber}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <span className="text-sm sm:text-base font-black text-rose-400 block">
+                          -{formatPrice(e.amount)}
+                        </span>
+                        <span className="text-[10px] text-rose-400/90 font-bold bg-rose-500/10 px-2 py-0.5 rounded-full inline-block mt-0.5 border border-rose-500/20">
+                          Egreso
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Footer Fijo */}
+          <footer className="sticky bottom-0 bg-[#12141c]/95 backdrop-blur-md border-t border-gray-800 px-4 py-3 sm:px-6 flex items-center justify-between gap-3 shadow-2xl">
+            <div>
+              <span className="text-[10px] text-gray-400 block uppercase font-bold">Total salidas mostrado</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-base sm:text-lg font-black text-rose-400">
+                  -{formatPrice(totalFilteredExpenses)}
+                </span>
+                <span className="text-[11px] text-gray-400">
+                  ({filteredExpenses.length} de {stats?.recentExpenses.length || 0})
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowAllExpensesModal(false)}
+              className="px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer"
+            >
+              Cerrar
+            </button>
+          </footer>
         </div>
       )}
     </div>

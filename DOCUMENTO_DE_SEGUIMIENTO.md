@@ -2157,6 +2157,29 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
 
+### Hito 93: Reemplazo de Feeds Scroleables por Tarjetas-Botón y Vistas de Pantalla Completa en Panel del Dueño
+- **Fecha:** 25 de Noviembre de 2026
+- **Archivos Modificados:**
+  - [src/app/api/admin/owner/stats/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/owner/stats/route.ts)
+  - [src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx)
+  - [DOCUMENTO_DE_SEGUIMIENTO.md](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/DOCUMENTO_DE_SEGUIMIENTO.md)
+- **Alcance y Cambios Realizados:**
+  1. **Eliminación de Cajas Scroleables en Vista Principal:**
+     - Se removieron los dos contenedores con scroll vertical interno (`max-h-72 overflow-y-auto`) que congestionaban la pantalla y generaban doble desplazamiento en teléfonos móviles.
+  2. **Diseño de Tarjetas Tipo Botón de Alta Jerarquía Visual:**
+     - **Tarjeta Botón de Ventas:** Visualiza el total cobrado hoy, cantidad de cobros efectuados, desglose en efectivo/digital y llamada de acción "Ver Todos".
+     - **Tarjeta Botón de Gastos:** Visualiza el total de egresos en rojo, cantidad de salidas registradas, desglose efectivo/transferencia y llamada de acción "Ver Todos".
+  3. **Vistas de Pantalla Completa para Todos los Movimientos:**
+     - Modales de pantalla completa (`fixed inset-0 z-50 bg-[#0b0c10]`) anclados directamente al viewport global con scroll del cuerpo congelado (`useBodyScrollLock`) y contención `overscroll-contain`.
+     - Buscador en tiempo real por número de mesa, comanda de barra, cajero responsable, descripción de gasto o valor monetario.
+     - Chips de filtro dinámico por método de pago (`Todos`, `Efectivo`, `Digital`) y por categorías operativas de gasto.
+     - Listado completo e ilimitado de todos los movimientos del día con detalle de horas, desgloses y etiquetas.
+     - Barra inferior fija con cómputo en vivo del total filtrado y botón de cierre.
+  4. **Ampliación en Backend:**
+     - En `src/app/api/admin/owner/stats/route.ts`, se eliminó el límite restrictivo `.slice(0, 8)` entregando la totalidad de transacciones del día para la auditoría ejecutiva.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

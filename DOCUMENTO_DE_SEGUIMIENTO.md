@@ -2180,6 +2180,31 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
 
+### Hito 94: Estandarización Universal de Tarjetas-Botón y Vistas de Pantalla Completa en Admin y Superadmin
+- **Fecha:** 25 de Noviembre de 2026
+- **Archivos Modificados:**
+  - [src/app/api/admin/caja/shift/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/shift/route.ts)
+  - [src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)
+  - [src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx)
+  - [DOCUMENTO_DE_SEGUIMIENTO.md](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/DOCUMENTO_DE_SEGUIMIENTO.md)
+- **Alcance y Cambios Realizados:**
+  1. **Caja & Contabilidad del Administrador ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)):**
+     - Se suprimieron los dos paneles con scroll vertical interno (`max-h-60 overflow-y-auto`) correspondientes a "Ventas del Turno" y "Gastos de este Turno", eliminando el doble scroll en pantallas táctiles.
+     - Se implementaron dos tarjetas tipo botón accionables idénticas a las del Superadmin:
+       - **Tarjeta Botón de Ventas del Turno:** Exhibe el total facturado, número de comandas liquidadas, desglose Mesas vs Barra Rápida y acción "Ver Todo".
+       - **Tarjeta Botón de Gastos del Turno:** Exhibe el total de egresos en rojo, número de salidas, desglose Efectivo vs Digital, botón directo `+ Gasto` y acción "Ver Todo".
+     - Creación de dos vistas completas en pantalla completa (`fixed inset-0 z-50 bg-[#0b0c10]`):
+       - Buscador en tiempo real por comanda, mesa o cajero.
+       - Filtros por canal (`Todas`, `Mesas`, `Barra Rápida`) y por categorías de gastos.
+       - Despliegue exhaustivo de cada comanda y comprobante de egreso.
+       - Barra inferior fija con cómputo del subtotal filtrado y botón de cierre.
+  2. **Superadmin / Dueño ([src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx)):**
+     - En la pestaña de Auditoría & Seguridad, se reemplazó la tarjeta scroleable residual (`max-h-96 overflow-y-auto`) por una tarjeta-botón ejecutiva con halo ámbar que resume la cantidad de eventos auditados, el último evento registrado y abre el visor forense completo en pantalla completa (`showAllAuditModal`) con buscador por acción, aprobador y motivo.
+  3. **Backend de Caja ([src/app/api/admin/caja/shift/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/shift/route.ts)):**
+     - Se eliminó el `.slice(0, 15)` en `recentSessions` y `recentExpenses`, garantizando la entrega del 100% de movimientos del turno al frontend.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

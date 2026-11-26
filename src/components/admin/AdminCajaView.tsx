@@ -40,6 +40,9 @@ import {
   MessageCircle,
   Sparkles,
   ArrowDownRight,
+  ChevronLeft,
+  Search,
+  Filter,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice, formatDateTime, formatTime, formatDate } from "@/lib/formatters";
@@ -272,6 +275,15 @@ export function AdminCajaView() {
 
   const [printShift, setPrintShift] = useState<CashShiftData | null>(null);
 
+  // Modales de pantalla completa para movimientos del turno (Ventas y Gastos)
+  const [showAllSalesModal, setShowAllSalesModal] = useState<boolean>(false);
+  const [salesSearchQuery, setSalesSearchQuery] = useState<string>("");
+  const [salesChannelFilter, setSalesChannelFilter] = useState<"ALL" | "MESAS" | "BARRA">("ALL");
+
+  const [showAllExpensesModal, setShowAllExpensesModal] = useState<boolean>(false);
+  const [expensesSearchQuery, setExpensesSearchQuery] = useState<string>("");
+  const [expensesCategoryFilter, setExpensesCategoryFilter] = useState<string>("ALL");
+
   // Bloquear el scroll de fondo del body mientras cualquier modal de caja esté abierto
   const isAnyCajaModalOpen = Boolean(
     showOpenModal ||
@@ -279,9 +291,56 @@ export function AdminCajaView() {
       showExpenseModal ||
       showClearHistoryModal ||
       Boolean(authModalConfig) ||
-      Boolean(printShift)
+      Boolean(printShift) ||
+      showAllSalesModal ||
+      showAllExpensesModal
   );
   useBodyScrollLock(isAnyCajaModalOpen);
+
+  // Filtrado de ventas del turno para modal de pantalla completa
+  const filteredShiftSales = useMemo(() => {
+    const list = liveData?.recentSessions || [];
+    return list.filter((s: any) => {
+      const isBarra = s.tableNumber?.toUpperCase().includes("BARRA");
+      const matchesChannel =
+        salesChannelFilter === "ALL" ||
+        (salesChannelFilter === "MESAS" && !isBarra) ||
+        (salesChannelFilter === "BARRA" && isBarra);
+
+      const matchesSearch =
+        salesSearchQuery.trim() === "" ||
+        s.tableNumber?.toLowerCase().includes(salesSearchQuery.toLowerCase()) ||
+        s.closedBy?.toLowerCase().includes(salesSearchQuery.toLowerCase()) ||
+        String(s.total || "").includes(salesSearchQuery);
+
+      return matchesChannel && matchesSearch;
+    });
+  }, [liveData?.recentSessions, salesChannelFilter, salesSearchQuery]);
+
+  const totalFilteredShiftSales = useMemo(() => {
+    return filteredShiftSales.reduce((acc: number, s: any) => acc + (s.total || 0), 0);
+  }, [filteredShiftSales]);
+
+  // Filtrado de gastos del turno para modal de pantalla completa
+  const filteredShiftExpenses = useMemo(() => {
+    const list = liveData?.recentExpenses || [];
+    return list.filter((e: any) => {
+      const matchesCategory =
+        expensesCategoryFilter === "ALL" || e.category === expensesCategoryFilter;
+
+      const matchesSearch =
+        expensesSearchQuery.trim() === "" ||
+        e.description?.toLowerCase().includes(expensesSearchQuery.toLowerCase()) ||
+        e.responsible?.toLowerCase().includes(expensesSearchQuery.toLowerCase()) ||
+        String(e.amount || "").includes(expensesSearchQuery);
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [liveData?.recentExpenses, expensesCategoryFilter, expensesSearchQuery]);
+
+  const totalFilteredShiftExpenses = useMemo(() => {
+    return filteredShiftExpenses.reduce((acc: number, e: any) => acc + (e.amount || 0), 0);
+  }, [filteredShiftExpenses]);
 
   // Helper para resolver los gastos detallados asociados a un turno de caja
   const getShiftExpenses = useCallback(
@@ -1114,121 +1173,97 @@ export function AdminCajaView() {
                 </div>
               </div>
 
-              {/* Paneles Divididos: Ventas del Turno vs Gastos del Turno */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Listado de Ventas del Turno */}
-                <div className="bg-[#14161f] border border-gray-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
-                  <div className="flex justify-between items-center border-b border-gray-800 pb-2.5">
-                    <div>
-                      <h3 className="text-xs font-black text-white flex items-center gap-1.5">
-                        <ShoppingBag className="w-4 h-4 text-amber-400" />
-                        <span>Ventas del Turno ({liveData?.salesCount || 0})</span>
-                      </h3>
-                      <p className="text-[10px] text-gray-400">
-                        Mesas: {formatPrice(liveData?.salesMesas || 0)} • Barra: {formatPrice(liveData?.salesBarra || 0)}
-                      </p>
+              {/* ======================================================================= */}
+              {/* BOTONES INTERACTIVOS DE MOVIMIENTOS DEL TURNO (PANTALLA COMPLETA)       */}
+              {/* ======================================================================= */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                {/* Tarjeta-Botón 1: Ventas del Turno */}
+                <button
+                  type="button"
+                  onClick={() => setShowAllSalesModal(true)}
+                  className="group relative text-left bg-gradient-to-br from-[#14161f] via-[#161a25] to-[#14161f] hover:to-[#1a2030] border border-gray-800 hover:border-amber-500/50 p-4 sm:p-5 rounded-3xl shadow-xl transition-all duration-200 active:scale-[0.98] flex flex-col justify-between overflow-hidden cursor-pointer"
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-amber-500/10 transition-colors" />
+
+                  <div className="flex items-start justify-between gap-3 relative z-10 w-full">
+                    <div className="w-11 h-11 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform shadow-md">
+                      <ShoppingBag className="w-5 h-5" />
                     </div>
-                    <span className="text-xs font-black text-amber-400">
-                      {formatPrice(liveData?.totalSales || 0)}
+                    <span className="flex items-center gap-1 text-[11px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full group-hover:bg-amber-500/20 transition-colors">
+                      <span>Ver Todo</span>
+                      <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                     </span>
                   </div>
 
-                  <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
-                    {liveData?.recentSessions?.length === 0 ? (
-                      <p className="text-[11px] text-gray-500 py-6 text-center italic">
-                        No hay ventas cerradas todavía en este turno.
-                      </p>
-                    ) : (
-                      liveData?.recentSessions?.map((s: any) => (
-                        <div
-                          key={s.id}
-                          className="bg-[#1a1e27] p-2.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs"
-                        >
-                          <div className="space-y-0.5">
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono font-black text-amber-400 text-[11px]">
-                                {s.tableNumber}
-                              </span>
-                              <span className="text-[10px] text-gray-400">
-                                {formatTime(s.closedAt)}
-                              </span>
-                            </div>
-                            <p className="text-[10px] text-gray-400 line-clamp-1 truncate">
-                              {s.closedBy || "Caja"}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-xs font-black text-white block">
-                              {formatPrice(s.total)}
-                            </span>
-                            <span className="text-[9px] text-gray-500">
-                              {s.items?.length || 0} ítems
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                {/* Listado de Gastos del Turno */}
-                <div className="bg-[#14161f] border border-gray-800 rounded-2xl p-4 space-y-3 flex flex-col justify-between">
-                  <div className="flex justify-between items-center border-b border-gray-800 pb-2.5">
-                    <div>
-                      <h3 className="text-xs font-black text-white flex items-center gap-1.5">
-                        <TrendingDown className="w-4 h-4 text-rose-400" />
-                        <span>Gastos de este Turno ({liveData?.expensesCount || 0})</span>
-                      </h3>
-                      <p className="text-[10px] text-gray-400">
-                        Efectivo: {formatPrice(liveData?.expensesCash || 0)} • Digital: {formatPrice(liveData?.expensesDigital || 0)}
-                      </p>
+                  <div className="mt-4 space-y-1 relative z-10 w-full">
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">
+                      Ventas del Turno
+                    </span>
+                    <div className="text-xl sm:text-2xl font-black text-amber-400 tracking-tight">
+                      {formatPrice(liveData?.totalSales || 0)}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowExpenseModal(true)}
-                      className="px-2.5 py-1 rounded-lg bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 font-bold text-[10px] border border-rose-800/60 flex items-center gap-1"
-                    >
-                      <PlusCircle className="w-3 h-3" />
-                      <span>+ Gasto</span>
-                    </button>
+                    <div className="flex items-center gap-2 text-xs text-gray-400 pt-1.5 border-t border-gray-800/80">
+                      <span className="text-white font-bold">
+                        {liveData?.salesCount || 0} cobros
+                      </span>
+                      <span>•</span>
+                      <span className="truncate text-[11px]">
+                        Mesas: {formatPrice(liveData?.salesMesas || 0)} | Barra: {formatPrice(liveData?.salesBarra || 0)}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Tarjeta-Botón 2: Gastos de este Turno */}
+                <div className="group relative text-left bg-gradient-to-br from-[#14161f] via-[#1d161a] to-[#14161f] hover:to-[#25191f] border border-gray-800 hover:border-rose-500/50 p-4 sm:p-5 rounded-3xl shadow-xl transition-all duration-200 flex flex-col justify-between overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-rose-500/10 transition-colors" />
+
+                  <div className="flex items-start justify-between gap-3 relative z-10 w-full">
+                    <div className="w-11 h-11 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-md">
+                      <TrendingDown className="w-5 h-5" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowExpenseModal(true);
+                        }}
+                        className="px-2.5 py-1 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold text-[10px] border border-rose-500/40 flex items-center gap-1 active:scale-95 transition-all cursor-pointer"
+                      >
+                        <PlusCircle className="w-3.5 h-3.5" />
+                        <span>+ Gasto</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowAllExpensesModal(true)}
+                        className="flex items-center gap-1 text-[11px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 rounded-full hover:bg-rose-500/20 transition-colors active:scale-95 cursor-pointer"
+                      >
+                        <span>Ver Todo</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
-                    {liveData?.recentExpenses?.length === 0 ? (
-                      <p className="text-[11px] text-gray-500 py-6 text-center italic">
-                        No se han registrado salidas de dinero en este turno.
-                      </p>
-                    ) : (
-                      liveData?.recentExpenses?.map((e: any) => {
-                        const cat = EXPENSE_CATEGORIES[e.category] || { label: e.category, icon: "🏷️", color: "text-gray-400" };
-                        return (
-                          <div
-                            key={e.id}
-                            className="bg-[#1a1e27] p-2.5 rounded-xl border border-gray-800 flex justify-between items-center text-xs"
-                          >
-                            <div className="space-y-0.5">
-                              <div className="flex items-center gap-2">
-                                <span className="text-[11px]">{cat.icon}</span>
-                                <span className="font-bold text-gray-200 text-xs">
-                                  {e.description}
-                                </span>
-                              </div>
-                              <p className="text-[10px] text-gray-400">
-                                {cat.label} • {e.paymentMethod === "CASH" ? "💵 Efectivo" : "📱 Digital"} • Por: {e.responsible || "Caja"}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-xs font-black text-rose-400 block">
-                                -{formatPrice(e.amount)}
-                              </span>
-                              <span className="text-[9px] text-gray-500">
-                                {formatTime(e.date)}
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
+                  <div
+                    onClick={() => setShowAllExpensesModal(true)}
+                    className="mt-4 space-y-1 relative z-10 w-full cursor-pointer active:scale-[0.99] transition-transform"
+                  >
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">
+                      Gastos del Turno
+                    </span>
+                    <div className="text-xl sm:text-2xl font-black text-rose-400 tracking-tight">
+                      -{formatPrice(liveData?.totalExpenses || 0)}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-400 pt-1.5 border-t border-gray-800/80">
+                      <span className="text-white font-bold">
+                        {liveData?.expensesCount || 0} salidas
+                      </span>
+                      <span>•</span>
+                      <span className="truncate text-[11px]">
+                        Ef: {formatPrice(liveData?.expensesCash || 0)} | Dig: {formatPrice(liveData?.expensesDigital || 0)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2835,6 +2870,410 @@ export function AdminCajaView() {
           confirmButtonColor={authModalConfig.confirmButtonColor}
           detailsBadge={authModalConfig.detailsBadge}
         />
+      )}
+
+      {/* ======================================================================= */}
+      {/* MODAL PANTALLA COMPLETA: TODAS LAS VENTAS DEL TURNO ACTIVO              */}
+      {/* ======================================================================= */}
+      {showAllSalesModal && (
+        <div className="fixed inset-0 z-50 bg-[#0b0c10] text-white flex flex-col animate-in fade-in overscroll-contain">
+          {/* Header Superior Fijo */}
+          <header className="sticky top-0 z-20 bg-[#12141c]/95 backdrop-blur-md border-b border-gray-800 px-4 py-3 sm:px-6 sm:py-4 shadow-lg flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                type="button"
+                onClick={() => setShowAllSalesModal(false)}
+                className="w-10 h-10 rounded-2xl bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shadow-sm shrink-0 cursor-pointer"
+                title="Volver a Caja"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-2 truncate">
+                    <ShoppingBag className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Todas las Ventas del Turno</span>
+                  </h2>
+                  <span className="text-[10px] sm:text-xs bg-amber-500/15 text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-500/30 shrink-0">
+                    {liveData?.salesCount || 0} ventas
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-400 truncate">
+                  Total turno: <strong className="text-amber-400 font-black">{formatPrice(liveData?.totalSales || 0)}</strong>
+                  {" • "}Mesas: {formatPrice(liveData?.salesMesas || 0)} • Barra: {formatPrice(liveData?.salesBarra || 0)}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowAllSalesModal(false)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+              <span className="hidden sm:inline">Cerrar</span>
+            </button>
+          </header>
+
+          {/* Barra de Filtros y Búsqueda */}
+          <div className="bg-[#101218] border-b border-gray-800/80 px-4 py-2.5 sm:px-6 space-y-2">
+            <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between max-w-5xl mx-auto">
+              {/* Buscador */}
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={salesSearchQuery}
+                  onChange={(e) => setSalesSearchQuery(e.target.value)}
+                  placeholder="Buscar por mesa (ej: 12, Barra #40), cajero o valor..."
+                  className="w-full bg-[#181b24] border border-gray-800 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-amber-500 transition-colors"
+                />
+                {salesSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSalesSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Chips de filtro por canal */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                <button
+                  type="button"
+                  onClick={() => setSalesChannelFilter("ALL")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer ${
+                    salesChannelFilter === "ALL"
+                      ? "bg-amber-500 text-black shadow-sm"
+                      : "bg-gray-800/60 text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Todas ({liveData?.recentSessions?.length || 0})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSalesChannelFilter("MESAS")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer ${
+                    salesChannelFilter === "MESAS"
+                      ? "bg-amber-500 text-black shadow-sm"
+                      : "bg-gray-800/60 text-gray-400 hover:text-white"
+                  }`}
+                >
+                  🍽️ Mesas ({liveData?.recentSessions?.filter((s: any) => !s.tableNumber?.toUpperCase().includes("BARRA")).length || 0})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSalesChannelFilter("BARRA")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer ${
+                    salesChannelFilter === "BARRA"
+                      ? "bg-amber-500 text-black shadow-sm"
+                      : "bg-gray-800/60 text-gray-400 hover:text-white"
+                  }`}
+                >
+                  ⚡ Barra Rápida ({liveData?.recentSessions?.filter((s: any) => s.tableNumber?.toUpperCase().includes("BARRA")).length || 0})
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Listado de Ventas del Turno */}
+          <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-2">
+            {filteredShiftSales.length === 0 ? (
+              <div className="text-center py-20 space-y-3">
+                <ShoppingBag className="w-12 h-12 text-gray-600 mx-auto" />
+                <p className="text-sm font-bold text-gray-400">
+                  {liveData?.recentSessions?.length === 0
+                    ? "No hay ventas registradas todavía en este turno"
+                    : "No se encontraron ventas con los filtros aplicados"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {liveData?.recentSessions?.length === 0
+                    ? "Cada comanda cobrada en mesas o barra aparecerá aquí en tiempo real."
+                    : "Intenta con otro término de búsqueda o selecciona otro canal."}
+                </p>
+              </div>
+            ) : (
+              <div className="max-w-4xl mx-auto space-y-2">
+                {filteredShiftSales.map((s: any, index: number) => (
+                  <div
+                    key={s.id || index}
+                    className="bg-[#14161f] border border-gray-800 hover:border-gray-700 p-3 sm:p-4 rounded-2xl flex items-center justify-between gap-3 shadow-md transition-all"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 font-mono font-black text-xs shrink-0">
+                        {s.tableNumber}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-white text-xs sm:text-sm truncate">
+                            {s.tableNumber?.toUpperCase().includes("BARRA")
+                              ? s.tableNumber
+                              : `Mesa #${s.tableNumber}`}
+                          </span>
+                          <span className="text-[10px] text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full shrink-0">
+                            {formatTime(s.closedAt)}
+                          </span>
+                          {s.items?.length > 0 && (
+                            <span className="text-[10px] text-gray-400 hidden sm:inline">
+                              • {s.items.length} productos
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-gray-400 mt-0.5 truncate">
+                          Cobrado por: <strong className="text-gray-300 font-semibold">{s.closedBy || "Caja"}</strong>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-sm sm:text-base font-black text-amber-400 block">
+                        {formatPrice(s.total)}
+                      </span>
+                      <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full inline-block mt-0.5 border border-emerald-500/20">
+                        Liquidado
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Footer Fijo */}
+          <footer className="sticky bottom-0 bg-[#12141c]/95 backdrop-blur-md border-t border-gray-800 px-4 py-3 sm:px-6 flex items-center justify-between gap-3 shadow-2xl">
+            <div>
+              <span className="text-[10px] text-gray-400 block uppercase font-bold">Total mostrado</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-base sm:text-lg font-black text-amber-400">
+                  {formatPrice(totalFilteredShiftSales)}
+                </span>
+                <span className="text-[11px] text-gray-400">
+                  ({filteredShiftSales.length} de {liveData?.recentSessions?.length || 0})
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowAllSalesModal(false)}
+              className="px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer"
+            >
+              Cerrar
+            </button>
+          </footer>
+        </div>
+      )}
+
+      {/* ======================================================================= */}
+      {/* MODAL PANTALLA COMPLETA: TODOS LOS GASTOS DEL TURNO ACTIVO              */}
+      {/* ======================================================================= */}
+      {showAllExpensesModal && (
+        <div className="fixed inset-0 z-50 bg-[#0b0c10] text-white flex flex-col animate-in fade-in overscroll-contain">
+          {/* Header Superior Fijo */}
+          <header className="sticky top-0 z-20 bg-[#12141c]/95 backdrop-blur-md border-b border-gray-800 px-4 py-3 sm:px-6 sm:py-4 shadow-lg flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                type="button"
+                onClick={() => setShowAllExpensesModal(false)}
+                className="w-10 h-10 rounded-2xl bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shadow-sm shrink-0 cursor-pointer"
+                title="Volver a Caja"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-2 truncate">
+                    <TrendingDown className="w-4 h-4 text-rose-400 shrink-0" />
+                    <span>Todos los Gastos del Turno</span>
+                  </h2>
+                  <span className="text-[10px] sm:text-xs bg-rose-500/15 text-rose-300 font-bold px-2 py-0.5 rounded-full border border-rose-500/30 shrink-0">
+                    {liveData?.expensesCount || 0} salidas
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-400 truncate">
+                  Total egresos: <strong className="text-rose-400 font-black">-{formatPrice(liveData?.totalExpenses || 0)}</strong>
+                  {" • "}Ef: -{formatPrice(liveData?.expensesCash || 0)} • Dig: -{formatPrice(liveData?.expensesDigital || 0)}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowExpenseModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white text-xs font-black shadow-md active:scale-95 transition-all cursor-pointer"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>+ Registrar Gasto</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAllExpensesModal(false)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-bold transition-all active:scale-95 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+                <span className="hidden sm:inline">Cerrar</span>
+              </button>
+            </div>
+          </header>
+
+          {/* Barra de Filtros y Búsqueda */}
+          <div className="bg-[#101218] border-b border-gray-800/80 px-4 py-2.5 sm:px-6 space-y-2">
+            <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between max-w-5xl mx-auto">
+              {/* Buscador */}
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={expensesSearchQuery}
+                  onChange={(e) => setExpensesSearchQuery(e.target.value)}
+                  placeholder="Buscar por descripción (ej: pollo, carbón, empaques), responsable o factura..."
+                  className="w-full bg-[#181b24] border border-gray-800 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-rose-500 transition-colors"
+                />
+                {expensesSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setExpensesSearchQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Chips de filtro por categoría */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                <button
+                  type="button"
+                  onClick={() => setExpensesCategoryFilter("ALL")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer ${
+                    expensesCategoryFilter === "ALL"
+                      ? "bg-rose-500 text-white shadow-sm"
+                      : "bg-gray-800/60 text-gray-400 hover:text-white"
+                  }`}
+                >
+                  Todas ({liveData?.recentExpenses?.length || 0})
+                </button>
+                {Object.entries(EXPENSE_CATEGORIES).map(([catKey, catVal]) => {
+                  const countInCat = (liveData?.recentExpenses || []).filter((e: any) => e.category === catKey).length;
+                  if (countInCat === 0) return null;
+                  return (
+                    <button
+                      key={catKey}
+                      type="button"
+                      onClick={() => setExpensesCategoryFilter(catKey)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 active:scale-95 flex items-center gap-1 cursor-pointer ${
+                        expensesCategoryFilter === catKey
+                          ? "bg-rose-500 text-white shadow-sm"
+                          : "bg-gray-800/60 text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      <span>{catVal.icon}</span>
+                      <span>{catVal.label} ({countInCat})</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Listado de Gastos del Turno */}
+          <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-2">
+            {filteredShiftExpenses.length === 0 ? (
+              <div className="text-center py-20 space-y-3">
+                <TrendingDown className="w-12 h-12 text-gray-600 mx-auto" />
+                <p className="text-sm font-bold text-gray-400">
+                  {liveData?.recentExpenses?.length === 0
+                    ? "No se han registrado salidas de dinero en este turno"
+                    : "No se encontraron gastos con los filtros aplicados"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {liveData?.recentExpenses?.length === 0
+                    ? "Usa el botón '+ Registrar Gasto' para asentar cualquier compra o salida."
+                    : "Intenta con otro término de búsqueda o selecciona otra categoría."}
+                </p>
+              </div>
+            ) : (
+              <div className="max-w-4xl mx-auto space-y-2">
+                {filteredShiftExpenses.map((e: any, index: number) => {
+                  const cat = EXPENSE_CATEGORIES[e.category] || { label: e.category, icon: "🏷️", color: "text-gray-400" };
+                  return (
+                    <div
+                      key={e.id || index}
+                      className="bg-[#14161f] border border-gray-800 hover:border-gray-700 p-3 sm:p-4 rounded-2xl flex items-center justify-between gap-3 shadow-md transition-all"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 text-lg shrink-0">
+                          {cat.icon}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-white text-xs sm:text-sm truncate">
+                              {e.description}
+                            </span>
+                            <span className="text-[10px] text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full shrink-0">
+                              {formatTime(e.date)}
+                            </span>
+                            <span className="text-[10px] text-amber-400/90 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-full hidden sm:inline">
+                              {cat.label}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-0.5 flex-wrap">
+                            <span className={e.paymentMethod === "CASH" ? "text-emerald-400 font-medium" : "text-purple-400 font-medium"}>
+                              {e.paymentMethod === "CASH" ? "💵 Efectivo" : "📱 Digital / Transf"}
+                            </span>
+                            <span className="text-gray-400 truncate">
+                              • Por: <strong className="text-gray-300 font-semibold">{e.responsible || "Caja"}</strong>
+                            </span>
+                            {e.receiptNumber && (
+                              <span className="text-gray-500 text-[10px] hidden sm:inline">
+                                • Fact/Voucher: #{e.receiptNumber}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <span className="text-sm sm:text-base font-black text-rose-400 block">
+                          -{formatPrice(e.amount)}
+                        </span>
+                        <span className="text-[10px] text-rose-400/90 font-bold bg-rose-500/10 px-2 py-0.5 rounded-full inline-block mt-0.5 border border-rose-500/20">
+                          Egreso
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Footer Fijo */}
+          <footer className="sticky bottom-0 bg-[#12141c]/95 backdrop-blur-md border-t border-gray-800 px-4 py-3 sm:px-6 flex items-center justify-between gap-3 shadow-2xl">
+            <div>
+              <span className="text-[10px] text-gray-400 block uppercase font-bold">Total salidas mostrado</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-base sm:text-lg font-black text-rose-400">
+                  -{formatPrice(totalFilteredShiftExpenses)}
+                </span>
+                <span className="text-[11px] text-gray-400">
+                  ({filteredShiftExpenses.length} de {liveData?.recentExpenses?.length || 0})
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowAllExpensesModal(false)}
+              className="px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer"
+            >
+              Cerrar
+            </button>
+          </footer>
+        </div>
       )}
     </div>
   );

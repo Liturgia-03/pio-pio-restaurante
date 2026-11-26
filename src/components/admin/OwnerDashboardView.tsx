@@ -150,13 +150,17 @@ export function OwnerDashboardView() {
   const [expensesSearchQuery, setExpensesSearchQuery] = useState("");
   const [expensesCategoryFilter, setExpensesCategoryFilter] = useState<string>("ALL");
 
+  const [showAllAuditModal, setShowAllAuditModal] = useState(false);
+  const [auditSearchQuery, setAuditSearchQuery] = useState("");
+
   const isAnyModalOpen = Boolean(
     showCreateUserModal ||
     showChangePassModal ||
     showCreateWaiterModal ||
     showEditPinModal ||
     showAllSalesModal ||
-    showAllExpensesModal
+    showAllExpensesModal ||
+    showAllAuditModal
   );
   useBodyScrollLock(isAnyModalOpen);
 
@@ -411,6 +415,18 @@ export function OwnerDashboardView() {
   });
 
   const totalFilteredExpenses = filteredExpenses.reduce((acc, e) => acc + e.amount, 0);
+
+  // Filtrado de auditoría para el modal de pantalla completa
+  const filteredAuditLogs = (auditLogs || []).filter((log) => {
+    if (!auditSearchQuery.trim()) return true;
+    const q = auditSearchQuery.toLowerCase();
+    return (
+      log.action?.toLowerCase().includes(q) ||
+      log.description?.toLowerCase().includes(q) ||
+      log.approvedBy?.toLowerCase().includes(q) ||
+      log.reason?.toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-4 pb-12">
@@ -986,54 +1002,55 @@ export function OwnerDashboardView() {
       {/* PESTAÑA 3: BITÁCORA FORENSE DE AUDITORÍA & SEGURIDAD                    */}
       {/* ======================================================================= */}
       {activeTab === "audit" && (
-        <div className="bg-[#14161f] border border-gray-800 rounded-3xl p-4 sm:p-5 space-y-3 animate-in fade-in">
-          <div className="flex justify-between items-center border-b border-gray-800 pb-3">
-            <div>
-              <h3 className="text-xs font-black text-white flex items-center gap-2 uppercase tracking-wider">
-                <ShieldAlert className="w-4 h-4 text-amber-400" />
-                <span>BITÁCORA FORENSE DE SEGURIDAD & EVENTOS CRÍTICOS</span>
-              </h3>
-              <p className="text-[10px] text-gray-400">
-                Registro inmutable de acciones autorizadas, reaperturas de turnos y purgas.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={fetchAudit}
-              className="p-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-            </button>
-          </div>
+        <div className="space-y-4 animate-in fade-in">
+          <button
+            type="button"
+            onClick={() => setShowAllAuditModal(true)}
+            className="w-full group relative text-left bg-gradient-to-br from-[#14161f] via-[#1a1714] to-[#14161f] hover:to-[#221c17] border border-gray-800 hover:border-amber-500/50 p-5 rounded-3xl shadow-xl transition-all duration-200 active:scale-[0.99] flex flex-col justify-between overflow-hidden cursor-pointer"
+          >
+            <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/5 rounded-full blur-2xl pointer-events-none group-hover:bg-amber-500/10 transition-colors" />
 
-          <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-            {auditLogs.length === 0 ? (
-              <p className="text-xs text-gray-500 py-8 text-center italic">
-                No hay registros de auditoría recientes.
-              </p>
-            ) : (
-              auditLogs.map((log) => (
-                <div
-                  key={log.id}
-                  className="bg-[#181b24] p-3 rounded-2xl border border-gray-800 text-xs space-y-1"
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-amber-300 text-xs">
-                      {log.action}
-                    </span>
-                    <span className="text-[10px] text-gray-400">
-                      {formatDateTime(log.createdAt)}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-gray-300">{log.description}</p>
-                  <div className="text-[10px] text-gray-500 flex justify-between pt-0.5 border-t border-gray-800/60">
-                    <span>Aprobado por: <strong className="text-gray-300">{log.approvedBy}</strong></span>
-                    {log.reason && <span>Motivo: &quot;{log.reason}&quot;</span>}
-                  </div>
+            <div className="flex items-start justify-between gap-3 relative z-10 w-full">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform shadow-md">
+                  <ShieldAlert className="w-6 h-6" />
                 </div>
-              ))
-            )}
-          </div>
+                <div>
+                  <h3 className="text-sm font-black text-white">
+                    Bitácora Forense de Seguridad & Eventos
+                  </h3>
+                  <p className="text-xs text-gray-400">
+                    Registro inmutable de acciones autorizadas con PIN de Administrador
+                  </p>
+                </div>
+              </div>
+
+              <span className="flex items-center gap-1 text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full group-hover:bg-amber-500/20 transition-colors shrink-0">
+                <span>Ver Bitácora Completa</span>
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              </span>
+            </div>
+
+            <div className="mt-5 space-y-1 relative z-10 w-full">
+              <div className="flex items-baseline gap-2">
+                <span className="text-2xl font-black text-white">
+                  {auditLogs.length}
+                </span>
+                <span className="text-xs text-gray-400 font-bold uppercase">
+                  Eventos Auditados
+                </span>
+              </div>
+
+              <div className="text-xs text-gray-400 pt-2 border-t border-gray-800/80 flex items-center justify-between">
+                <span className="truncate">
+                  {auditLogs.length > 0
+                    ? `Último: ${auditLogs[0].action} • ${formatDateTime(auditLogs[0].createdAt)}`
+                    : "Sin eventos críticos registrados"}
+                </span>
+                <span className="text-amber-400 font-bold shrink-0 ml-2">Toca para inspeccionar</span>
+              </div>
+            </div>
+          </button>
         </div>
       )}
 
@@ -1706,6 +1723,147 @@ export function OwnerDashboardView() {
             <button
               type="button"
               onClick={() => setShowAllExpensesModal(false)}
+              className="px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer"
+            >
+              Cerrar
+            </button>
+          </footer>
+        </div>
+      )}
+
+      {/* ======================================================================= */}
+      {/* MODAL PANTALLA COMPLETA: BITÁCORA FORENSE DE SEGURIDAD & AUDITORÍA      */}
+      {/* ======================================================================= */}
+      {showAllAuditModal && (
+        <div className="fixed inset-0 z-50 bg-[#0b0c10] text-white flex flex-col animate-in fade-in overscroll-contain">
+          {/* Header Superior Fijo */}
+          <header className="sticky top-0 z-20 bg-[#12141c]/95 backdrop-blur-md border-b border-gray-800 px-4 py-3 sm:px-6 sm:py-4 shadow-lg flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <button
+                type="button"
+                onClick={() => setShowAllAuditModal(false)}
+                className="w-10 h-10 rounded-2xl bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white flex items-center justify-center transition-all active:scale-95 shadow-sm shrink-0 cursor-pointer"
+                title="Volver al panel"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-2 truncate">
+                    <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Bitácora Forense de Seguridad & Eventos</span>
+                  </h2>
+                  <span className="text-[10px] sm:text-xs bg-amber-500/15 text-amber-300 font-bold px-2 py-0.5 rounded-full border border-amber-500/30 shrink-0">
+                    {auditLogs.length} eventos
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-400 truncate">
+                  Registro inmutable de acciones autorizadas con PIN maestro o contraseña de Administrador
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={fetchAudit}
+                className="p-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white transition-all active:scale-95 cursor-pointer"
+                title="Refrescar bitácora"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAllAuditModal(false)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-bold transition-all shrink-0 active:scale-95 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+                <span className="hidden sm:inline">Cerrar</span>
+              </button>
+            </div>
+          </header>
+
+          {/* Buscador */}
+          <div className="bg-[#101218] border-b border-gray-800/80 px-4 py-2.5 sm:px-6">
+            <div className="relative max-w-5xl mx-auto">
+              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={auditSearchQuery}
+                onChange={(e) => setAuditSearchQuery(e.target.value)}
+                placeholder="Buscar por acción, usuario que aprobó, descripción o motivo..."
+                className="w-full bg-[#181b24] border border-gray-800 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-gray-500 outline-none focus:border-amber-500 transition-colors"
+              />
+              {auditSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setAuditSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Lista de Registros Forenses */}
+          <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-2">
+            {filteredAuditLogs.length === 0 ? (
+              <div className="text-center py-20 space-y-3">
+                <ShieldCheck className="w-12 h-12 text-gray-600 mx-auto" />
+                <p className="text-sm font-bold text-gray-400">
+                  {auditLogs.length === 0
+                    ? "Sin registros de auditoría en la bitácora"
+                    : "No se encontraron eventos con los filtros aplicados"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Cada acción administrativa sensible quedará asentada aquí permanentemente.
+                </p>
+              </div>
+            ) : (
+              <div className="max-w-4xl mx-auto space-y-2.5">
+                {filteredAuditLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className="bg-[#14161f] border border-gray-800 hover:border-gray-700 p-3.5 sm:p-4 rounded-2xl space-y-1.5 shadow-md transition-all"
+                  >
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="font-mono font-black text-amber-300 text-xs sm:text-sm">
+                        {log.action}
+                      </span>
+                      <span className="text-[10px] sm:text-xs text-gray-400 bg-gray-800 px-2.5 py-0.5 rounded-full shrink-0">
+                        {formatDateTime(log.createdAt)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-200">{log.description}</p>
+                    <div className="text-[11px] text-gray-400 flex flex-wrap justify-between items-center pt-1.5 border-t border-gray-800/60 gap-2">
+                      <span>
+                        Aprobado por: <strong className="text-white font-semibold">{log.approvedBy}</strong>
+                      </span>
+                      {log.reason && (
+                        <span className="text-amber-400/90 italic">
+                          Motivo: &quot;{log.reason}&quot;
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Footer Fijo */}
+          <footer className="sticky bottom-0 bg-[#12141c]/95 backdrop-blur-md border-t border-gray-800 px-4 py-3 sm:px-6 flex items-center justify-between gap-3 shadow-2xl">
+            <div>
+              <span className="text-[10px] text-gray-400 block uppercase font-bold">Total eventos mostrados</span>
+              <span className="text-base sm:text-lg font-black text-amber-400">
+                {filteredAuditLogs.length} de {auditLogs.length}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowAllAuditModal(false)}
               className="px-5 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-bold text-xs transition-all active:scale-95 cursor-pointer"
             >
               Cerrar

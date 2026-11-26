@@ -2126,6 +2126,37 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas.
 
+### Hito 92: Erradicación Integral del Desplazamiento y Stacking Context de Modales en Todos los Roles
+- **Fecha:** 25 de Noviembre de 2026
+- **Archivos Agregados / Modificados:**
+  - [src/app/globals.css](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/globals.css)
+  - [src/lib/use-body-scroll-lock.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/lib/use-body-scroll-lock.ts)
+  - [src/components/admin/AdminAuthModal.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminAuthModal.tsx)
+  - [src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx)
+  - [src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)
+  - [src/components/admin/AdminBarraView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraView.tsx)
+  - [src/components/admin/AdminMobileDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminMobileDrawer.tsx)
+  - [src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx)
+  - [src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx)
+  - [DOCUMENTO_DE_SEGUIMIENTO.md](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/DOCUMENTO_DE_SEGUIMIENTO.md)
+- **Alcance y Cambios Realizados:**
+  1. **Solución a la Causa Raíz de CSS (W3C Stacking Context):**
+     - En `src/app/globals.css`, la animación `@keyframes fadeInUpSoft` finalizaba en `transform: translateY(0)` con `animation-fill-mode: both`. Según el estándar oficial W3C, cualquier valor de transformación distinto de `none` convierte a `<main>` en un *containing block* aislado, provocando que los modales con `position: fixed` queden atrapados dentro del contenedor en vez de anclarse a la ventana del dispositivo y se desplacen verticalmente dejando franjas vacías al hacer scroll. Se modificó el 100% de la regla a `transform: none`, liberando el viewport global para todos los modales de la interfaz.
+  2. **Hook Universal Reutilizable `useBodyScrollLock`:**
+     - Se creó [src/lib/use-body-scroll-lock.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/lib/use-body-scroll-lock.ts) para congelar el scroll del fondo (`document.body.style.overflow = "hidden"`) mientras cualquier modal esté activo, asegurando limpieza automática en el desmontaje y compatibilidad total con navegadores móviles iOS y Android.
+  3. **Blindaje en Rol Super Admin (Dueño):**
+     - En [src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx), se aplicó `useBodyScrollLock` en los 4 modales de gestión de personal (Crear cajero/admin, Cambiar contraseña, Crear mesero, Cambiar PIN) junto con `max-h-[90dvh] overflow-y-auto overscroll-contain my-auto` para centrado perfecto sin scroll residual de fondo.
+  4. **Blindaje en Rol Administrador / Cajero:**
+     - En [src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx): Apertura de turno, Cierre de caja, Registro de gasto, Histórico de turnos, Confirmación de purga y Autorización PIN.
+     - En [src/components/admin/AdminBarraView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminBarraView.tsx): Entrega de pedido de barra y Configuración de barra rápida.
+     - En [src/app/admin/tables/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/admin/tables/page.tsx): Comanda abierta de mesa, Adición rápida de productos y Confirmaciones con PIN.
+     - En [src/components/admin/AdminAuthModal.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminAuthModal.tsx): Modal global de validación de PIN maestro.
+     - En [src/components/admin/AdminMobileDrawer.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminMobileDrawer.tsx): Menú de navegación móvil lateral con `overflow-y-auto overscroll-contain`.
+  5. **Blindaje en Rol Mesero (App Salón):**
+     - En [src/app/waiter/page.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/waiter/page.tsx): Modal de detalle de mesa ocupada, Catálogo gourmet de toma de comanda y Diálogo de traslado de mesa con `useBodyScrollLock` y `overscroll-contain`.
+- **Certificación Técnica:**
+  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
+
 ---
 
 ## 📁 5. Estructura de Archivos Clave del Proyecto

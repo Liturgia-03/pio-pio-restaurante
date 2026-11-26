@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 import {
   ShieldAlert,
   Lock,
@@ -50,6 +51,8 @@ export function AdminAuthModal({
   const [reason, setReason] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useBodyScrollLock(isOpen);
 
   if (!isOpen) return null;
 
@@ -118,8 +121,8 @@ export function AdminAuthModal({
   }[confirmButtonColor];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-[#12141a] border border-gray-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 overscroll-contain">
+      <div className="w-full max-w-md bg-[#12141a] border border-gray-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[92vh] overscroll-contain">
         {/* Encabezado */}
         <div className="p-4 sm:p-5 border-b border-gray-800 flex items-start justify-between gap-3 bg-[#161a22]">
           <div className="flex items-center gap-3">

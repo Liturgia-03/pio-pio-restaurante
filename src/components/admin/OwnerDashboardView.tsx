@@ -31,6 +31,7 @@ import {
 import { toast } from "sonner";
 import { formatPrice, formatDateTime, formatTime, formatDate } from "@/lib/formatters";
 import { EXPENSE_CATEGORIES } from "@/lib/caja-helpers";
+import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 
 interface OwnerStatsData {
   timestamp: string;
@@ -134,6 +135,11 @@ export function OwnerDashboardView() {
 
   const [showEditPinModal, setShowEditPinModal] = useState(false);
   const [newPinVal, setNewPinVal] = useState("");
+
+  const isAnyModalOpen = Boolean(
+    showCreateUserModal || showChangePassModal || showCreateWaiterModal || showEditPinModal
+  );
+  useBodyScrollLock(isAnyModalOpen);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -996,8 +1002,8 @@ export function OwnerDashboardView() {
       {/* MODAL 1: CREAR USUARIO CAJERO                                          */}
       {/* ======================================================================= */}
       {showCreateUserModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#161922] border border-gray-800 rounded-3xl p-5 space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain animate-in fade-in">
+          <div className="w-full max-w-sm bg-[#161922] border border-gray-800 rounded-3xl p-5 space-y-4 max-h-[90dvh] overflow-y-auto overscroll-contain my-auto shadow-2xl">
             <div className="flex justify-between items-center border-b border-gray-800 pb-2.5">
               <h3 className="text-sm font-black text-white">Crear Usuario del Sistema</h3>
               <button
@@ -1090,8 +1096,8 @@ export function OwnerDashboardView() {
       {/* MODAL 2: CAMBIAR CONTRASEÑA DE USUARIO                                 */}
       {/* ======================================================================= */}
       {showChangePassModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#161922] border border-gray-800 rounded-3xl p-5 space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain animate-in fade-in">
+          <div className="w-full max-w-sm bg-[#161922] border border-gray-800 rounded-3xl p-5 space-y-4 max-h-[90dvh] overflow-y-auto overscroll-contain my-auto shadow-2xl">
             <div className="flex justify-between items-center border-b border-gray-800 pb-2.5">
               <h3 className="text-sm font-black text-white">
                 Cambiar Contraseña: {showChangePassModal.email}
@@ -1145,8 +1151,8 @@ export function OwnerDashboardView() {
       {/* MODAL 3: CREAR MESERO                                                  */}
       {/* ======================================================================= */}
       {showCreateWaiterModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#161922] border border-gray-800 rounded-3xl p-5 space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain animate-in fade-in">
+          <div className="w-full max-w-sm bg-[#161922] border border-gray-800 rounded-3xl p-5 space-y-4 max-h-[90dvh] overflow-y-auto overscroll-contain my-auto shadow-2xl">
             <div className="flex justify-between items-center border-b border-gray-800 pb-2.5">
               <h3 className="text-sm font-black text-white">Registrar Nuevo Mesero</h3>
               <button
@@ -1213,8 +1219,8 @@ export function OwnerDashboardView() {
       {/* MODAL 4: CAMBIAR PIN MAESTRO DE AUDITORÍA                              */}
       {/* ======================================================================= */}
       {showEditPinModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-[#161922] border border-gray-800 rounded-3xl p-5 space-y-4">
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain animate-in fade-in">
+          <div className="w-full max-w-sm bg-[#161922] border border-gray-800 rounded-3xl p-5 space-y-4 max-h-[90dvh] overflow-y-auto overscroll-contain my-auto shadow-2xl">
             <div className="flex justify-between items-center border-b border-gray-800 pb-2.5">
               <h3 className="text-sm font-black text-white">Cambiar PIN de Auditoría</h3>
               <button

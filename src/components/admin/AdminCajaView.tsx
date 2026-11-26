@@ -46,6 +46,7 @@ import { formatPrice, formatDateTime, formatTime, formatDate } from "@/lib/forma
 import { EXPENSE_CATEGORIES } from "@/lib/caja-helpers";
 import { AdminAuthModal } from "@/components/admin/AdminAuthModal";
 import { downloadTicketImage, shareTicketImage } from "@/lib/ticket-image-generator";
+import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 
 interface CashShiftData {
   id: string;
@@ -271,16 +272,16 @@ export function AdminCajaView() {
 
   const [printShift, setPrintShift] = useState<CashShiftData | null>(null);
 
-  // Bloquear el scroll de fondo del body mientras el comprobante esté abierto
-  useEffect(() => {
-    if (printShift) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = originalOverflow || "unset";
-      };
-    }
-  }, [printShift]);
+  // Bloquear el scroll de fondo del body mientras cualquier modal de caja esté abierto
+  const isAnyCajaModalOpen = Boolean(
+    showOpenModal ||
+      showCloseModal ||
+      showExpenseModal ||
+      showClearHistoryModal ||
+      Boolean(authModalConfig) ||
+      Boolean(printShift)
+  );
+  useBodyScrollLock(isAnyCajaModalOpen);
 
   // Helper para resolver los gastos detallados asociados a un turno de caja
   const getShiftExpenses = useCallback(
@@ -1893,11 +1894,11 @@ export function AdminCajaView() {
       {/* ======================================================================= */}
       {showOpenModal && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain animate-in fade-in"
           onClick={() => setShowOpenModal(false)}
         >
           <div
-            className="w-full max-w-md bg-[#14161f] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4"
+            className="w-full max-w-md bg-[#14161f] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto overscroll-contain my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-gray-800 pb-3">
@@ -2034,11 +2035,11 @@ export function AdminCajaView() {
       {/* ======================================================================= */}
       {showCloseModal && activeShift && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain animate-in fade-in"
           onClick={() => setShowCloseModal(false)}
         >
           <div
-            className="w-full max-w-lg bg-[#14161f] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-lg bg-[#14161f] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto overscroll-contain my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-gray-800 pb-3">
@@ -2270,11 +2271,11 @@ export function AdminCajaView() {
       {/* ======================================================================= */}
       {showExpenseModal && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain animate-in fade-in"
           onClick={() => setShowExpenseModal(false)}
         >
           <div
-            className="w-full max-w-md bg-[#14161f] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4"
+            className="w-full max-w-md bg-[#14161f] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto overscroll-contain my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-gray-800 pb-3">
@@ -2729,11 +2730,11 @@ export function AdminCajaView() {
       {/* MODAL 5: CONFIRMACIÓN PREVIA PARA LIMPIEZA DE HISTORIAL */}
       {showClearHistoryModal && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overscroll-contain animate-in fade-in"
           onClick={() => setShowClearHistoryModal(false)}
         >
           <div
-            className="w-full max-w-md bg-[#14161f] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4"
+            className="w-full max-w-md bg-[#14161f] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto overscroll-contain my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-gray-800 pb-3">

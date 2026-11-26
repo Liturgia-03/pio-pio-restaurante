@@ -36,6 +36,7 @@ import { toast } from "sonner";
 import { formatTime } from "@/lib/formatters";
 import { TableCardData, TableSessionData, WaiterItem } from "@/types";
 import { AdminAuthModal } from "@/components/admin/AdminAuthModal";
+import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 
 interface MenuItem {
   id: string;
@@ -190,6 +191,20 @@ export default function AdminTablesCashierPage() {
 
   // Estado para el menú desplegable de acciones por cuenta
   const [activeActionsMenuSessionId, setActiveActionsMenuSessionId] = useState<string | null>(null);
+
+  // Bloquear el scroll de fondo cuando cualquier modal de mesas esté abierto
+  const isAnyTableModalOpen = Boolean(
+    selectedTable ||
+      showAddProductModal ||
+      showAssignWaiterModal ||
+      showNewWaiterModal ||
+      editingWaiter ||
+      showNewTableModal ||
+      editingTable ||
+      editingPaymentSession ||
+      Boolean(authModalConfig)
+  );
+  useBodyScrollLock(isAnyTableModalOpen);
 
   // Handlers de autorización administrativa
   const handleRequestReactivateSession = (session: TableSessionData) => {
@@ -1231,13 +1246,13 @@ export default function AdminTablesCashierPage() {
       {/* ========================================================================= */}
       {selectedTable && !showAddProductModal && !itemToCancel && !showTransferModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 overscroll-contain animate-in fade-in"
           onClick={() => setSelectedTable(null)}
         >
           <div
             className={`w-full ${
               selectedTable.session ? "max-w-5xl" : "max-w-xl"
-            } max-h-[92vh] overflow-y-auto bg-[#111319] border border-gray-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4`}
+            } max-h-[90dvh] sm:max-h-[92vh] overflow-y-auto overscroll-contain my-auto bg-[#111319] border border-gray-800 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* CASO 1: MESA LIBRE (SIN COMANDA) */}

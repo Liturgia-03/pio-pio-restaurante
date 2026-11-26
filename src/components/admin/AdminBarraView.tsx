@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatPrice, formatTime } from "@/lib/formatters";
+import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 
 interface MenuItem {
   id: string;
@@ -153,6 +154,9 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
   const [deliverBills, setDeliverBills] = useState<number[]>([]);
   const [deliverMixedCash, setDeliverMixedCash] = useState<number>(0);
   const [deliverMixedTransfer, setDeliverMixedTransfer] = useState<number>(0);
+
+  // Bloquear el scroll de fondo mientras haya un modal abierto en Barra
+  useBodyScrollLock(Boolean(deliveringOrder || showConfigModal));
 
   // Total de la canasta
   const cartTotal = useMemo(() => {
@@ -1410,11 +1414,11 @@ export function AdminBarraView({ isDrawer = false, onClose }: AdminBarraViewProp
       {/* ========================================================================= */}
       {deliveringOrder && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overscroll-contain animate-in fade-in"
           onClick={() => setDeliveringOrder(null)}
         >
           <div
-            className="w-full max-w-md bg-[#14161a] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-md bg-[#14161a] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto overscroll-contain my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-gray-800 pb-3">

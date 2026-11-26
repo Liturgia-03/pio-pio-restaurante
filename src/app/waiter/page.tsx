@@ -40,6 +40,7 @@ import { IconRenderer } from "@/components/common/IconRenderer";
 import { toast } from "sonner";
 import { formatTime } from "@/lib/formatters";
 import { TableCardData, TableStatus } from "@/types";
+import { useBodyScrollLock } from "@/lib/use-body-scroll-lock";
 
 interface WaiterUser {
   id: string;
@@ -127,6 +128,9 @@ export default function WaiterApp() {
   // Estados para transferencia de mesa
   const [showTransferModal, setShowTransferModal] = useState<boolean>(false);
   const [targetTableNumber, setTargetTableNumber] = useState<string>("");
+
+  // Bloqueo universal de scroll de fondo cuando cualquier modal de mesero está abierto
+  useBodyScrollLock(Boolean(showTableDetailModal || showAddDishModal || showTransferModal));
 
   // Estado de montaje en cliente (elimina hydration mismatch por extensiones del navegador)
   const [isMounted, setIsMounted] = useState<boolean>(false);
@@ -1758,11 +1762,11 @@ export default function WaiterApp() {
       {/* ========================================================================= */}
       {showTableDetailModal && selectedTable && (
         <div
-          className="fixed inset-x-0 top-0 bottom-16 z-40 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in"
+          className="fixed inset-x-0 top-0 bottom-16 z-40 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in overscroll-none"
           onClick={() => setShowTableDetailModal(false)}
         >
           <div
-            className="w-full max-w-lg max-h-[85vh] overflow-y-auto bg-[#14161a] border border-gray-800 rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 space-y-4"
+            className="w-full max-w-lg max-h-[85vh] overflow-y-auto overscroll-contain bg-[#14161a] border border-gray-800 rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 space-y-4"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header del Modal */}
@@ -2029,7 +2033,7 @@ export default function WaiterApp() {
       {/* PANTALLA GOURMET DE TOMA DE PEDIDOS (RESPETA BOTTOM-16 PARA DEJAR LA BARRA VISIBLE) */}
       {/* ========================================================================= */}
       {showAddDishModal && (
-        <div className="fixed inset-x-0 top-0 bottom-16 z-40 bg-[#0b0c0e] text-white flex flex-col animate-in fade-in">
+        <div className="fixed inset-x-0 top-0 bottom-16 z-40 bg-[#0b0c0e] text-white flex flex-col animate-in fade-in overscroll-contain">
           {/* Header Superior del Catálogo */}
           <header className="sticky top-0 z-20 bg-[#14161a] border-b border-gray-800 px-4 py-3 shadow-md flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -2200,7 +2204,7 @@ export default function WaiterApp() {
               transform: isDragging ? `translateX(${dragOffset}px)` : undefined,
               transition: isDragging ? "none" : "transform 0.25s ease-out",
             }}
-            className={`flex-1 overflow-y-auto p-3 sm:p-4 pb-36 touch-pan-y ${
+            className={`flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4 pb-36 touch-pan-y ${
               slideDirection === "next"
                 ? "animate-in fade-in slide-in-from-right-4 duration-200"
                 : slideDirection === "prev"
@@ -2449,11 +2453,11 @@ export default function WaiterApp() {
       {/* MODAL TRANSFERIR MESA (RESPETA BOTTOM-16) */}
       {showTransferModal && selectedTable && (
         <div
-          className="fixed inset-x-0 top-0 bottom-16 z-45 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in"
+          className="fixed inset-x-0 top-0 bottom-16 z-45 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in overscroll-none"
           onClick={() => setShowTransferModal(false)}
         >
           <div
-            className="w-full max-w-sm bg-[#14161a] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4"
+            className="w-full max-w-sm bg-[#14161a] border border-gray-800 rounded-3xl p-5 shadow-2xl space-y-4 overscroll-contain"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">

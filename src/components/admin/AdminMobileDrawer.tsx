@@ -139,7 +139,7 @@ export function AdminMobileDrawer({ isOpen, onClose, userRole }: AdminMobileDraw
       onClick={handleDismiss}
     >
       <div
-        className={`relative w-4/5 max-w-xs h-full bg-[#181b20] border-r border-gray-800 p-5 flex flex-col justify-between shadow-2xl transform transition-all duration-200 ease-out ${
+        className={`relative w-4/5 max-w-xs h-full overflow-y-auto overscroll-contain bg-[#181b20] border-r border-gray-800 p-5 flex flex-col justify-between shadow-2xl transform transition-all duration-200 ease-out ${
           isClosing
             ? "-translate-x-full opacity-0"
             : "translate-x-0 opacity-100 animate-in slide-in-from-left duration-200"

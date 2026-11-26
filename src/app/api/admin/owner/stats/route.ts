@@ -129,8 +129,8 @@ export async function GET() {
     const occupiedTablesCount = activeTables.filter((t) => !t.tableNumber.toUpperCase().includes("BARRA")).length;
     const freeTablesCount = Math.max(0, totalTablesCount - occupiedTablesCount);
 
-    // 7. Feed de cobros del día (todos los movimientos)
-    const recentSalesFeed = closedSessionsToday.map((s) => {
+    // 7. Feed de últimos cobros (últimos 8)
+    const recentSalesFeed = closedSessionsToday.slice(0, 8).map((s) => {
       const parsed = parseSessionPayment(s);
       return {
         id: s.id,
@@ -145,8 +145,8 @@ export async function GET() {
       };
     });
 
-    // 8. Feed de gastos del día (todos los movimientos)
-    const recentExpensesFeed = expensesToday.map((e) => ({
+    // 8. Feed de últimos gastos (últimos 8)
+    const recentExpensesFeed = expensesToday.slice(0, 8).map((e) => ({
       id: e.id,
       description: e.description,
       amount: Number(e.amount),

@@ -2157,57 +2157,26 @@ Los datos iniciales se extrajeron fielmente de la carta plastificada real del re
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
 
-### Hito 93: Reemplazo de Feeds Scroleables por Tarjetas-Botón y Vistas de Pantalla Completa en Panel del Dueño
+---
+
+### Hito 95: Reversión Quirúrgica de Tarjetas-Botón a Paneles Scroleables Originales (Solicitud del Usuario)
 - **Fecha:** 25 de Noviembre de 2026
 - **Archivos Modificados:**
   - [src/app/api/admin/owner/stats/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/owner/stats/route.ts)
-  - [src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx)
-  - [DOCUMENTO_DE_SEGUIMIENTO.md](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/DOCUMENTO_DE_SEGUIMIENTO.md)
-- **Alcance y Cambios Realizados:**
-  1. **Eliminación de Cajas Scroleables en Vista Principal:**
-     - Se removieron los dos contenedores con scroll vertical interno (`max-h-72 overflow-y-auto`) que congestionaban la pantalla y generaban doble desplazamiento en teléfonos móviles.
-  2. **Diseño de Tarjetas Tipo Botón de Alta Jerarquía Visual:**
-     - **Tarjeta Botón de Ventas:** Visualiza el total cobrado hoy, cantidad de cobros efectuados, desglose en efectivo/digital y llamada de acción "Ver Todos".
-     - **Tarjeta Botón de Gastos:** Visualiza el total de egresos en rojo, cantidad de salidas registradas, desglose efectivo/transferencia y llamada de acción "Ver Todos".
-  3. **Vistas de Pantalla Completa para Todos los Movimientos:**
-     - Modales de pantalla completa (`fixed inset-0 z-50 bg-[#0b0c10]`) anclados directamente al viewport global con scroll del cuerpo congelado (`useBodyScrollLock`) y contención `overscroll-contain`.
-     - Buscador en tiempo real por número de mesa, comanda de barra, cajero responsable, descripción de gasto o valor monetario.
-     - Chips de filtro dinámico por método de pago (`Todos`, `Efectivo`, `Digital`) y por categorías operativas de gasto.
-     - Listado completo e ilimitado de todos los movimientos del día con detalle de horas, desgloses y etiquetas.
-     - Barra inferior fija con cómputo en vivo del total filtrado y botón de cierre.
-  4. **Ampliación en Backend:**
-     - En `src/app/api/admin/owner/stats/route.ts`, se eliminó el límite restrictivo `.slice(0, 8)` entregando la totalidad de transacciones del día para la auditoría ejecutiva.
-- **Certificación Técnica:**
-  - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
-
-### Hito 94: Estandarización Universal de Tarjetas-Botón y Vistas de Pantalla Completa en Admin y Superadmin
-- **Fecha:** 25 de Noviembre de 2026
-- **Archivos Modificados:**
   - [src/app/api/admin/caja/shift/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/shift/route.ts)
-  - [src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)
   - [src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx)
+  - [src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)
   - [DOCUMENTO_DE_SEGUIMIENTO.md](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/DOCUMENTO_DE_SEGUIMIENTO.md)
 - **Alcance y Cambios Realizados:**
-  1. **Caja & Contabilidad del Administrador ([src/components/admin/AdminCajaView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/AdminCajaView.tsx)):**
-     - Se suprimieron los dos paneles con scroll vertical interno (`max-h-60 overflow-y-auto`) correspondientes a "Ventas del Turno" y "Gastos de este Turno", eliminando el doble scroll en pantallas táctiles.
-     - Se implementaron dos tarjetas tipo botón accionables idénticas a las del Superadmin:
-       - **Tarjeta Botón de Ventas del Turno:** Exhibe el total facturado, número de comandas liquidadas, desglose Mesas vs Barra Rápida y acción "Ver Todo".
-       - **Tarjeta Botón de Gastos del Turno:** Exhibe el total de egresos en rojo, número de salidas, desglose Efectivo vs Digital, botón directo `+ Gasto` y acción "Ver Todo".
-     - Creación de dos vistas completas en pantalla completa (`fixed inset-0 z-50 bg-[#0b0c10]`):
-       - Buscador en tiempo real por comanda, mesa o cajero.
-       - Filtros por canal (`Todas`, `Mesas`, `Barra Rápida`) y por categorías de gastos.
-       - Despliegue exhaustivo de cada comanda y comprobante de egreso.
-       - Barra inferior fija con cómputo del subtotal filtrado y botón de cierre.
-  2. **Superadmin / Dueño ([src/components/admin/OwnerDashboardView.tsx](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/components/admin/OwnerDashboardView.tsx)):**
-     - En la pestaña de Auditoría & Seguridad, se reemplazó la tarjeta scroleable residual (`max-h-96 overflow-y-auto`) por una tarjeta-botón ejecutiva con halo ámbar que resume la cantidad de eventos auditados, el último evento registrado y abre el visor forense completo en pantalla completa (`showAllAuditModal`) con buscador por acción, aprobador y motivo.
-  3. **Backend de Caja ([src/app/api/admin/caja/shift/route.ts](file:///c:/Users/liber/OneDrive/Desktop/APP_WEB_ASADERO_RESTAURANTE/src/app/api/admin/caja/shift/route.ts)):**
-     - Se eliminó el `.slice(0, 15)` en `recentSessions` y `recentExpenses`, garantizando la entrega del 100% de movimientos del turno al frontend.
-  4. **Accesibilidad y Salida Rápida (Mecanismos de Cierre Reforzados):**
-     - Se aseguró que todas las vistas de pantalla completa (Ventas, Gastos y Auditoría) en Admin y Superadmin cuenten con botones de salida visibles en móviles y ordenadores:
-       - Botón superior derecho con icono y texto explícito `✕ Cerrar` sin recortes en pantallas pequeñas.
-       - Botón superior izquierdo de retroceso `← Volver`.
-       - Botón inferior fijo ergonómico `✕ Cerrar / Salir` para el pulgar en móviles.
-       - Listener de tecla `Escape` para cierre rápido desde teclado físico.
+  1. **Restauración de Paneles Scroleables en Super Admin (Dueño):**
+     - Se restablecieron los paneles originales empotrados con desplazamiento vertical para *"Últimos Cobros en Vivo"* y *"Últimas Salidas de Dinero"*.
+     - Se restauró la tarjeta original scroleable de eventos recientes en la pestaña de Auditoría & Seguridad.
+     - Se reactivaron los límites de respuesta inicial en backend (`.slice(0, 8)`).
+  2. **Restauración de Paneles Scroleables en Admin (Caja & Contabilidad):**
+     - Se restablecieron los paneles originales empotrados con desplazamiento vertical para *"Ventas del Turno"* y *"Gastos de este Turno"*.
+     - Se restauraron los límites de respuesta inicial en backend (`.slice(0, 15)`).
+  3. **Preservación Intacta de la Solución de Espacios y Desbordamientos (Hito 92):**
+     - Se conservan al 100% las mejoras de ergonomía y eliminación de espacios vacíos arriba y abajo, centrado de modales con `useBodyScrollLock` y `overscroll-contain` en todo el sistema.
 - **Certificación Técnica:**
   - `npm run build`: Compilación exitosa con **código de salida 0** en las 26 rutas del sistema.
 

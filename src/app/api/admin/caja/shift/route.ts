@@ -102,8 +102,8 @@ export async function GET() {
         initialCash,
         expectedCash,
         netProfit,
-        recentSessions: closedSessions,
-        recentExpenses: shiftExpenses,
+        recentSessions: closedSessions.slice(0, 15),
+        recentExpenses: shiftExpenses.slice(0, 15),
       };
     } else {
       // 2b. CAJA CERRADA: Calcular resumen inter-turno para sugerir la base automática
